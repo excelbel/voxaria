@@ -1,6 +1,27 @@
+# Node modules
 node_modules/
+
+# Log files
 *.log
-AppData/
-Documents/
-Downloads/
-OneDrive/
+
+# Environment variables
+.env
+
+# Uploaded images or files
+public/uploads/
+
+# Mac system files
+.DS_Store
+
+# VSCode settings
+.vscode/
+
+# NPM debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build directories (if any)
+dist/
+build/
+admins.json
