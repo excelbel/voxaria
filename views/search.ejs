@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search Results - VOXARIA</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<%- include("partials/header") %>
+
+<main class="article-layout">
+
+  <h1 class="article-title">Search Results for "<%= query %>"</h1>
+
+  <section class="news-grid">
+    <div class="grid-container">
+      <% if(posts.length === 0){ %>
+        <p>No articles found for "<%= query %>".</p>
+      <% } else { %>
+        <% posts.forEach(post => { %>
+          <div class="news-card">
+            <% if(post.thumbnail){ %>
+              <img src="<%= post.thumbnail %>" alt="<%= post.title %>">
+            <% } else { %>
+              <img src="/images/default-thumb.jpg" alt="No image">
+            <% } %>
+            <h3><a href="/post/<%= post._id %>"><%= post.title %></a></h3>
+            <p class="article-meta">
+              <span><strong>Author:</strong> <%= post.author %></span> |
+              <span><strong>Category:</strong> <%= post.category %></span>
+            </p>
+            <p><%= post.content.substring(0, 100) %>...</p>
+            <a href="/post/<%= post._id %>" class="read-more">Read Article</a>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-container">
+    <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
+    <div class="socials">
+      <a href="#"><img src="/images/facebook.svg" alt="Facebook"></a>
+      <a href="#"><img src="/images/twitter.svg" alt="Twitter"></a>
+      <a href="#"><img src="/images/instagram.svg" alt="Instagram"></a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

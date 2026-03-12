@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Category: <%= category %> - VOXARIA</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<%- include('partials/header', { currentPage: currentPage }) %>
+
+<main class="container-main">
+
+  <section class="latest-posts">
+    <h2>Category: <%= category %></h2>
+
+    <% if(posts.length === 0){ %>
+      <p>No articles found in this category.</p>
+    <% } %>
+
+    <% posts.forEach(post => { %>
+      <div class="card">
+        <% if(post.thumbnail){ %>
+          <img src="<%= post.thumbnail %>" alt="<%= post.title %>" style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
+        <% } %>
+        <h3><a href="/post/<%= post._id %>"><%= post.title %></a></h3>
+        <p><strong>Date:</strong> <%= post.date.toDateString() %></p>
+        <p><strong>Author:</strong> <%= post.author %></p>
+        <p><strong>Views:</strong> <%= post.views %></p>
+        <a href="/post/<%= post._id %>">Read Article</a>
+      </div>
+    <% }) %>
+
+    <!-- Pagination -->
+    <div class="pagination" style="margin-top:20px; display:flex; justify-content:center; gap:10px;">
+      <% if(page > 1){ %>
+        <a href="/category/<%= category %>?page=<%= page - 1 %>">Previous</a>
+      <% } %>
+      <span>Page <%= page %> of <%= totalPages %></span>
+      <% if(page < totalPages){ %>
+        <a href="/category/<%= category %>?page=<%= page + 1 %>">Next</a>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="widget">
+      <h3>Recent Posts</h3>
+      <ul>
+        <% recentPosts.forEach(rp => { %>
+          <li><a href="/post/<%= rp._id %>"><%= rp.title %></a></li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="widget">
+      <h3>Trending</h3>
+      <ul>
+        <% trendingPosts.forEach(tp => { %>
+          <li><a href="/post/<%= tp._id %>"><%= tp.title %></a></li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <% if(randomPost){ %>
+      <div class="widget">
+        <h3>Featured</h3>
+        <a href="/post/<%= randomPost._id %>">
+          <img src="<%= randomPost.thumbnail %>" alt="<%= randomPost.title %>" style="width:100%; border-radius:5px;">
+          <p><%= randomPost.title %></p>
+        </a>
+      </div>
+    <% } %>
+  </aside>
+
+</main>
+
+</body>
+</html>

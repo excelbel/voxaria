@@ -1,0 +1,46 @@
+<section class="hero-featured">
+
+<div class="hero-grid">
+
+<% if(featuredPost){ %>
+
+<div class="hero-card">
+
+<img src="<%= featuredPost.mainImage %>" alt="<%= featuredPost.title %>">
+
+<div class="overlay">
+<h2>
+<a href="/post/<%= featuredPost._id %>">
+<%= featuredPost.title %>
+</a>
+</h2>
+
+<p><%= featuredPost.content.substring(0,120) %>...</p>
+
+</div>
+
+</div>
+
+<% } %>
+
+<% featuredGrid.forEach(post => { %>
+
+<div class="featured-card">
+
+<img src="<%= post.thumbnail %>" alt="<%= post.title %>">
+
+<div class="overlay">
+<h3>
+<a href="/post/<%= post._id %>">
+<%= post.title %>
+</a>
+</h3>
+</div>
+
+</div>
+
+<% }) %>
+
+</div>
+
+</section>

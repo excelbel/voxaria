@@ -1,0 +1,68 @@
+<header class="site-header">
+  <div class="top-bar">
+    <a href="/" class="logo-text">VOXARIA</a>
+
+    <!-- Search -->
+    <form action="/search" method="GET" class="search-form">
+      <input type="text" name="q" placeholder="Search articles..." required>
+      <button type="submit">Search</button>
+    </form>
+
+    <!-- Single Navigation Menu -->
+    <nav class="main-nav" id="mainNav">
+      <ul>
+        <li class="<%= currentPage === 'Home' ? 'active' : '' %>"><a href="/">Home</a></li>
+        <li class="<%= currentPage === 'News' ? 'active' : '' %>"><a href="/category/News">News</a></li>
+        <li class="<%= currentPage === 'Articles' ? 'active' : '' %>"><a href="/category/Articles">Articles</a></li>
+        <li class="<%= currentPage === 'Entertainment' ? 'active' : '' %>"><a href="/category/Entertainment">Entertainment</a></li>
+        <li class="<%= currentPage === 'International' ? 'active' : '' %>"><a href="/category/International">International</a></li>
+        <li class="<%= currentPage === 'Journals' ? 'active' : '' %>"><a href="/category/Journals">Journals</a></li>
+        <li class="<%= currentPage === 'Politics' ? 'active' : '' %>"><a href="/category/Politics">Politics</a></li>
+        <li class="<%= currentPage === 'Security' ? 'active' : '' %>"><a href="/category/Security">Security</a></li>
+        <li class="<%= currentPage === 'Sports' ? 'active' : '' %>"><a href="/category/Sports">Sports</a></li>
+      </ul>
+    </nav>
+
+    <!-- Hamburger for Mobile -->
+    <div class="hamburger-menu" onclick="toggleNav()">☰</div>
+  </div>
+</header>
+
+<style>
+  .main-nav ul {
+    display: flex;
+    gap: 15px;
+  }
+  .main-nav li.active a {
+    color: #ff4b2b;
+    font-weight: bold;
+  }
+  .hamburger-menu {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+  }
+  .search-form {
+    display: inline-flex;
+    gap: 5px;
+    margin-left: 20px;
+  }
+  @media (max-width: 1024px) {
+    .main-nav ul {
+      display: none;
+      flex-direction: column;
+      background: #222;
+      padding: 15px;
+    }
+    .hamburger-menu {
+      display: block;
+    }
+  }
+</style>
+
+<script>
+  function toggleNav() {
+    const navList = document.querySelector('.main-nav ul');
+    navList.style.display = navList.style.display === 'flex' || navList.style.display === '' ? 'none' : 'flex';
+  }
+</script>
