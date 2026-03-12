@@ -52,4 +52,3 @@ yarn-error.log*
 dist/
 build/
 >>>>>>> 5602d50452a86fb49099dd9262e44b3cdd51eaec
-admins.json
