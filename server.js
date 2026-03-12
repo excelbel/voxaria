@@ -8,20 +8,24 @@ const Post = require("./models/post");
 
 const app = express();
 
-/* DATABASE */
-mongoose.connect("mongodb://127.0.0.1:27017/premium-blog")
+/* ENVIRONMENT VARIABLES */
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/premium-blog";
+
+/* DATABASE CONNECTION */
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.log("MongoDB connection error:", err));
 
 /* MIDDLEWARE */
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(session({
-  secret: "premiumblogsecret",
+  secret: process.env.SESSION_SECRET || "premiumblogsecret",
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 1 week
 }));
 
 app.set("view engine", "ejs");
@@ -45,6 +49,16 @@ async function getSidebarData() {
   };
 }
 
+/* LOAD ADMIN DATA */
+let admins = [];
+try {
+  admins = JSON.parse(fs.readFileSync(path.join(__dirname, "admins.json"), "utf8"));
+} catch (err) {
+  console.log("admins.json not found or invalid. Admin login will not work until added.");
+}
+
+/* ROUTES */
+
 /* HOME */
 app.get("/", async (req, res) => {
   try {
@@ -52,30 +66,15 @@ app.get("/", async (req, res) => {
     const limit = 6;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find()
-      .sort({ date: -1 })
-      .skip(skip)
-      .limit(limit);
-
+    const posts = await Post.find().sort({ date: -1 }).skip(skip).limit(limit);
     const totalPosts = await Post.countDocuments();
     const totalPages = Math.ceil(totalPosts / limit);
-
     const featuredPost = await Post.findOne().sort({ views: -1 });
     const featuredGrid = await Post.find().sort({ views: -1 }).limit(4);
     const sidebar = await getSidebarData();
     const breakingNews = await Post.find({ isBreaking: true }).sort({ date: -1 }).limit(10);
 
-    res.render("index", {
-      posts,
-      page,
-      totalPages,
-      featuredPost,
-      featuredGrid,
-      breakingNews,
-      currentPage: "Home",
-      ...sidebar
-    });
-
+    res.render("index", { posts, page, totalPages, featuredPost, featuredGrid, breakingNews, currentPage: "Home", ...sidebar });
   } catch (err) {
     console.log(err);
     res.status(500).send("Server Error");
@@ -89,25 +88,12 @@ app.get("/category/:name", async (req, res) => {
     const limit = 6;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ category: req.params.name })
-      .sort({ date: -1 })
-      .skip(skip)
-      .limit(limit);
-
+    const posts = await Post.find({ category: req.params.name }).sort({ date: -1 }).skip(skip).limit(limit);
     const totalPosts = await Post.countDocuments({ category: req.params.name });
     const totalPages = Math.ceil(totalPosts / limit);
-
     const sidebar = await getSidebarData();
 
-    res.render("category", {
-      posts,
-      category: req.params.name,
-      page,
-      totalPages,
-      currentPage: req.params.name,
-      ...sidebar
-    });
-
+    res.render("category", { posts, category: req.params.name, page, totalPages, currentPage: req.params.name, ...sidebar });
   } catch (err) {
     console.log(err);
     res.status(500).send("Category Error");
@@ -120,19 +106,10 @@ app.get("/search", async (req, res) => {
     const query = req.query.q;
     if (!query) return res.redirect("/");
 
-    const posts = await Post.find({
-      title: { $regex: query, $options: "i" }
-    }).sort({ date: -1 });
-
+    const posts = await Post.find({ title: { $regex: query, $options: "i" } }).sort({ date: -1 });
     const sidebar = await getSidebarData();
 
-    res.render("search", {
-      posts,
-      query,
-      currentPage: "Search",
-      ...sidebar
-    });
-
+    res.render("search", { posts, query, currentPage: "Search", ...sidebar });
   } catch (err) {
     res.status(500).send("Search Error");
   }
@@ -147,17 +124,9 @@ app.get("/post/:id", async (req, res) => {
     post.views = (post.views || 0) + 1;
     await post.save();
 
-    const relatedPosts = await Post.find({
-      category: post.category,
-      _id: { $ne: post._id }
-    }).limit(3);
+    const relatedPosts = await Post.find({ category: post.category, _id: { $ne: post._id } }).limit(3);
 
-    res.render("post", {
-      post,
-      relatedPosts,
-      currentPage: post.category
-    });
-
+    res.render("post", { post, relatedPosts, currentPage: post.category });
   } catch (err) {
     res.status(500).send("Server Error");
   }
@@ -173,7 +142,6 @@ app.post("/like/:id", async (req, res) => {
     await post.save();
 
     res.redirect("/post/" + req.params.id);
-
   } catch (err) {
     res.status(500).send("Error liking post");
   }
@@ -185,36 +153,23 @@ app.post("/post/:id/comment", async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.redirect("/");
 
-    post.comments.push({
-      name: req.body.name,
-      text: req.body.text
-    });
-
+    post.comments.push({ name: req.body.name, text: req.body.text });
     await post.save();
     res.redirect("/post/" + req.params.id);
-
   } catch {
     res.send("Error adding comment");
   }
 });
 
 /* ADMIN AUTH */
-const admins = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "admins.json"), "utf8")
-);
-
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  const admin = admins.find(
-    a => a.username === username && a.password === password
-  );
-
+  const admin = admins.find(a => a.username === username && a.password === password);
   if (admin) {
     req.session.isAdmin = true;
     req.session.adminUser = username;
     req.session.role = admin.role;
-
     return res.redirect("/admin");
   }
 
@@ -245,7 +200,6 @@ app.post("/admin/create", async (req, res) => {
     thumbnail: req.body.thumbnail || "/images/default-thumb.jpg",
     mainImage: req.body.mainImage || "/images/default-main.jpg"
   });
-
   res.redirect("/admin");
 });
 
@@ -283,7 +237,6 @@ app.post("/admin/update/:id", async (req, res) => {
 });
 
 /* SERVER */
-const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Blog running on port ${PORT}`);
 });
