@@ -13,9 +13,12 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/premium-blog";
 
 /* DATABASE CONNECTION */
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGODB_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log("MongoDB connection error:", err));
+  .catch(err => {
+    console.error("MongoDB connection error:", err);
+    process.exit(1);
+  });
 
 /* MIDDLEWARE */
 app.use(express.urlencoded({ extended: true }));
