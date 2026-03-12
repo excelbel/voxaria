@@ -10,7 +10,12 @@ const app = express();
 
 /* ENVIRONMENT VARIABLES */
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/premium-blog";
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error("Error: MONGODB_URI is not set. Set it in Railway environment variables.");
+  process.exit(1);
+}
 
 /* DATABASE CONNECTION */
 mongoose.connect(MONGODB_URI)

@@ -6,7 +6,7 @@ node_modules/
 *.log
 
 # Environment variables
-.env
+
 
 
 
