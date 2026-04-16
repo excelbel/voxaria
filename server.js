@@ -20,19 +20,21 @@ if (!MONGODB_URI) {
 
 /* DATABASE CONNECTION */
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log("MongoDB Connected"))
+  .then(async () => {
+    console.log("MongoDB Connected");
+
+    const fetchNewsAndSave = require("./services/newsService");
+
+    // run once AFTER DB is ready
+    await fetchNewsAndSave();
+
+    // run every 30 minutes
+    setInterval(fetchNewsAndSave, 30 * 60 * 1000);
+  })
   .catch(err => {
     console.error("MongoDB connection error:", err);
     process.exit(1);
   });
-
-  const fetchNewsAndSave = require("./services/newsService");
-
-// run once on startup
-fetchNewsAndSave();
-
-// or run every 30 minutes
-setInterval(fetchNewsAndSave, 30 * 60 * 1000);
 
 /* MIDDLEWARE */
 app.use(express.urlencoded({ extended: true }));
