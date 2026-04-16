@@ -22,10 +22,4 @@ const postSchema = new mongoose.Schema({
 
 module.exports = mongoose.model("Post", postSchema);
 
-const fetchNewsAndSave = require("./services/newsService");
 
-// run once on startup
-fetchNewsAndSave();
-
-// or run every 30 minutes
-setInterval(fetchNewsAndSave, 30 * 60 * 1000);

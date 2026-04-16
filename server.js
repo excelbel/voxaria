@@ -26,6 +26,14 @@ mongoose.connect(MONGODB_URI)
     process.exit(1);
   });
 
+  const fetchNewsAndSave = require("./services/newsService");
+
+// run once on startup
+fetchNewsAndSave();
+
+// or run every 30 minutes
+setInterval(fetchNewsAndSave, 30 * 60 * 1000);
+
 /* MIDDLEWARE */
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
