@@ -258,3 +258,11 @@ app.listen(PORT, () => {
   console.log(`Blog running on port ${PORT}`);
 });
 
+app.get("/posts", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ date: -1 });
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
