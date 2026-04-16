@@ -85,7 +85,10 @@ app.get("/", async (req, res) => {
     const limit = 6;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find().sort({ date: -1 }).skip(skip).limit(limit);
+    const posts = await Post.find()
+  .sort({ isBreaking: -1, date: -1 })
+  .skip(skip)
+  .limit(limit);
     const totalPosts = await Post.countDocuments();
     const totalPages = Math.ceil(totalPosts / limit);
     const featuredPost = await Post.findOne().sort({ views: -1 });
