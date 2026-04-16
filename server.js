@@ -249,3 +249,4 @@ app.post("/admin/update/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Blog running on port ${PORT}`);
 });
+
