@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title><%= post.title %> - VOXARIA</title>
-<link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title><%= post.title %> - VOXARIA</title>
+
+  <!-- SEO / Facebook / WhatsApp Preview -->
+  <meta property="og:title" content="<%= post.title %>" />
+  <meta property="og:description" content="<%= post.content.substring(0, 150) %>" />
+  <meta property="og:image" content="<%= post.mainImage %>" />
+  <meta property="og:url" content="https://voxaria.onrender.com/post/<%= post.slug %>" />
+  <meta property="og:type" content="article" />
+
+  <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
 
 <!-- HEADER -->
@@ -12,63 +21,46 @@
   <div class="top-bar">
     <a href="/" class="logo-text">VOXARIA</a>
 
-    <!-- Desktop Navigation -->
     <nav class="main-nav desktop-nav">
       <ul>
-        <li class="<%= currentPage === 'Home' ? 'active' : '' %>"><a href="/">Home</a></li>
-        <li class="<%= currentPage === 'News' ? 'active' : '' %>"><a href="/category/News">News</a></li>
-        <li class="<%= currentPage === 'Articles' ? 'active' : '' %>"><a href="/category/Articles">Articles</a></li>
-        <li class="<%= currentPage === 'Entertainment' ? 'active' : '' %>"><a href="/category/Entertainment">Entertainment</a></li>
-        <li class="<%= currentPage === 'International' ? 'active' : '' %>"><a href="/category/International">International</a></li>
-        <li class="<%= currentPage === 'Journals' ? 'active' : '' %>"><a href="/category/Journals">Journals</a></li>
-        <li class="<%= currentPage === 'Politics' ? 'active' : '' %>"><a href="/category/Politics">Politics</a></li>
-        <li class="<%= currentPage === 'Security' ? 'active' : '' %>"><a href="/category/Security">Security</a></li>
-        <li class="<%= currentPage === 'Sports' ? 'active' : '' %>"><a href="/category/Sports">Sports</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/category/News">News</a></li>
+        <li><a href="/category/Articles">Articles</a></li>
+        <li><a href="/category/Entertainment">Entertainment</a></li>
+        <li><a href="/category/International">International</a></li>
+        <li><a href="/category/Politics">Politics</a></li>
+        <li><a href="/category/Sports">Sports</a></li>
       </ul>
     </nav>
 
-    <!-- Search -->
     <form class="search-form" action="/search" method="GET">
       <input type="text" name="q" placeholder="Search..." required>
       <button type="submit">🔍</button>
     </form>
 
-    <!-- Mobile Hamburger -->
     <div class="hamburger-menu" onclick="toggleMobileNav()">☰</div>
   </div>
 
-  <!-- Mobile Navigation -->
   <nav class="main-nav mobile-nav" id="mobileNav">
     <ul>
-      <li class="<%= currentPage === 'Home' ? 'active' : '' %>"><a href="/">Home</a></li>
-      <li class="<%= currentPage === 'News' ? 'active' : '' %>"><a href="/category/News">News</a></li>
-      <li class="<%= currentPage === 'Articles' ? 'active' : '' %>"><a href="/category/Articles">Articles</a></li>
-      <li class="<%= currentPage === 'Entertainment' ? 'active' : '' %>"><a href="/category/Entertainment">Entertainment</a></li>
-      <li class="<%= currentPage === 'International' ? 'active' : '' %>"><a href="/category/International">International</a></li>
-      <li class="<%= currentPage === 'Journals' ? 'active' : '' %>"><a href="/category/Journals">Journals</a></li>
-      <li class="<%= currentPage === 'Politics' ? 'active' : '' %>"><a href="/category/Politics">Politics</a></li>
-      <li class="<%= currentPage === 'Security' ? 'active' : '' %>"><a href="/category/Security">Security</a></li>
-      <li class="<%= currentPage === 'Sports' ? 'active' : '' %>"><a href="/category/Sports">Sports</a></li>
-      <li>
-        <form class="mobile-search" action="/search" method="GET">
-          <input type="text" name="q" placeholder="Search..." required>
-          <button type="submit">🔍</button>
-        </form>
-      </li>
+      <li><a href="/">Home</a></li>
+      <li><a href="/category/News">News</a></li>
+      <li><a href="/category/Articles">Articles</a></li>
+      <li><a href="/category/Entertainment">Entertainment</a></li>
+      <li><a href="/category/International">International</a></li>
+      <li><a href="/category/Politics">Politics</a></li>
+      <li><a href="/category/Sports">Sports</a></li>
     </ul>
   </nav>
 </header>
 
 <style>
 .main-nav li.active a { color: #ff4b2b; font-weight: bold; }
-.hamburger-menu { display: none; cursor: pointer; font-size: 24px; user-select: none; }
+.hamburger-menu { display: none; cursor: pointer; font-size: 24px; }
 @media (max-width: 1024px) {
   .desktop-nav { display: none; }
   .hamburger-menu { display: block; }
   .mobile-nav { display: none; background: #222; padding: 15px; }
-  .mobile-nav ul { flex-direction: column; list-style: none; padding: 0; margin: 0; }
-  .mobile-nav li { padding: 10px 0; }
-  .mobile-search { display: flex; gap: 5px; }
 }
 </style>
 
@@ -79,50 +71,77 @@ function toggleMobileNav() {
 }
 </script>
 
-<!-- POST ARTICLE LAYOUT -->
+<!-- ARTICLE -->
 <main class="article-layout">
+
 <article class="article">
 
-<h1 class="article-title"><%= post.title %></h1>
+  <h1 class="article-title"><%= post.title %></h1>
 
-<div class="article-meta">
-  <span><strong>Author:</strong> <%= post.author %></span>
-  <span><strong>Date:</strong> <%= post.date.toDateString() %></span>
-  <span><strong>Category:</strong> <%= post.category %></span>
-  <span><strong>Views:</strong> <%= post.views || 0 %></span>
-  <span><strong>Likes:</strong> <%= post.likes || 0 %></span>
-</div>
+  <div class="article-meta">
+    <span><strong>Author:</strong> <%= post.author %></span>
+    <span><strong>Date:</strong> <%= post.date.toDateString() %></span>
+    <span><strong>Category:</strong> <%= post.category %></span>
+    <span><strong>Views:</strong> <%= post.views || 0 %></span>
+    <span><strong>Likes:</strong> <%= post.likes || 0 %></span>
+  </div>
 
-<% if(post.mainImage){ %>
-<img src="<%= post.mainImage %>" alt="<%= post.title %>" class="article-image">
-<% } %>
+  <% if(post.mainImage){ %>
+    <img src="<%= post.mainImage %>" class="article-image">
+  <% } %>
 
-<div class="post-content">
-  <p><%= post.content %></p>
-</div>
+  <div class="post-content">
+    <%- post.content %>
+  </div>
 
-<div class="post-actions">
-  <form action="/like/<%= post._id %>" method="POST">
-    <button type="submit">👍 Like (<%= post.likes || 0 %>)</button>
-  </form>
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/post/<%= post._id %>" target="_blank">
-    Share on Facebook
-  </a>
-</div>
+  <!-- SHARE BUTTONS -->
+  <div class="share-buttons">
+
+    <!-- WhatsApp -->
+    <a target="_blank"
+       href="https://wa.me/?text=<%= encodeURIComponent(post.title + ' https://voxaria.onrender.com/post/' + post.slug) %>">
+      Share on WhatsApp
+    </a>
+
+    <!-- Facebook -->
+    <a target="_blank"
+       href="https://www.facebook.com/sharer/sharer.php?u=https://voxaria.onrender.com/post/<%= post.slug %>">
+      Share on Facebook
+    </a>
+
+    <!-- Copy Link -->
+    <button onclick="copyLink()">Copy Link</button>
+
+  </div>
+
+  <script>
+    function copyLink() {
+      navigator.clipboard.writeText("https://voxaria.onrender.com/post/<%= post.slug %>");
+      alert("Link copied!");
+    }
+  </script>
+
+  <!-- LIKE -->
+  <div class="post-actions">
+    <form action="/like/<%= post._id %>" method="POST">
+      <button type="submit">👍 Like (<%= post.likes || 0 %>)</button>
+    </form>
+  </div>
 
 </article>
 
-<!-- RELATED POSTS -->
+<!-- RELATED -->
 <% if(relatedPosts && relatedPosts.length > 0){ %>
 <section class="related-posts">
   <h2>Related Articles</h2>
+
   <div class="related-grid">
     <% relatedPosts.forEach(rp => { %>
       <div class="related-card">
         <% if(rp.thumbnail){ %>
-          <img src="<%= rp.thumbnail %>" alt="<%= rp.title %>">
+          <img src="<%= rp.thumbnail %>">
         <% } %>
-        <h3><a href="/post/<%= rp._id %>"><%= rp.title %></a></h3>
+        <h3><a href="/post/<%= rp.slug %>"><%= rp.title %></a></h3>
       </div>
     <% }) %>
   </div>
@@ -131,30 +150,29 @@ function toggleMobileNav() {
 
 <!-- COMMENTS -->
 <section class="comments-section">
+
   <h2>Comments (<%= post.comments ? post.comments.length : 0 %>)</h2>
 
-  <% if(post.comments && post.comments.length > 0){ %>
+  <% if(post.comments && post.comments.length){ %>
     <% post.comments.forEach(comment => { %>
       <div class="comment">
-        <p class="comment-author"><strong><%= comment.name %></strong></p>
-        <p class="comment-text"><%= comment.text %></p>
-        <% if(comment.date){ %>
-          <span class="comment-date"><%= new Date(comment.date).toDateString() %></span>
-        <% } %>
+        <strong><%= comment.name %></strong>
+        <p><%= comment.text %></p>
       </div>
     <% }) %>
   <% } else { %>
-    <p>No comments yet. Be the first to comment.</p>
+    <p>No comments yet.</p>
   <% } %>
 
-  <h3>Leave a Comment</h3>
   <form action="/post/<%= post._id %>/comment" method="POST">
-    <input type="text" name="name" placeholder="Your name" required>
-    <textarea name="text" rows="4" placeholder="Write your comment..." required></textarea>
-    <button type="submit">Submit Comment</button>
+    <input name="name" placeholder="Your name" required>
+    <textarea name="text" required></textarea>
+    <button type="submit">Submit</button>
   </form>
+
 </section>
 
 </main>
+
 </body>
 </html>

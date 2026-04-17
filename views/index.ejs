@@ -16,7 +16,7 @@
   <div class="ticker-wrapper">
     <div class="ticker-track">
       <% breakingNews.forEach(bn => { %>
-        <a href="/post/<%= bn._id %>"><%= bn.title %></a>
+        <a href="/post/<%= bn.slug %>"><%= bn.title %></a>
       <% }) %>
     </div>
   </div>
@@ -27,7 +27,7 @@
 <div class="hero-featured">
   <% if(featuredPost){ %>
   <div class="hero-card">
-    <a href="/post/<%= featuredPost._id %>">
+    <a href="/post/<%= featuredPost.slug %>">
       <img src="<%= featuredPost.mainImage %>" alt="<%= featuredPost.title %>">
       <div class="overlay">
         <h2><%= featuredPost.title %></h2>
@@ -38,7 +38,7 @@
 
   <% featuredGrid.forEach(fg => { %>
   <div class="featured-card">
-    <a href="/post/<%= fg._id %>">
+    <a href="/post/<%= fg.slug %>">
       <img src="<%= fg.mainImage %>" alt="<%= fg.title %>">
       <div class="overlay">
         <h3><%= fg.title %></h3>
@@ -53,11 +53,16 @@
     <% posts.forEach(post => { %>
       <div class="card">
         <img src="<%= post.thumbnail %>" alt="<%= post.title %>" style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
-        <h3><a href="/post/<%= post._id %>"><%= post.title %></a></h3>
+        
+        <h3>
+          <a href="/post/<%= post.slug %>"><%= post.title %></a>
+        </h3>
+
         <p><strong>Date:</strong> <%= post.date.toDateString() %></p>
         <p><strong>Author:</strong> <%= post.author %></p>
         <p><strong>Views:</strong> <%= post.views %></p>
-        <a href="/post/<%= post._id %>">Read Article</a>
+
+        <a href="/post/<%= post.slug %>">Read Article</a>
       </div>
     <% }) %>
 
@@ -78,7 +83,7 @@
       <h3>Recent Posts</h3>
       <ul>
         <% recentPosts.forEach(rp => { %>
-          <li><a href="/post/<%= rp._id %>"><%= rp.title %></a></li>
+          <li><a href="/post/<%= rp.slug %>"><%= rp.title %></a></li>
         <% }) %>
       </ul>
     </div>
@@ -87,7 +92,7 @@
       <h3>Trending</h3>
       <ul>
         <% trendingPosts.forEach(tp => { %>
-          <li><a href="/post/<%= tp._id %>"><%= tp.title %></a></li>
+          <li><a href="/post/<%= tp.slug %>"><%= tp.title %></a></li>
         <% }) %>
       </ul>
     </div>
@@ -95,7 +100,7 @@
     <% if(randomPost){ %>
     <div class="widget">
       <h3>Featured</h3>
-      <a href="/post/<%= randomPost._id %>">
+      <a href="/post/<%= randomPost.slug %>">
         <img src="<%= randomPost.thumbnail %>" alt="<%= randomPost.title %>" style="width:100%; border-radius:5px;">
         <p><%= randomPost.title %></p>
       </a>
@@ -119,5 +124,24 @@
 
   </div>
 </footer>
+<script>
+setInterval(() => {
+  fetch("/posts")
+    .then(res => res.json())
+    .then(posts => {
+      const container = document.querySelector(".latest-posts");
+      if (!container) return;
+
+      container.innerHTML = posts.map(post => `
+        <div class="card">
+          <h3>${post.title}</h3>
+          <p>${new Date(post.date).toDateString()}</p>
+        </div>
+      `).join("");
+
+      console.log("Page updated with latest news");
+    });
+}, 60000);
+</script>
 </body>
 </html>
