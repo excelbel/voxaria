@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>VOXARIA Blog</title>
-<link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title>VOXARIA Blog</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
 <%- include('partials/header', { currentPage: currentPage }) %>
 
 <!-- Breaking News Ticker -->
-<% if(breakingNews.length > 0){ %>
+<% if (breakingNews && breakingNews.length > 0) { %>
 <div class="breaking-news">
   <span class="breaking-label">BREAKING</span>
   <div class="ticker-wrapper">
     <div class="ticker-track">
       <% breakingNews.forEach(bn => { %>
-        <a href="/post/<%= bn.slug %>"><%= bn.title %></a>
+        <a href="/post/<%= bn.slug || bn._id %>"><%= bn.title %></a>
       <% }) %>
     </div>
   </div>
@@ -25,10 +25,10 @@
 
 <!-- Hero Section -->
 <div class="hero-featured">
-  <% if(featuredPost){ %>
+  <% if (featuredPost) { %>
   <div class="hero-card">
-    <a href="/post/<%= featuredPost.slug %>">
-      <img src="<%= featuredPost.mainImage %>" alt="<%= featuredPost.title %>">
+    <a href="/post/<%= featuredPost.slug || featuredPost._id %>">
+      <img src="<%= featuredPost.mainImage || '/images/default-main.jpg' %>" alt="<%= featuredPost.title %>">
       <div class="overlay">
         <h2><%= featuredPost.title %></h2>
       </div>
@@ -36,72 +36,97 @@
   </div>
   <% } %>
 
-  <% featuredGrid.forEach(fg => { %>
-  <div class="featured-card">
-    <a href="/post/<%= fg.slug %>">
-      <img src="<%= fg.mainImage %>" alt="<%= fg.title %>">
-      <div class="overlay">
-        <h3><%= fg.title %></h3>
-      </div>
-    </a>
-  </div>
-  <% }) %>
+  <% if (featuredGrid && featuredGrid.length > 0) { %>
+    <% featuredGrid.forEach(fg => { %>
+    <div class="featured-card">
+      <a href="/post/<%= fg.slug || fg._id %>">
+        <img src="<%= fg.mainImage || '/images/default-main.jpg' %>" alt="<%= fg.title %>">
+        <div class="overlay">
+          <h3><%= fg.title %></h3>
+        </div>
+      </a>
+    </div>
+    <% }) %>
+  <% } %>
 </div>
 
 <main class="container-main">
   <section class="latest-posts">
-    <% posts.forEach(post => { %>
-      <div class="card">
-        <img src="<%= post.thumbnail %>" alt="<%= post.title %>" style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
-        
-        <h3>
-          <a href="/post/<%= post.slug %>"><%= post.title %></a>
-        </h3>
+    <% if (posts && posts.length > 0) { %>
+      <% posts.forEach(post => { %>
+        <div class="card">
+          <img 
+            src="<%= post.thumbnail || '/images/default-thumb.jpg' %>" 
+            alt="<%= post.title %>" 
+            style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;"
+          >
 
-        <p><strong>Date:</strong> <%= post.date.toDateString() %></p>
-        <p><strong>Author:</strong> <%= post.author %></p>
-        <p><strong>Views:</strong> <%= post.views %></p>
+          <h3>
+            <a href="/post/<%= post.slug || post._id %>"><%= post.title %></a>
+          </h3>
 
-        <a href="/post/<%= post.slug %>">Read Article</a>
-      </div>
-    <% }) %>
+          <p><strong>Date:</strong> <%= new Date(post.date).toDateString() %></p>
+          <p><strong>Author:</strong> <%= post.author || 'Admin' %></p>
+          <p><strong>Views:</strong> <%= post.views || 0 %></p>
+
+          <a href="/post/<%= post.slug || post._id %>">Read Article</a>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No posts available.</p>
+    <% } %>
 
     <!-- Pagination -->
     <div class="pagination" style="margin-top:20px; display:flex; justify-content:center; gap:10px;">
-      <% if(page > 1){ %>
-        <a href="/?page=<%= page-1 %>">Previous</a>
+      <% if (page > 1) { %>
+        <a href="/?page=<%= page - 1 %>">Previous</a>
       <% } %>
+
       <span>Page <%= page %> of <%= totalPages %></span>
-      <% if(page < totalPages){ %>
-        <a href="/?page=<%= page+1 %>">Next</a>
+
+      <% if (page < totalPages) { %>
+        <a href="/?page=<%= page + 1 %>">Next</a>
       <% } %>
     </div>
   </section>
 
+  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="widget">
       <h3>Recent Posts</h3>
       <ul>
-        <% recentPosts.forEach(rp => { %>
-          <li><a href="/post/<%= rp.slug %>"><%= rp.title %></a></li>
-        <% }) %>
+        <% if (recentPosts && recentPosts.length > 0) { %>
+          <% recentPosts.forEach(rp => { %>
+            <li>
+              <a href="/post/<%= rp.slug || rp._id %>"><%= rp.title %></a>
+            </li>
+          <% }) %>
+        <% } %>
       </ul>
     </div>
 
     <div class="widget">
       <h3>Trending</h3>
       <ul>
-        <% trendingPosts.forEach(tp => { %>
-          <li><a href="/post/<%= tp.slug %>"><%= tp.title %></a></li>
-        <% }) %>
+        <% if (trendingPosts && trendingPosts.length > 0) { %>
+          <% trendingPosts.forEach(tp => { %>
+            <li>
+              <a href="/post/<%= tp.slug || tp._id %>"><%= tp.title %></a>
+            </li>
+          <% }) %>
+        <% } %>
       </ul>
     </div>
 
-    <% if(randomPost){ %>
+    <% if (randomPost) { %>
     <div class="widget">
       <h3>Featured</h3>
-      <a href="/post/<%= randomPost.slug %>">
-        <img src="<%= randomPost.thumbnail %>" alt="<%= randomPost.title %>" style="width:100%; border-radius:5px;">
+      <a href="/post/<%= randomPost.slug || randomPost._id %>">
+        <img 
+          src="<%= randomPost.thumbnail || '/images/default-thumb.jpg' %>" 
+          alt="<%= randomPost.title %>" 
+          style="width:100%; border-radius:5px;"
+        >
         <p><%= randomPost.title %></p>
       </a>
     </div>
@@ -112,36 +137,20 @@
 <footer class="bottom-links">
   <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
   <div class="socials">
-     <h3>Contact</h3>
-
-      <p>Anambra State,Nigeria</p>
-
-      <p>Email: <a href="mailto:info@apc-campaign.com">info@voxaria.org</a></p>
-
-      <p><a href="https://wa.me/2349012567912" target="_blank">WhatsApp</a></p>
-
-      <p><a href="https://web.facebook.com/voxaria" target="_blank">Facebook</a></p>
-
+    <h3>Contact</h3>
+    <p>Anambra State, Nigeria</p>
+    <p>Email: <a href="mailto:info@voxaria.org">info@voxaria.org</a></p>
+    <p><a href="https://wa.me/2349012567912" target="_blank">WhatsApp</a></p>
+    <p><a href="https://web.facebook.com/voxaria" target="_blank">Facebook</a></p>
   </div>
 </footer>
+
+<!-- Auto refresh every 60 seconds -->
 <script>
 setInterval(() => {
-  fetch("/posts")
-    .then(res => res.json())
-    .then(posts => {
-      const container = document.querySelector(".latest-posts");
-      if (!container) return;
-
-      container.innerHTML = posts.map(post => `
-        <div class="card">
-          <h3>${post.title}</h3>
-          <p>${new Date(post.date).toDateString()}</p>
-        </div>
-      `).join("");
-
-      console.log("Page updated with latest news");
-    });
+  location.reload();
 }, 60000);
 </script>
+
 </body>
 </html>

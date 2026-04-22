@@ -26,7 +26,7 @@
 
         <!-- TITLE -->
         <h3>
-          <a href="/post/<%= post.slug %>"><%= post.title %></a>
+          <a href="/post/<%= post.slug || post._id %>"><%= post.title %></a>
         </h3>
 
         <p><strong>Date:</strong> <%= post.date.toDateString() %></p>
@@ -34,7 +34,7 @@
         <p><strong>Views:</strong> <%= post.views %></p>
 
         <!-- READ BUTTON -->
-        <a href="/post/<%= post.slug %>">Read Article</a>
+        <a href="/post/<%= post.slug || post._id %>">Read Article</a>
       </div>
     <% }) %>
 

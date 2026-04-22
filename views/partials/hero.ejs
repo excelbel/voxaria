@@ -31,7 +31,7 @@
 
 <div class="overlay">
 <h3>
-<a href="/post/<%= post.slug %>">
+<a href="/post/<%= post.slug || post._id %>">
 <%= post.title %>
 </a>
 </h3>
