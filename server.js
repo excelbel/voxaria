@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
@@ -10,16 +10,16 @@ const Post = require("./models/post");
 
 const app = express();
 
-/* ENVIRONMENT VARIABLES */
+/* ENV VARIABLES */
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  console.error("Error: MONGODB_URI is not set.");
+  console.error("MONGODB_URI is missing");
   process.exit(1);
 }
 
-/* DATABASE CONNECTION */
+/* DATABASE */
 mongoose.connect(MONGODB_URI)
   .then(async () => {
     console.log("MongoDB Connected");
@@ -30,24 +30,28 @@ mongoose.connect(MONGODB_URI)
     setInterval(fetchNewsAndSave, 30 * 60 * 1000);
   })
   .catch(err => {
-    console.error("MongoDB connection error:", err);
+    console.error(err);
     process.exit(1);
   });
 
 /* MIDDLEWARE */
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || "premiumblogsecret",
+  secret: process.env.SESSION_SECRET || "voxaria_secret_key",
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true
+  }
 }));
 
 app.set("view engine", "ejs");
 
-/* GLOBAL VARIABLES */
+/* GLOBALS */
 app.use((req, res, next) => {
   res.locals.isAdmin = req.session.isAdmin || false;
   res.locals.adminUser = req.session.adminUser || null;
@@ -58,6 +62,7 @@ app.use((req, res, next) => {
 /* SIDEBAR */
 async function getSidebarData() {
   const randomPostArr = await Post.aggregate([{ $sample: { size: 1 } }]);
+
   return {
     randomPost: randomPostArr.length ? randomPostArr[0] : null,
     recentPosts: await Post.find().sort({ date: -1 }).limit(5),
@@ -84,7 +89,9 @@ app.get("/", async (req, res) => {
     const featuredPost = await Post.findOne().sort({ views: -1 });
     const featuredGrid = await Post.find().sort({ views: -1 }).limit(4);
     const sidebar = await getSidebarData();
-    const breakingNews = await Post.find({ isBreaking: true }).sort({ date: -1 }).limit(10);
+    const breakingNews = await Post.find({ isBreaking: true })
+      .sort({ date: -1 })
+      .limit(10);
 
     res.render("index", {
       posts,
@@ -98,6 +105,7 @@ app.get("/", async (req, res) => {
     });
 
   } catch (err) {
+    console.log(err);
     res.status(500).send("Server Error");
   }
 });
@@ -116,6 +124,7 @@ app.get("/category/:name", async (req, res) => {
 
     const totalPosts = await Post.countDocuments({ category: req.params.name });
     const totalPages = Math.ceil(totalPosts / limit);
+
     const sidebar = await getSidebarData();
 
     res.render("category", {
@@ -138,8 +147,9 @@ app.get("/search", async (req, res) => {
     const query = req.query.q;
     if (!query) return res.redirect("/");
 
-    const posts = await Post.find({ title: { $regex: query, $options: "i" } })
-      .sort({ date: -1 });
+    const posts = await Post.find({
+      title: { $regex: query, $options: "i" }
+    }).sort({ date: -1 });
 
     const sidebar = await getSidebarData();
 
@@ -155,7 +165,7 @@ app.get("/search", async (req, res) => {
   }
 });
 
-/* SINGLE POST (NOW USING SLUG) */
+/* SINGLE POST */
 app.get("/post/:slug", async (req, res) => {
   try {
     const post = await Post.findOne({ slug: req.params.slug });
@@ -177,66 +187,114 @@ app.get("/post/:slug", async (req, res) => {
     });
 
   } catch (err) {
+    console.log(err);
     res.status(500).send("Server Error");
   }
 });
 
 /* LIKE */
 app.post("/like/:id", async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  if (!post) return res.status(404).send("Post not found");
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).send("Post not found");
 
-  post.likes += 1;
-  await post.save();
+    post.likes = (post.likes || 0) + 1;
+    await post.save();
 
-  res.redirect("back");
+    res.redirect("back");
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 });
 
 /* COMMENT */
 app.post("/post/:id/comment", async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  if (!post) return res.redirect("/");
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.redirect("/");
 
-  post.comments.push({
-    name: req.body.name,
-    text: req.body.text
-  });
+    post.comments.push({
+      name: req.body.name,
+      text: req.body.text
+    });
 
-  await post.save();
-  res.redirect("back");
+    await post.save();
+    res.redirect("back");
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 });
 
-/* ADMIN CREATE (WITH SLUG) */
-app.post("/admin/create", async (req, res) => {
-  await Post.create({
-    title: req.body.title,
-    slug: slugify(req.body.title, { lower: true, strict: true }),
-    content: req.body.content,
-    author: req.body.author,
-    category: req.body.category,
-    isBreaking: req.body.isBreaking === "on",
-    thumbnail: req.body.thumbnail || "/images/default-thumb.jpg",
-    mainImage: req.body.mainImage || "/images/default-main.jpg"
-  });
+/* ADMIN LOGIN */
+app.post("/login", (req, res) => {
+  const admins = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "admins.json"), "utf8")
+  );
+
+  const { username, password } = req.body;
+
+  const admin = admins.find(
+    a => a.username === username && a.password === password
+  );
+
+  if (!admin) {
+    return res.send("Wrong username or password");
+  }
+
+  req.session.isAdmin = true;
+  req.session.adminUser = username;
+  req.session.role = admin.role;
 
   res.redirect("/admin");
 });
 
-/* ADMIN ROUTES (UNCHANGED) */
+/* ADMIN PAGE */
 app.get("/admin", async (req, res) => {
-  if (!req.session.isAdmin) return res.render("login");
+  try {
+    if (!req.session || !req.session.isAdmin) {
+      return res.render("login");
+    }
 
-  const posts = await Post.find().sort({ date: -1 });
-  res.render("admin", { posts });
+    const posts = await Post.find().sort({ date: -1 });
+
+    res.render("admin", {
+      posts,
+      role: req.session.role,
+      adminUser: req.session.adminUser
+    });
+
+  } catch (err) {
+    res.status(500).send("Server Error");
+  }
 });
 
-/* POSTS API */
+/* CREATE POST */
+app.post("/admin/create", async (req, res) => {
+  try {
+    await Post.create({
+      title: req.body.title,
+      slug: slugify(req.body.title, { lower: true, strict: true }),
+      content: req.body.content,
+      author: req.body.author,
+      category: req.body.category,
+      isBreaking: req.body.isBreaking === "on",
+      thumbnail: req.body.thumbnail || "/images/default-thumb.jpg",
+      mainImage: req.body.mainImage || "/images/default-main.jpg"
+    });
+
+    res.redirect("/admin");
+  } catch (err) {
+    res.status(500).send("Error creating post");
+  }
+});
+
+/* API */
 app.get("/posts", async (req, res) => {
   const posts = await Post.find().sort({ date: -1 });
   res.json(posts);
 });
 
-/* SERVER */
+/* START SERVER */
 app.listen(PORT, () => {
   console.log(`Blog running on port ${PORT}`);
 });
