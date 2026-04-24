@@ -21,6 +21,18 @@ app.use(
 );
 
 // routes
-app.use("/", require("./routes/index"));
+const Post = require("./models/post");
+
+app.get("/", async (req, res) => {
+  const posts = await Post.find().sort({ date: -1 }).limit(10);
+
+  res.render("index", {
+    posts,
+    featuredGrid: [],
+    featuredPost: null,
+    breakingNews: [],
+    currentPage: "home"
+  });
+});
 
 module.exports = app;
