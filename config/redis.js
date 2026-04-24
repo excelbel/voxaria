@@ -1,31 +1,27 @@
-const redis = require("redis");
+const { createClient } = require("redis");
 
 let client;
-let isReady = false;
 
 async function connectRedis() {
   try {
-    client = redis.createClient({
+    client = createClient({
       url: process.env.REDIS_URL
     });
 
-    client.on("error", () => {
-      console.log("Redis not available, running without cache");
-      isReady = false;
+    client.on("error", err => {
+      console.log("Redis error:", err.message);
     });
 
     await client.connect();
-    isReady = true;
+    console.log("Redis Connected");
 
-    console.log("Redis connected");
   } catch (err) {
-    console.log("Redis disabled");
-    isReady = false;
+    console.log("Redis failed, fallback mode");
   }
 }
 
-function getClient() {
-  return { client, isReady };
+function getRedis() {
+  return client;
 }
 
-module.exports = { connectRedis, getClient };
+module.exports = { connectRedis, getRedis };

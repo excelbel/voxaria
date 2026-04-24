@@ -1,24 +1,18 @@
-const { getClient } = require("../config/redis");
+const { getRedis } = require("../config/redis");
 
-async function getCache(key, fetchFn, ttl = 60) {
-  const { client, isReady } = getClient();
+async function getCache(key) {
+  const redis = getRedis();
+  if (!redis) return null;
 
-  try {
-    if (isReady && client) {
-      const cached = await client.get(key);
-      if (cached) return JSON.parse(cached);
-    }
-  } catch (e) {}
-
-  const fresh = await fetchFn();
-
-  try {
-    if (isReady && client) {
-      await client.setEx(key, ttl, JSON.stringify(fresh));
-    }
-  } catch (e) {}
-
-  return fresh;
+  const data = await redis.get(key);
+  return data ? JSON.parse(data) : null;
 }
 
-module.exports = getCache;
+async function setCache(key, value, ttl = 300) {
+  const redis = getRedis();
+  if (!redis) return;
+
+  await redis.setEx(key, ttl, JSON.stringify(value));
+}
+
+module.exports = { getCache, setCache };
