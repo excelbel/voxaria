@@ -91,64 +91,87 @@ async function getSidebarData() {
 /* =========================
    ROUTES
 ========================= */
+/* =========================
+   ROUTES
+========================= */
 app.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const totalPosts = await Post.countDocuments();
-
     const posts = await Post.find()
       .sort({ date: -1 })
       .skip(skip)
       .limit(limit);
 
+    const totalPosts = await Post.countDocuments();
+
     const sidebar = await getSidebarData();
 
-    const breakingNews = await Post.find({ isBreaking: true })
-      .sort({ date: -1 })
-      .limit(10);
-
+    // FEATURED POST (latest)
     const featuredPost = await Post.findOne().sort({ date: -1 });
 
+    // FEATURED GRID (next 4 posts)
     const featuredGrid = await Post.find()
       .sort({ date: -1 })
       .skip(1)
       .limit(4);
 
-    res.render("index", {
-      posts: posts || [],
-      breakingNews: breakingNews || [],
-      featuredPost: featuredPost || null,
-      featuredGrid: featuredGrid || [],
-      currentPage: "home",
+    // BREAKING NEWS (latest 5 titles)
+    const breakingNews = await Post.find()
+      .sort({ date: -1 })
+      .limit(5);
 
-      // ✅ pagination variables
+    res.render("index", {
+      posts,
       page,
-      totalPages: Math.ceil(totalPosts / limit)
-    });
+      totalPages: Math.ceil(totalPosts / limit),
 
+      // REQUIRED VARIABLES FOR EJS
+      featuredPost,
+      featuredGrid,
+      breakingNews,
+
+      // SIDEBAR
+      recentPosts: sidebar.recentPosts || [],
+      trendingPosts: sidebar.trendingPosts || [],
+      randomPost: sidebar.randomPost || null,
+
+      currentPage: "home"
+    });
   } catch (err) {
-    console.log("HOME ERROR:", err);
-
-    res.render("index", {
-      posts: [],
-      breakingNews: [],
-      featuredPost: null,
-      featuredGrid: [],
-      currentPage: "home",
-
-      // fallback
-      page: 1,
-      totalPages: 1
-    });
+    console.error("HOME ERROR:", err);
+    res.status(500).send("Server Error");
   }
 });
-    
 
-  
+app.get("/post/:slug", async (req, res) => {
+  try {
+    const post = await Post.findOne({ slug: req.params.slug });
 
+    if (!post) return res.status(404).send("Post not found");
+
+    post.analytics = post.analytics || { views: 0, likes: 0, shares: 0 };
+    post.analytics.views += 1;
+    await post.save();
+
+    // RELATED POSTS
+    const relatedPosts = await Post.find({
+      category: post.category,
+      _id: { $ne: post._id }
+    }).limit(4);
+
+    res.render("post", {
+      post,
+      relatedPosts: relatedPosts || [],
+      currentPage: "post"
+    });
+  } catch (err) {
+    console.error("POST ERROR:", err);
+    res.status(500).send("Server Error");
+  }
+});
 /* =========================
    ADMIN
 ========================= */
