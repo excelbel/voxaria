@@ -1,9 +1,6 @@
-// SIMPLE AI IMAGE PLACEHOLDER SERVICE
-// Replace later with DALL·E or Stability AI
+async function generateImage(title) {
+  // placeholder production-safe system
+  return `https://source.unsplash.com/1200x600/?${encodeURIComponent(title)}`;
+}
 
-module.exports = async function generateImage(title) {
-  const encoded = encodeURIComponent(title);
-
-  // Using free image generation fallback (Unsplash)
-  return `https://source.unsplash.com/1200x800/?${encoded}`;
-};
+module.exports = generateImage;
