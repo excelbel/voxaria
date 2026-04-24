@@ -93,14 +93,20 @@ app.get("/", async (req, res) => {
     const posts = await Post.find().sort({ date: -1 }).limit(10);
     const sidebar = await getSidebarData();
 
+    // ✅ FIX: get breaking news
+    const breakingNews = await Post.find({ isBreaking: true })
+      .sort({ date: -1 })
+      .limit(10);
+
     res.render("index", {
       posts,
-      ...sidebar,
-      currentPage: "home"
+      breakingNews,
+      currentPage: "home",
+      ...sidebar
     });
   } catch (err) {
-    console.error("HOME ROUTE ERROR:", err);
-    res.status(500).send("Internal Server Error");
+    console.log("HOME ERROR:", err.message);
+    res.status(500).send("Server Error");
   }
 });
 
@@ -120,8 +126,8 @@ app.get("/post/:slug", async (req, res) => {
       currentPage: "post"
     });
   } catch (err) {
-    console.error("POST ROUTE ERROR:", err);
-    res.status(500).send("Internal Server Error");
+    console.log("POST ERROR:", err.message);
+    res.status(500).send("Server Error");
   }
 });
 
@@ -129,16 +135,10 @@ app.get("/post/:slug", async (req, res) => {
    ADMIN
 ========================= */
 app.get("/admin", async (req, res) => {
-  if (!req.session.isAdmin) {
-    return res.render("login", { currentPage: "login" });
-  }
+  if (!req.session.isAdmin) return res.render("login");
 
   const posts = await Post.find().sort({ date: -1 });
-
-  res.render("admin", {
-    posts,
-    currentPage: "admin"
-  });
+  res.render("admin", { posts, currentPage: "admin" });
 });
 
 app.post("/login", (req, res) => {
@@ -189,10 +189,7 @@ app.get("/admin/edit/:id", async (req, res) => {
   const post = await Post.findById(req.params.id);
   if (!post) return res.send("Post not found");
 
-  res.render("edit", {
-    post,
-    currentPage: "edit"
-  });
+  res.render("edit", { post });
 });
 
 app.post("/admin/edit/:id", async (req, res) => {
@@ -256,8 +253,7 @@ app.get("/admin/analytics", async (req, res) => {
   res.render("analytics", {
     totalPosts,
     stats: stats[0] || { views: 0, likes: 0, shares: 0 },
-    topPosts,
-    currentPage: "analytics"
+    topPosts
   });
 });
 
