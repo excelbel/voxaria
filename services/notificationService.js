@@ -1,4 +1,4 @@
-const admin = require("./firebase");
+const admin = require("./services/firebase");
 
 const sendPushNotification = async (tokens, post) => {
   if (!tokens || tokens.length === 0) return;

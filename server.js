@@ -38,7 +38,7 @@ const fetchNewsAndSave = require("./services/newsService");
    FIREBASE (CLEAN FIX)
    IMPORTANT: no JSON file anymore
 ========================= */
-const admin = require("./firebase");
+const admin = require("./services/firebase");
 
 /* =========================
    INIT APP
