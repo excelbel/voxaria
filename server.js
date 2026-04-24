@@ -39,7 +39,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 /* =========================
-   SESSION (LIGHTWEIGHT PROD SAFE)
+   SESSION (PRODUCTION SAFE)
 ========================= */
 app.use(
   session({
@@ -55,7 +55,7 @@ app.use(
 );
 
 /* =========================
-   FRONTEND VIEW ENGINE (BBC STYLE)
+   BBC STYLE VIEW ENGINE
 ========================= */
 function buildHomeView(posts = []) {
   const safePosts = Array.isArray(posts) ? posts : [];
@@ -70,7 +70,7 @@ function buildHomeView(posts = []) {
 }
 
 /* =========================
-   GLOBAL SAFE LOCALS (NO EJS CRASHES)
+   GLOBAL SAFE LOCALS
 ========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl = BASE_URL;
@@ -84,14 +84,14 @@ app.use((req, res, next) => {
 });
 
 /* =========================
-   HEALTH CHECK (RENDER REQUIREMENT)
+   HEALTH CHECK
 ========================= */
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
 /* =========================
-   HOME ROUTE (OPTIMIZED ENGINE)
+   HOME ROUTE (OPTIMIZED)
 ========================= */
 app.get("/", async (req, res) => {
   try {
@@ -108,7 +108,11 @@ app.get("/", async (req, res) => {
       breakingNews: view.breakingNews,
       featuredGrid: view.featuredGrid,
       trendingNews: view.trendingNews,
-      currentPage: "home"
+      currentPage: "home",
+      page: 1,
+      totalPages: 1,
+      recentPosts: view.breakingNews,
+      randomPost: posts[Math.floor(Math.random() * posts.length)] || null
     });
 
   } catch (err) {
@@ -145,7 +149,7 @@ app.get("/post/:slug", async (req, res) => {
 });
 
 /* =========================
-   START SERVER (SAFE BOOT)
+   START SERVER
 ========================= */
 async function startServer() {
   try {
