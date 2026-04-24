@@ -19,17 +19,15 @@ const BASE_URL = "https://voxaria.org";
 mongoose.set("strictQuery", true);
 
 /* =========================
-   VIEW ENGINE + STATIC FILES
+   VIEW ENGINE
 ========================= */
 app.set("view engine", "ejs");
 app.set("trust proxy", 1);
 
-app.use(
-  express.static(path.join(__dirname, "public"), {
-    maxAge: "1d",
-    etag: true
-  })
-);
+app.use(express.static(path.join(__dirname, "public"), {
+  maxAge: "1d",
+  etag: true
+}));
 
 /* =========================
    PERFORMANCE MIDDLEWARE
@@ -39,7 +37,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 /* =========================
-   SESSION (PRODUCTION SAFE)
+   SESSION (SAFE)
 ========================= */
 app.use(
   session({
@@ -55,22 +53,8 @@ app.use(
 );
 
 /* =========================
-   BBC STYLE VIEW ENGINE
-========================= */
-function buildHomeView(posts = []) {
-  const safePosts = Array.isArray(posts) ? posts : [];
-
-  return {
-    featuredPost: safePosts[0] || null,
-    breakingNews: safePosts.slice(0, 5),
-    featuredGrid: safePosts.slice(1, 7),
-    trendingNews: safePosts.slice(7, 13),
-    latestNews: safePosts.slice(0, 20)
-  };
-}
-
-/* =========================
-   GLOBAL SAFE LOCALS
+   GLOBAL SAFETY LOCALS
+   (PREVENT ALL EJS CRASHES)
 ========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl = BASE_URL;
@@ -78,10 +62,28 @@ app.use((req, res, next) => {
   res.locals.featuredPost = null;
   res.locals.featuredGrid = [];
   res.locals.breakingNews = [];
-  res.locals.trendingNews = [];
+  res.locals.trendingPosts = [];
+  res.locals.recentPosts = [];
+  res.locals.randomPost = null;
 
   next();
 });
+
+/* =========================
+   HOME VIEW ENGINE BUILDER
+========================= */
+function buildHomeView(posts = []) {
+  const safe = Array.isArray(posts) ? posts : [];
+
+  return {
+    featuredPost: safe[0] || null,
+    breakingNews: safe.slice(0, 5),
+    featuredGrid: safe.slice(1, 7),
+    trendingPosts: safe.slice(5, 12),
+    recentPosts: safe.slice(0, 10),
+    latestPosts: safe.slice(0, 20)
+  };
+}
 
 /* =========================
    HEALTH CHECK
@@ -91,7 +93,7 @@ app.get("/health", (req, res) => {
 });
 
 /* =========================
-   HOME ROUTE (OPTIMIZED)
+   HOME ROUTE (FAST + SAFE)
 ========================= */
 app.get("/", async (req, res) => {
   try {
@@ -102,17 +104,32 @@ app.get("/", async (req, res) => {
 
     const view = buildHomeView(posts);
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const totalPages = Math.ceil(posts.length / limit);
+
+    const paginatedPosts = view.latestPosts.slice(
+      (page - 1) * limit,
+      page * limit
+    );
+
+    const randomPost =
+      posts.length > 0
+        ? posts[Math.floor(Math.random() * posts.length)]
+        : null;
+
     res.render("index", {
-      posts: view.latestNews,
+      posts: paginatedPosts,
       featuredPost: view.featuredPost,
       breakingNews: view.breakingNews,
       featuredGrid: view.featuredGrid,
-      trendingNews: view.trendingNews,
-      currentPage: "home",
-      page: 1,
-      totalPages: 1,
-      recentPosts: view.breakingNews,
-      randomPost: posts[Math.floor(Math.random() * posts.length)] || null
+      trendingPosts: view.trendingPosts,
+      recentPosts: view.recentPosts,
+      randomPost,
+
+      page,
+      totalPages,
+      currentPage: "home"
     });
 
   } catch (err) {
