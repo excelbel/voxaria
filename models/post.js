@@ -11,51 +11,40 @@ const analyticsSchema = new mongoose.Schema({
   views: { type: Number, default: 0 },
   likes: { type: Number, default: 0 },
   shares: { type: Number, default: 0 },
-  engagement: { type: Number, default: 0 } // optional metric
+  engagement: { type: Number, default: 0 }
 });
 
 const postSchema = new mongoose.Schema({
   title: { type: String, required: true },
-
-  // SEO FRIENDLY URL
   slug: { type: String, unique: true, index: true },
-
   content: { type: String, required: true },
 
-  // AI GENERATED SUMMARY
   aiSummary: { type: String, default: "" },
+  readTime: { type: Number, default: 0 },
 
-  // CONTENT METADATA
+  seoTitle: { type: String, default: "" },
+  tags: [String],
+
   date: { type: Date, default: Date.now },
   author: { type: String, default: "Admin" },
   category: { type: String, default: "General" },
+
   isBreaking: { type: Boolean, default: false },
 
-  // MEDIA
   thumbnail: { type: String, default: "/images/default-thumb.jpg" },
   mainImage: { type: String, default: "/images/default-main.jpg" },
 
-  // ANALYTICS (NEW STRUCTURE)
   analytics: analyticsSchema,
+  comments: [commentSchema],
 
-  // COMMENTS
-  comments: [commentSchema]
+  subscribers: [{ type: String }]
 });
 
-/**
- * AUTO SLUG GENERATION
- * Ensures clean SEO URLs like:
- * /post/tinubu-visits-uk-security-tightened
- */
-postSchema.pre("save", function (next) {
-  if (!this.slug || this.isModified("title")) {
-    this.slug = slugify(this.title, {
-      lower: true,
-      strict: true
-    });
+/* SAFE SLUG GENERATION (NO next used incorrectly) */
+postSchema.pre("save", async function () {
+  if (!this.slug) {
+    this.slug = slugify(this.title, { lower: true, strict: true });
   }
-
-  
 });
 
 module.exports = mongoose.model("Post", postSchema);

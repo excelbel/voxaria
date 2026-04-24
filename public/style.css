@@ -105,7 +105,7 @@ button:hover {
 .ticker-track {
   display: inline-block;
   white-space: nowrap;
-  animation: tickerScroll 25s linear infinite;
+  animation: tickerScroll 60s linear infinite;
 }
 
 .ticker-track a {

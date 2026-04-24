@@ -22,3 +22,6 @@ public/uploads/
 # Build directories (if any)
 dist/
 build/
+
+firebase-service-account.json
+.env
