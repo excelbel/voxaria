@@ -12,6 +12,12 @@ process.on("unhandledRejection", (err) => {
 
 require("dotenv").config();
 
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+
+app.use((req, res, next) => {
+  res.locals.baseUrl = BASE_URL;
+  next();
+});
 /* =========================
    CORE IMPORTS
 ========================= */

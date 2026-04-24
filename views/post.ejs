@@ -8,7 +8,7 @@
   <meta property="og:title" content="<%= post.title %>" />
   <meta property="og:description" content="<%= post.aiSummary || post.content.substring(0,150) %>" />
   <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>" />
-  <meta property="og:url" content="https://voxaria.onrender.com/post/<%= post.slug %>" />
+  <meta property="og:url" content="<%= baseUrl %>/post/<%= post.slug %>" />
   <meta property="og:type" content="article" />
 
   <link rel="stylesheet" href="/style.css">
@@ -99,13 +99,13 @@ function toggleMobileNav() {
 
     <!-- WhatsApp -->
     <a target="_blank"
-       href="https://wa.me/?text=<%= encodeURIComponent(post.title + ' https://voxaria.onrender.com/post/' + post.slug) %>">
+      href="https://wa.me/?text=<%= encodeURIComponent(post.title + ' ' + baseUrl + '/post/' + post.slug) %>"
       Share on WhatsApp
     </a>
 
     <!-- Facebook -->
     <a target="_blank"
-       href="https://www.facebook.com/sharer/sharer.php?u=https://voxaria.onrender.com/post/<%= post.slug %>">
+href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUrl + '/post/' + post.slug) %>"
       Share on Facebook
     </a>
 
@@ -116,9 +116,10 @@ function toggleMobileNav() {
 
   <script>
     function copyLink() {
-      navigator.clipboard.writeText("https://voxaria.onrender.com/post/<%= post.slug %>");
-      alert("Link copied!");
-    }
+  const url = window.location.origin + "/post/<%= post.slug %>";
+  navigator.clipboard.writeText(url);
+  alert("Link copied!");
+}
   </script>
 
   <!-- LIKE -->

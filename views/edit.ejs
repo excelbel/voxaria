@@ -199,7 +199,9 @@ document.getElementById("main").addEventListener("input", e => {
 
 /* COPY LINK */
 function copyLink() {
-  const url = "https://voxaria.onrender.com/post/" + slugify(title.value);
+  const baseUrl = window.location.origin;
+  const url = baseUrl + "/post/" + slugify(title.value);
+
   navigator.clipboard.writeText(url);
   alert("Link copied!");
 }
