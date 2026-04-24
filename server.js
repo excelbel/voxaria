@@ -88,27 +88,39 @@ async function getSidebarData() {
 /* =========================
    ROUTES
 ========================= */
+/* =========================
+   ROUTES
+========================= */
 app.get("/", async (req, res) => {
   try {
     const posts = await Post.find().sort({ date: -1 }).limit(10);
     const sidebar = await getSidebarData();
 
-    // ✅ FIX: get breaking news
     const breakingNews = await Post.find({ isBreaking: true })
       .sort({ date: -1 })
       .limit(10);
 
+    const featuredPost = await Post.findOne().sort({ date: -1 });
+
     res.render("index", {
-      posts,
-      breakingNews,
+      posts: posts || [],
+      breakingNews: breakingNews || [],
+      featuredPost: featuredPost || null,
       currentPage: "home",
       ...sidebar
     });
+
   } catch (err) {
-    console.log("HOME ERROR:", err.message);
-    res.status(500).send("Server Error");
+    console.log("HOME ERROR:", err);
+    res.render("index", {
+      posts: [],
+      breakingNews: [],
+      featuredPost: null,
+      currentPage: "home"
+    });
   }
 });
+
 
 app.get("/post/:slug", async (req, res) => {
   try {
@@ -121,15 +133,32 @@ app.get("/post/:slug", async (req, res) => {
 
     await post.save();
 
+    const relatedPosts = await Post.find({
+      category: post.category,
+      _id: { $ne: post._id }
+    })
+      .sort({ date: -1 })
+      .limit(5);
+
     res.render("post", {
       post,
+      relatedPosts: relatedPosts || [],
       currentPage: "post"
     });
+
   } catch (err) {
-    console.log("POST ERROR:", err.message);
-    res.status(500).send("Server Error");
+    console.log("POST ERROR:", err);
+    res.render("post", {
+      post: null,
+      relatedPosts: [],
+      currentPage: "post"
+    });
   }
 });
+
+    
+
+  
 
 /* =========================
    ADMIN
