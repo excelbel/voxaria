@@ -35,8 +35,7 @@ const { generateSummary } = require("./services/aiService");
 const fetchNewsAndSave = require("./services/newsService");
 
 /* =========================
-   FIREBASE (CLEAN FIX)
-   IMPORTANT: no JSON file anymore
+   FIREBASE
 ========================= */
 const admin = require("./services/firebase");
 
@@ -90,33 +89,56 @@ async function getSidebarData() {
    ROUTES
 ========================= */
 app.get("/", async (req, res) => {
-  const posts = await Post.find().sort({ date: -1 }).limit(10);
-  const sidebar = await getSidebarData();
+  try {
+    const posts = await Post.find().sort({ date: -1 }).limit(10);
+    const sidebar = await getSidebarData();
 
-  res.render("index", { posts, ...sidebar });
+    res.render("index", {
+      posts,
+      ...sidebar,
+      currentPage: "home"
+    });
+  } catch (err) {
+    console.error("HOME ROUTE ERROR:", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 app.get("/post/:slug", async (req, res) => {
-  const post = await Post.findOne({ slug: req.params.slug });
+  try {
+    const post = await Post.findOne({ slug: req.params.slug });
 
-  if (!post) return res.status(404).send("Post not found");
+    if (!post) return res.status(404).send("Post not found");
 
-  post.analytics = post.analytics || { views: 0, likes: 0, shares: 0 };
-  post.analytics.views += 1;
+    post.analytics = post.analytics || { views: 0, likes: 0, shares: 0 };
+    post.analytics.views += 1;
 
-  await post.save();
+    await post.save();
 
-  res.render("post", { post });
+    res.render("post", {
+      post,
+      currentPage: "post"
+    });
+  } catch (err) {
+    console.error("POST ROUTE ERROR:", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 /* =========================
    ADMIN
 ========================= */
 app.get("/admin", async (req, res) => {
-  if (!req.session.isAdmin) return res.render("login");
+  if (!req.session.isAdmin) {
+    return res.render("login", { currentPage: "login" });
+  }
 
   const posts = await Post.find().sort({ date: -1 });
-  res.render("admin", { posts });
+
+  res.render("admin", {
+    posts,
+    currentPage: "admin"
+  });
 });
 
 app.post("/login", (req, res) => {
@@ -167,7 +189,10 @@ app.get("/admin/edit/:id", async (req, res) => {
   const post = await Post.findById(req.params.id);
   if (!post) return res.send("Post not found");
 
-  res.render("edit", { post });
+  res.render("edit", {
+    post,
+    currentPage: "edit"
+  });
 });
 
 app.post("/admin/edit/:id", async (req, res) => {
@@ -231,7 +256,8 @@ app.get("/admin/analytics", async (req, res) => {
   res.render("analytics", {
     totalPosts,
     stats: stats[0] || { views: 0, likes: 0, shares: 0 },
-    topPosts
+    topPosts,
+    currentPage: "analytics"
   });
 });
 
