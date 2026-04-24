@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title><%= post.title %> - VOXARIA</title>
+  <title><%= post.title %> | Voxaria</title>
 
-  <!-- SEO / Social Preview -->
-  <meta property="og:title" content="<%= post.title %>" />
-  <meta property="og:description" content="<%= post.aiSummary || post.content.substring(0,150) %>" />
-  <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>" />
-  <meta property="og:url" content="<%= baseUrl %>/post/<%= post.slug %>" />
-  <meta property="og:type" content="article" />
+  <!-- SEO META -->
+  <meta name="description" content="<%= (post.aiSummary || post.content || '').substring(0, 160) %>">
+
+  <meta property="og:title" content="<%= post.title %>">
+  <meta property="og:description" content="<%= (post.aiSummary || post.content || '').substring(0, 150) %>">
+  <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>">
+  <meta property="og:url" content="<%= baseUrl + '/post/' + post.slug %>">
+  <meta property="og:type" content="article">
+
+  <link rel="canonical" href="<%= baseUrl + '/post/' + post.slug %>">
 
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -32,11 +35,6 @@
         <li><a href="/category/Sports">Sports</a></li>
       </ul>
     </nav>
-
-    <form class="search-form" action="/search" method="GET">
-      <input type="text" name="q" placeholder="Search..." required>
-      <button type="submit">🔍</button>
-    </form>
 
     <div class="hamburger-menu" onclick="toggleMobileNav()">☰</div>
   </div>
@@ -69,57 +67,55 @@ function toggleMobileNav() {
   <h1 class="article-title"><%= post.title %></h1>
 
   <div class="article-meta">
-    <span><strong>Author:</strong> <%= post.author %></span>
-    <span><strong>Date:</strong> <%= post.date.toDateString() %></span>
-    <span><strong>Category:</strong> <%= post.category %></span>
+    <span><strong>Date:</strong> <%= post.date ? post.date.toDateString() : "" %></span>
+    <span><strong>Category:</strong> <%= post.category || "General" %></span>
     <span><strong>Views:</strong> <%= post.analytics?.views || 0 %></span>
     <span><strong>Likes:</strong> <%= post.analytics?.likes || 0 %></span>
   </div>
 
-  <% if(post.mainImage){ %>
-    <img src="<%= post.mainImage %>" class="article-image">
-  <% } else { %>
-    <img src="/images/default-main.jpg" class="article-image">
-  <% } %>
+  <!-- IMAGE -->
+  <img
+    src="<%= post.mainImage || '/images/default-main.jpg' %>"
+    class="article-image"
+    alt="<%= post.title %>"
+  >
 
-  <!-- ✅ AI SUMMARY -->
-  <% if(post.aiSummary){ %>
+  <!-- AI SUMMARY -->
+  <% if (post.aiSummary) { %>
     <div class="ai-summary">
       <h3>Quick Summary</h3>
       <p><%= post.aiSummary %></p>
     </div>
   <% } %>
 
+  <!-- CONTENT -->
   <div class="post-content">
     <%- post.content %>
   </div>
 
-  <!-- SHARE BUTTONS -->
+  <!-- SHARE -->
   <div class="share-buttons">
 
-    <!-- WhatsApp -->
     <a target="_blank"
-      href="https://wa.me/?text=<%= encodeURIComponent(post.title + ' ' + baseUrl + '/post/' + post.slug) %>"
-      Share on WhatsApp
+      href="https://wa.me/?text=<%= encodeURIComponent(post.title + ' ' + baseUrl + '/post/' + post.slug) %>">
+      WhatsApp
     </a>
 
-    <!-- Facebook -->
     <a target="_blank"
-href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUrl + '/post/' + post.slug) %>"
-      Share on Facebook
+      href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUrl + '/post/' + post.slug) %>">
+      Facebook
     </a>
 
-    <!-- Copy Link -->
     <button onclick="copyLink()">Copy Link</button>
 
   </div>
 
   <script>
     function copyLink() {
-  const url = window.location.origin + "/post/<%= post.slug %>";
-  navigator.clipboard.writeText(url);
-  alert("Link copied!");
-}
+      const url = "<%= baseUrl + '/post/' + post.slug %>";
+      navigator.clipboard.writeText(url);
+      alert("Link copied!");
+    }
   </script>
 
   <!-- LIKE -->
@@ -134,15 +130,17 @@ href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUr
 </article>
 
 <!-- RELATED POSTS -->
-<% if(relatedPosts && relatedPosts.length > 0){ %>
+<% if (relatedPosts && relatedPosts.length > 0) { %>
 <section class="related-posts">
   <h2>Related Articles</h2>
 
   <div class="related-grid">
     <% relatedPosts.forEach(rp => { %>
       <div class="related-card">
-        <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>">
-        <h3><a href="/post/<%= rp.slug %>"><%= rp.title %></a></h3>
+        <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>" alt="<%= rp.title %>">
+        <h3>
+          <a href="/post/<%= rp.slug %>"><%= rp.title %></a>
+        </h3>
       </div>
     <% }) %>
   </div>
@@ -152,9 +150,9 @@ href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUr
 <!-- COMMENTS -->
 <section class="comments-section">
 
-  <h2>Comments (<%= post.comments?.length || 0 %>)</h2>
+  <h2>Comments (<%= (post.comments || []).length %>)</h2>
 
-  <% if(post.comments && post.comments.length){ %>
+  <% if (post.comments && post.comments.length > 0) { %>
     <% post.comments.forEach(comment => { %>
       <div class="comment">
         <strong><%= comment.name %></strong>
@@ -167,7 +165,7 @@ href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUr
 
   <form action="/post/<%= post._id %>/comment" method="POST">
     <input name="name" placeholder="Your name" required>
-    <textarea name="text" required></textarea>
+    <textarea name="text" placeholder="Write a comment..." required></textarea>
     <button type="submit">Submit</button>
   </form>
 

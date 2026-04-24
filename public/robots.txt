@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://voxaria.org/sitemap.xml
