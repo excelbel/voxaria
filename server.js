@@ -21,28 +21,6 @@ const { SitemapStream, streamToPromise } = require("sitemap");
 const { google } = require("googleapis");
 
 /* =========================
-   OPTIONAL REDIS (SAFE MODE)
-========================= */
-let redisClient = null;
-
-try {
-  const redis = require("redis");
-
-  if (process.env.REDIS_URL) {
-    redisClient = redis.createClient({
-      url: process.env.REDIS_URL
-    });
-
-    redisClient.connect().catch(() => {
-      console.log("Redis not available, using memory cache");
-      redisClient = null;
-    });
-  }
-} catch (e) {
-  console.log("Redis module not active");
-}
-
-/* =========================
    MODELS
 ========================= */
 const Post = require("./models/post");
@@ -57,53 +35,63 @@ const fetchNewsAndSave = require("./services/newsService");
 const generateImage = require("./services/imageService");
 
 /* =========================
-   APP INIT
+   INIT APP
 ========================= */
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const BASE_URL =
-  process.env.BASE_URL ||
-  (process.env.NODE_ENV === "production"
-    ? "https://voxaria.org"
-    : "http://localhost:3000");
+const MONGODB_URI = process.env.MONGODB_URI;
+const BASE_URL = "https://voxaria.org";
 
 /* =========================
-   MEMORY CACHE FALLBACK
+   OPTIONAL REDIS (SAFE MODE)
 ========================= */
-const memoryCache = new Map();
+let redisClient = null;
 
-async function cacheGet(key, fetchFn, ttl = 60) {
+async function initRedis() {
   try {
-    if (redisClient) {
-      const cached = await redisClient.get(key);
-      if (cached) return JSON.parse(cached);
-    }
+    const redis = require("redis");
 
-    const mem = memoryCache.get(key);
-    if (mem && mem.expiry > Date.now()) return mem.data;
-
-    const fresh = await fetchFn();
-
-    if (redisClient) {
-      await redisClient.setEx(key, ttl, JSON.stringify(fresh));
-    }
-
-    memoryCache.set(key, {
-      data: fresh,
-      expiry: Date.now() + ttl * 1000
+    redisClient = redis.createClient({
+      url: process.env.REDIS_URL
     });
 
+    redisClient.on("error", (err) => {
+      console.log("Redis not available, running without cache");
+      redisClient = null;
+    });
+
+    await redisClient.connect();
+    console.log("Redis Connected");
+  } catch (err) {
+    console.log("Redis disabled");
+    redisClient = null;
+  }
+}
+
+/* =========================
+   CACHE HELPER (SAFE)
+========================= */
+async function cacheGet(key, fetchFn, ttl = 60) {
+  if (!redisClient) return await fetchFn();
+
+  try {
+    const cached = await redisClient.get(key);
+    if (cached) return JSON.parse(cached);
+
+    const fresh = await fetchFn();
+    await redisClient.setEx(key, ttl, JSON.stringify(fresh));
+
     return fresh;
-  } catch (e) {
+  } catch (err) {
     return await fetchFn();
   }
 }
 
 /* =========================
-   MIDDLEWARE
+   PERFORMANCE
 ========================= */
 app.use(compression());
+
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -117,91 +105,25 @@ app.use(
   })
 );
 
+/* =========================
+   GLOBAL LOCALS (FIX EJS CRASHES)
+========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl = BASE_URL;
   res.locals.isAdmin = req.session.isAdmin || false;
+
+  // FIX: prevent undefined errors in EJS
+  res.locals.featuredGrid = [];
+  res.locals.posts = [];
+  res.locals.breakingNews = [];
+  res.locals.featuredPost = null;
+  res.locals.recentPosts = [];
+
   next();
 });
 
 /* =========================
-   SEO KEYWORDS GENERATOR
-========================= */
-function generateSEOKeywords(text = "") {
-  const words = text
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, "")
-    .split(" ")
-    .filter((w) => w.length > 4);
-
-  return [...new Set(words)].slice(0, 12).join(",");
-}
-
-/* =========================
-   BREAKING NEWS DETECTOR
-========================= */
-function isBreakingNews(title = "") {
-  const triggers = [
-    "breaking",
-    "urgent",
-    "just in",
-    "developing",
-    "shock",
-    "exclusive"
-  ];
-
-  return triggers.some((t) => title.toLowerCase().includes(t));
-}
-
-/* =========================
-   BBC STYLE AI WRITER
-========================= */
-async function bbcWriter(title, content) {
-  const prompt = `
-You are a BBC senior news editor.
-
-Rewrite this into a professional global news article:
-
-- strong headline
-- journalistic tone
-- structured paragraphs
-- factual clarity
-- no repetition
-
-TITLE: ${title}
-CONTENT: ${content}
-
-Return HTML article.
-`;
-
-  return await generateSummary(prompt, { mode: "article" });
-}
-
-/* =========================
-   GOOGLE INDEXING
-========================= */
-async function pingGoogle(url) {
-  try {
-    const auth = new google.auth.GoogleAuth({
-      keyFile: "google-key.json",
-      scopes: ["https://www.googleapis.com/auth/indexing"]
-    });
-
-    const client = await auth.getClient();
-
-    await google.indexing("v3").urlNotifications.publish({
-      auth: client,
-      requestBody: {
-        url,
-        type: "URL_UPDATED"
-      }
-    });
-  } catch (e) {
-    console.log("Google indexing failed");
-  }
-}
-
-/* =========================
-   HOME (BBC STYLE LAYOUT DATA)
+   HOME PAGE (STABLE)
 ========================= */
 app.get("/", async (req, res) => {
   try {
@@ -215,11 +137,19 @@ app.get("/", async (req, res) => {
         .skip((page - 1) * limit)
         .limit(limit);
 
+      const totalPosts = await Post.countDocuments();
+
+      const featuredPost = await Post.findOne().sort({ date: -1 });
+      const featuredGrid = await Post.find().sort({ date: -1 }).skip(1).limit(4);
+      const breakingNews = await Post.find().sort({ date: -1 }).limit(5);
+
       return {
         posts,
-        featuredPost: await Post.findOne().sort({ date: -1 }),
-        topStories: await Post.find().sort({ "analytics.views": -1 }).limit(5),
-        breakingNews: await Post.find().sort({ date: -1 }).limit(5)
+        page,
+        totalPages: Math.ceil(totalPosts / limit) || 1,
+        featuredPost,
+        featuredGrid,
+        breakingNews
       };
     });
 
@@ -234,12 +164,12 @@ app.get("/", async (req, res) => {
 });
 
 /* =========================
-   POST PAGE
+   SINGLE POST
 ========================= */
 app.get("/post/:slug", async (req, res) => {
   try {
     const post = await Post.findOne({ slug: req.params.slug });
-    if (!post) return res.status(404).send("Not found");
+    if (!post) return res.status(404).send("Post not found");
 
     Post.updateOne(
       { _id: post._id },
@@ -253,37 +183,36 @@ app.get("/post/:slug", async (req, res) => {
 
     res.render("post", {
       post,
-      relatedPosts
+      relatedPosts: relatedPosts || [],
+      currentPage: "post"
     });
   } catch (err) {
+    console.log(err);
     res.status(500).send("Server Error");
   }
 });
 
 /* =========================
-   CREATE POST (SEO + IMAGE + AI FLAGS)
+   CREATE POST (SAFE)
 ========================= */
 app.post("/admin/create", async (req, res) => {
   try {
     const slug = slugify(req.body.title + "-" + Date.now(), {
-      lower: true
+      lower: true,
+      strict: true
     });
 
     const image = await generateImage(req.body.title);
 
-    const post = await Post.create({
+    await Post.create({
       title: req.body.title,
       slug,
       content: req.body.content,
       category: req.body.category,
       mainImage: image,
       thumbnail: image,
-      seoKeywords: generateSEOKeywords(req.body.content),
-      isBreaking: isBreakingNews(req.body.title),
-      analytics: { views: 0, likes: 0 }
+      analytics: { views: 0, likes: 0, shares: 0 }
     });
-
-    await pingGoogle(`${BASE_URL}/post/${slug}`);
 
     res.redirect("/admin");
   } catch (err) {
@@ -293,74 +222,20 @@ app.post("/admin/create", async (req, res) => {
 });
 
 /* =========================
-   BBC AI REWRITE
-========================= */
-app.post("/admin/generate-ai-summary/:id", async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.redirect("/admin");
-
-    const article = await bbcWriter(post.title, post.content);
-
-    post.content = article;
-    post.aiSummary = article.substring(0, 200);
-
-    await post.save();
-
-    await pingGoogle(`${BASE_URL}/post/${post.slug}`);
-
-    res.redirect("/admin");
-  } catch (err) {
-    console.log(err);
-    res.redirect("/admin");
-  }
-});
-
-/* =========================
-   SITEMAP
-========================= */
-app.get("/sitemap.xml", async (req, res) => {
-  const posts = await Post.find().select("slug");
-
-  const sitemap = new SitemapStream({ hostname: BASE_URL });
-
-  sitemap.write({ url: "/", priority: 1 });
-
-  posts.forEach((p) => {
-    sitemap.write({
-      url: `/post/${p.slug}`,
-      priority: 0.8
-    });
-  });
-
-  sitemap.end();
-
-  const xml = await streamToPromise(sitemap);
-
-  res.header("Content-Type", "application/xml");
-  res.send(xml.toString());
-});
-
-/* =========================
-   NEWS ENGINE
-========================= */
-function startNewsJob() {
-  fetchNewsAndSave();
-  setInterval(fetchNewsAndSave, 30 * 60 * 1000);
-}
-
-/* =========================
-   SERVER START
+   SERVER START (FIX RENDER ISSUE)
 ========================= */
 mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
+  .connect(MONGODB_URI)
+  .then(async () => {
     console.log("MongoDB Connected");
 
-    startNewsJob();
+    await initRedis();
 
-    app.listen(PORT, () => {
-      console.log("Server running on", PORT);
+    fetchNewsAndSave();
+    setInterval(fetchNewsAndSave, 30 * 60 * 1000);
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on ${PORT}`);
     });
   })
-  .catch(console.log);
+  .catch((err) => console.log(err));
