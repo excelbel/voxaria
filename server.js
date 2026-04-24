@@ -91,7 +91,8 @@ async function getSidebarData() {
 /* =========================
    ROUTES
 ========================= */
-app.get("/", async (req, res) => {
+
+      app.get("/", async (req, res) => {
   try {
     const posts = await Post.find().sort({ date: -1 }).limit(10);
     const sidebar = await getSidebarData();
@@ -102,56 +103,30 @@ app.get("/", async (req, res) => {
 
     const featuredPost = await Post.findOne().sort({ date: -1 });
 
+    // ✅ NEW: Featured grid posts (next 4 after featured)
+    const featuredGrid = await Post.find()
+      .sort({ date: -1 })
+      .skip(1)
+      .limit(4);
+
     res.render("index", {
       posts: posts || [],
       breakingNews: breakingNews || [],
       featuredPost: featuredPost || null,
+      featuredGrid: featuredGrid || [],   // ✅ FIX
       currentPage: "home",
       ...sidebar
     });
 
   } catch (err) {
     console.log("HOME ERROR:", err);
+
     res.render("index", {
       posts: [],
       breakingNews: [],
       featuredPost: null,
+      featuredGrid: [],   // ✅ prevent crash
       currentPage: "home"
-    });
-  }
-});
-
-
-app.get("/post/:slug", async (req, res) => {
-  try {
-    const post = await Post.findOne({ slug: req.params.slug });
-
-    if (!post) return res.status(404).send("Post not found");
-
-    post.analytics = post.analytics || { views: 0, likes: 0, shares: 0 };
-    post.analytics.views += 1;
-
-    await post.save();
-
-    const relatedPosts = await Post.find({
-      category: post.category,
-      _id: { $ne: post._id }
-    })
-      .sort({ date: -1 })
-      .limit(5);
-
-    res.render("post", {
-      post,
-      relatedPosts: relatedPosts || [],
-      currentPage: "post"
-    });
-
-  } catch (err) {
-    console.log("POST ERROR:", err);
-    res.render("post", {
-      post: null,
-      relatedPosts: [],
-      currentPage: "post"
     });
   }
 });
