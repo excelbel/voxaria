@@ -9,22 +9,36 @@ process.on("unhandledRejection", (err) => {
   console.log(err);
   console.log(err.stack);
 });
+
 require("dotenv").config();
 
+/* =========================
+   CORE IMPORTS
+========================= */
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const path = require("path");
 const slugify = require("slugify");
 
+/* =========================
+   MODELS
+========================= */
 const Post = require("./models/post");
 const Subscriber = require("./models/subscriber");
 
+/* =========================
+   SERVICES
+========================= */
 const sendPushNotification = require("./services/pushService");
 const { generateSummary } = require("./services/aiService");
 const fetchNewsAndSave = require("./services/newsService");
 
-const admin = require("firebase-admin");
+/* =========================
+   FIREBASE (CLEAN FIX)
+   IMPORTANT: no JSON file anymore
+========================= */
+const admin = require("./firebase");
 
 /* =========================
    INIT APP
@@ -34,29 +48,20 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 /* =========================
-   FIREBASE INIT
-========================= */
-const serviceAccount = require("./firebase-service-account.json");
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
-
-/* =========================
    MIDDLEWARE
 ========================= */
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || "voxaria_secret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "voxaria_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  })
+);
 
 app.set("view engine", "ejs");
 
@@ -75,7 +80,9 @@ async function getSidebarData() {
   return {
     randomPost: randomPost[0] || null,
     recentPosts: await Post.find().sort({ date: -1 }).limit(5),
-    trendingPosts: await Post.find().sort({ "analytics.views": -1 }).limit(5)
+    trendingPosts: await Post.find()
+      .sort({ "analytics.views": -1 })
+      .limit(5)
   };
 }
 
@@ -128,29 +135,29 @@ app.post("/login", (req, res) => {
    CREATE POST
 ========================= */
 app.post("/admin/create", async (req, res) => {
-  const post = await Post.create({
-    title: req.body.title,
-    slug: slugify(req.body.title, { lower: true, strict: true }),
-    content: req.body.content,
-    category: req.body.category,
-    thumbnail: req.body.thumbnail || "/images/default-thumb.jpg",
-    mainImage: req.body.mainImage || "/images/default-main.jpg",
-    analytics: { views: 0, likes: 0, shares: 0 }
-  });
-
   try {
+    const post = await Post.create({
+      title: req.body.title,
+      slug: slugify(req.body.title, { lower: true, strict: true }),
+      content: req.body.content,
+      category: req.body.category,
+      thumbnail: req.body.thumbnail || "/images/default-thumb.jpg",
+      mainImage: req.body.mainImage || "/images/default-main.jpg",
+      analytics: { views: 0, likes: 0, shares: 0 }
+    });
+
     const subscribers = await Subscriber.find();
-    const tokens = subscribers.map(s => s.token);
+    const tokens = subscribers.map((s) => s.token);
 
     if (tokens.length > 0) {
       await sendPushNotification(tokens, post);
     }
-  } catch (err) {
-  console.error(err.stack || err);
-    console.log("Push error:", err.message);
-  }
 
-  res.redirect("/admin");
+    res.redirect("/admin");
+  } catch (err) {
+    console.log("CREATE POST ERROR:", err.message);
+    res.status(500).send("Error creating post");
+  }
 });
 
 /* =========================
@@ -246,7 +253,7 @@ app.post("/api/v1/subscribe", async (req, res) => {
 });
 
 /* =========================
-   MOBILE API
+   API ROUTES
 ========================= */
 const apiRouter = express.Router();
 
@@ -278,10 +285,10 @@ apiRouter.post("/posts/:id/share", async (req, res) => {
 app.use("/api/v1", apiRouter);
 
 /* =========================
-   NEWS JOB (SAFE SCHEDULER)
+   NEWS JOB
 ========================= */
 function startNewsJob() {
-  fetchNewsAndSave(); // run once on startup
+  fetchNewsAndSave();
 
   setInterval(() => {
     fetchNewsAndSave();
@@ -289,9 +296,10 @@ function startNewsJob() {
 }
 
 /* =========================
-   CONNECT DB + START SERVER
+   DB + SERVER START
 ========================= */
-mongoose.connect(MONGODB_URI)
+mongoose
+  .connect(MONGODB_URI)
   .then(() => {
     console.log("MongoDB Connected");
 
@@ -301,7 +309,7 @@ mongoose.connect(MONGODB_URI)
       console.log(`Blog running on port ${PORT}`);
     });
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("MongoDB connection error:", err);
     process.exit(1);
   });
