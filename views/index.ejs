@@ -15,7 +15,8 @@
   <span class="breaking-label">BREAKING</span>
   <div class="ticker-wrapper">
     <div class="ticker-track">
-      <% breakingNews.forEach(bn => { %>
+      <% if (breakingNews && breakingNews.length) { %>
+  <% breakingNews.forEach(...) { %>
         <a href="/post/<%= bn.slug || bn._id %>"><%= bn.title %></a>
       <% }) %>
     </div>
@@ -25,7 +26,7 @@
 
 <!-- Hero Section -->
 <div class="hero-featured">
-  <% if (featuredPost) { %>
+  <% if (featuredPost && featuredPost.title) { %>
   <div class="hero-card">
     <a href="/post/<%= featuredPost.slug || featuredPost._id %>">
       <img src="<%= featuredPost.mainImage || '/images/default-main.jpg' %>" alt="<%= featuredPost.title %>">

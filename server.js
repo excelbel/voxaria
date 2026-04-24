@@ -14,22 +14,32 @@ const PORT = process.env.PORT || 10000;
 const BASE_URL = "https://voxaria.org";
 
 /* =========================
+   MONGOOSE CONFIG
+========================= */
+mongoose.set("strictQuery", true);
+
+/* =========================
+   VIEW ENGINE + STATIC FILES
+========================= */
+app.set("view engine", "ejs");
+app.set("trust proxy", 1);
+
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    maxAge: "1d",
+    etag: true
+  })
+);
+
+/* =========================
    PERFORMANCE MIDDLEWARE
 ========================= */
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-app.set("view engine", "ejs");
-app.set("trust proxy", 1);
-
-app.use(express.static(path.join(__dirname, "public"), {
-  maxAge: "1d",
-  etag: true
-}));
-
 /* =========================
-   SESSION (LIGHTWEIGHT)
+   SESSION (LIGHTWEIGHT PROD SAFE)
 ========================= */
 app.use(
   session({
@@ -45,12 +55,27 @@ app.use(
 );
 
 /* =========================
-   GLOBAL LOCALS (SAFE DEFAULTS)
+   FRONTEND VIEW ENGINE (BBC STYLE)
+========================= */
+function buildHomeView(posts = []) {
+  const safePosts = Array.isArray(posts) ? posts : [];
+
+  return {
+    featuredPost: safePosts[0] || null,
+    breakingNews: safePosts.slice(0, 5),
+    featuredGrid: safePosts.slice(1, 7),
+    trendingNews: safePosts.slice(7, 13),
+    latestNews: safePosts.slice(0, 20)
+  };
+}
+
+/* =========================
+   GLOBAL SAFE LOCALS (NO EJS CRASHES)
 ========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl = BASE_URL;
 
-  // prevent ALL EJS crashes
+  res.locals.featuredPost = null;
   res.locals.featuredGrid = [];
   res.locals.breakingNews = [];
   res.locals.trendingNews = [];
@@ -59,34 +84,30 @@ app.use((req, res, next) => {
 });
 
 /* =========================
-   HEALTH CHECK (RENDER REQUIRED)
+   HEALTH CHECK (RENDER REQUIREMENT)
 ========================= */
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
 /* =========================
-   FAST HOME ROUTE (OPTIMIZED)
+   HOME ROUTE (OPTIMIZED ENGINE)
 ========================= */
 app.get("/", async (req, res) => {
   try {
     const posts = await Post.find({})
       .sort({ createdAt: -1 })
-      .limit(20)
+      .limit(30)
       .lean();
 
-    const featuredPost = posts[0] || null; // ✅ FIX ADDED
-
-    const featuredGrid = posts.slice(1, 6);
-    const trendingNews = posts.slice(6, 12);
-    const breakingNews = posts.slice(0, 5);
+    const view = buildHomeView(posts);
 
     res.render("index", {
-      posts,
-      featuredPost, // ✅ FIX ADDED
-      featuredGrid,
-      trendingNews,
-      breakingNews,
+      posts: view.latestNews,
+      featuredPost: view.featuredPost,
+      breakingNews: view.breakingNews,
+      featuredGrid: view.featuredGrid,
+      trendingNews: view.trendingNews,
       currentPage: "home"
     });
 
@@ -96,15 +117,8 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.use((req, res, next) => {
-  res.locals.featuredPost = null;
-  res.locals.featuredGrid = [];
-  res.locals.breakingNews = [];
-  res.locals.trendingNews = [];
-  next();
-});
 /* =========================
-   POST PAGE (FAST + SAFE)
+   SINGLE POST PAGE
 ========================= */
 app.get("/post/:slug", async (req, res) => {
   try {
@@ -131,7 +145,7 @@ app.get("/post/:slug", async (req, res) => {
 });
 
 /* =========================
-   MONGODB + SERVER START
+   START SERVER (SAFE BOOT)
 ========================= */
 async function startServer() {
   try {
