@@ -91,10 +91,19 @@ async function getSidebarData() {
 /* =========================
    ROUTES
 ========================= */
-
-      app.get("/", async (req, res) => {
+app.get("/", async (req, res) => {
   try {
-    const posts = await Post.find().sort({ date: -1 }).limit(10);
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const totalPosts = await Post.countDocuments();
+
+    const posts = await Post.find()
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
+
     const sidebar = await getSidebarData();
 
     const breakingNews = await Post.find({ isBreaking: true })
@@ -103,7 +112,6 @@ async function getSidebarData() {
 
     const featuredPost = await Post.findOne().sort({ date: -1 });
 
-    // ✅ NEW: Featured grid posts (next 4 after featured)
     const featuredGrid = await Post.find()
       .sort({ date: -1 })
       .skip(1)
@@ -113,9 +121,12 @@ async function getSidebarData() {
       posts: posts || [],
       breakingNews: breakingNews || [],
       featuredPost: featuredPost || null,
-      featuredGrid: featuredGrid || [],   // ✅ FIX
+      featuredGrid: featuredGrid || [],
       currentPage: "home",
-      ...sidebar
+
+      // ✅ pagination variables
+      page,
+      totalPages: Math.ceil(totalPosts / limit)
     });
 
   } catch (err) {
@@ -125,12 +136,15 @@ async function getSidebarData() {
       posts: [],
       breakingNews: [],
       featuredPost: null,
-      featuredGrid: [],   // ✅ prevent crash
-      currentPage: "home"
+      featuredGrid: [],
+      currentPage: "home",
+
+      // fallback
+      page: 1,
+      totalPages: 1
     });
   }
 });
-
     
 
   
