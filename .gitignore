@@ -1,40 +1,16 @@
-<<<<<<< HEAD
 # Node modules
 node_modules/
 
 # Log files
 *.log
-
-# Environment variables
-
-
-
-
-# Mac system files
-.DS_Store
-
-# VSCode settings
-.vscode/
-
-# NPM debug files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build directories (if any)
-dist/
-build/
-=======
-# Node modules
-node_modules/
-
-# Log files
-*.log
-
 # Environment variables
 .env
 
-# Uploaded images or files
+# Uploaded files (if any)
 public/uploads/
 
 # Mac system files
@@ -43,12 +19,6 @@ public/uploads/
 # VSCode settings
 .vscode/
 
-# NPM debug files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
 # Build directories (if any)
 dist/
 build/
->>>>>>> 5602d50452a86fb49099dd9262e44b3cdd51eaec

@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <title><%= post.title %> - VOXARIA</title>
 
-  <!-- SEO / Facebook / WhatsApp Preview -->
+  <!-- SEO / Social Preview -->
   <meta property="og:title" content="<%= post.title %>" />
-  <meta property="og:description" content="<%= post.content.substring(0, 150) %>" />
-  <meta property="og:image" content="<%= post.mainImage %>" />
+  <meta property="og:description" content="<%= post.aiSummary || post.content.substring(0,150) %>" />
+  <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>" />
   <meta property="og:url" content="https://voxaria.onrender.com/post/<%= post.slug %>" />
   <meta property="og:type" content="article" />
 
@@ -54,16 +54,6 @@
   </nav>
 </header>
 
-<style>
-.main-nav li.active a { color: #ff4b2b; font-weight: bold; }
-.hamburger-menu { display: none; cursor: pointer; font-size: 24px; }
-@media (max-width: 1024px) {
-  .desktop-nav { display: none; }
-  .hamburger-menu { display: block; }
-  .mobile-nav { display: none; background: #222; padding: 15px; }
-}
-</style>
-
 <script>
 function toggleMobileNav() {
   const nav = document.getElementById("mobileNav");
@@ -82,12 +72,22 @@ function toggleMobileNav() {
     <span><strong>Author:</strong> <%= post.author %></span>
     <span><strong>Date:</strong> <%= post.date.toDateString() %></span>
     <span><strong>Category:</strong> <%= post.category %></span>
-    <span><strong>Views:</strong> <%= post.views || 0 %></span>
-    <span><strong>Likes:</strong> <%= post.likes || 0 %></span>
+    <span><strong>Views:</strong> <%= post.analytics?.views || 0 %></span>
+    <span><strong>Likes:</strong> <%= post.analytics?.likes || 0 %></span>
   </div>
 
   <% if(post.mainImage){ %>
     <img src="<%= post.mainImage %>" class="article-image">
+  <% } else { %>
+    <img src="/images/default-main.jpg" class="article-image">
+  <% } %>
+
+  <!-- ✅ AI SUMMARY -->
+  <% if(post.aiSummary){ %>
+    <div class="ai-summary">
+      <h3>Quick Summary</h3>
+      <p><%= post.aiSummary %></p>
+    </div>
   <% } %>
 
   <div class="post-content">
@@ -124,13 +124,15 @@ function toggleMobileNav() {
   <!-- LIKE -->
   <div class="post-actions">
     <form action="/like/<%= post._id %>" method="POST">
-      <button type="submit">👍 Like (<%= post.likes || 0 %>)</button>
+      <button type="submit">
+        👍 Like (<%= post.analytics?.likes || 0 %>)
+      </button>
     </form>
   </div>
 
 </article>
 
-<!-- RELATED -->
+<!-- RELATED POSTS -->
 <% if(relatedPosts && relatedPosts.length > 0){ %>
 <section class="related-posts">
   <h2>Related Articles</h2>
@@ -138,9 +140,7 @@ function toggleMobileNav() {
   <div class="related-grid">
     <% relatedPosts.forEach(rp => { %>
       <div class="related-card">
-        <% if(rp.thumbnail){ %>
-          <img src="<%= rp.thumbnail %>">
-        <% } %>
+        <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>">
         <h3><a href="/post/<%= rp.slug %>"><%= rp.title %></a></h3>
       </div>
     <% }) %>
@@ -151,7 +151,7 @@ function toggleMobileNav() {
 <!-- COMMENTS -->
 <section class="comments-section">
 
-  <h2>Comments (<%= post.comments ? post.comments.length : 0 %>)</h2>
+  <h2>Comments (<%= post.comments?.length || 0 %>)</h2>
 
   <% if(post.comments && post.comments.length){ %>
     <% post.comments.forEach(comment => { %>

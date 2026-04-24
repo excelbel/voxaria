@@ -17,6 +17,7 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "mongoose": "^9.2.4",
+    "openai": "^6.34.0",
     "slugify": "^1.6.9"
   }
 }

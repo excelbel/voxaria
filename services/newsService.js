@@ -5,11 +5,20 @@ const axios = require("axios");
 const slugify = require("slugify");
 const Post = require("../models/post");
 
-// simple AI-like summary generator (temporary)
+// ✅ Improved AI Summary
 function generateSummary(article) {
-  if (article.description) return article.description;
-  if (article.content) return article.content.substring(0, 200);
-  return "Latest news update from Voxaria.";
+  const text =
+    article.description ||
+    article.content ||
+    "Latest news update from Voxaria.";
+
+  return text.split(" ").slice(0, 30).join(" ") + "...";
+}
+
+// ✅ Read time calculator (avg 200 words/min)
+function calculateReadTime(text) {
+  const words = text.split(" ").length;
+  return Math.ceil(words / 200);
 }
 
 const fetchNewsAndSave = async () => {
@@ -25,35 +34,46 @@ const fetchNewsAndSave = async () => {
     for (let article of articles) {
       if (!article.title) continue;
 
-      const slug = slugify(article.title, { lower: true, strict: true });
+      // ✅ Generate slug
+      let slug = slugify(article.title, { lower: true, strict: true });
 
-      const exists = await Post.findOne({ slug });
-
-      if (!exists) {
-        await Post.create({
-          title: article.title,
-          slug: slug,
-          content:
-            article.description ||
-            article.content ||
-            "No content available",
-          author: article.author || "Voxaria News",
-          category: article.source?.name || "News",
-          thumbnail: article.urlToImage || "/images/default-thumb.jpg",
-          mainImage: article.urlToImage || "/images/default-main.jpg",
-          isBreaking: true,
-
-          // ✅ ADD AI SUMMARY HERE
-          aiSummary: generateSummary(article)
-        });
-
-        console.log("Saved:", article.title);
-      } else {
-        console.log("Skipped duplicate:", article.title);
+      // ✅ Ensure unique slug
+      const existing = await Post.findOne({ slug });
+      if (existing) {
+        slug = slug + "-" + Date.now();
       }
+
+      // ✅ Prepare content
+      const content =
+        article.description ||
+        article.content ||
+        "No content available";
+
+      // ✅ AI Summary
+      const aiSummary = generateSummary(article);
+
+      // ✅ Read time
+      const readTime = calculateReadTime(content);
+
+      // ✅ Save post
+      await Post.create({
+        title: article.title,
+        slug,
+        content,
+        aiSummary,
+        readTime,
+        author: article.author || "Voxaria News",
+        category: article.source?.name || "News",
+        thumbnail: article.urlToImage || "/images/default-thumb.jpg",
+        mainImage: article.urlToImage || "/images/default-main.jpg",
+        isBreaking: true
+      });
+
+      console.log("Saved:", article.title);
     }
 
     console.log("News synced successfully");
+
   } catch (error) {
     console.error("NewsAPI error:", error.message);
   }
