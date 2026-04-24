@@ -73,16 +73,20 @@ app.get("/", async (req, res) => {
     const posts = await Post.find({})
       .sort({ createdAt: -1 })
       .limit(20)
-      .lean(); // faster Mongo response
+      .lean();
 
-    const featuredGrid = posts.slice(0, 6);
-    const trending = posts.slice(6, 12);
+    const featuredPost = posts[0] || null; // ✅ FIX ADDED
+
+    const featuredGrid = posts.slice(1, 6);
+    const trendingNews = posts.slice(6, 12);
+    const breakingNews = posts.slice(0, 5);
 
     res.render("index", {
       posts,
+      featuredPost, // ✅ FIX ADDED
       featuredGrid,
-      trendingNews: trending,
-      breakingNews: posts.slice(0, 5),
+      trendingNews,
+      breakingNews,
       currentPage: "home"
     });
 
@@ -92,6 +96,13 @@ app.get("/", async (req, res) => {
   }
 });
 
+app.use((req, res, next) => {
+  res.locals.featuredPost = null;
+  res.locals.featuredGrid = [];
+  res.locals.breakingNews = [];
+  res.locals.trendingNews = [];
+  next();
+});
 /* =========================
    POST PAGE (FAST + SAFE)
 ========================= */
