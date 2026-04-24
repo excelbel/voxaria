@@ -3,11 +3,11 @@
 <head>
   <title><%= post.title %> | Voxaria</title>
 
-  <!-- SEO META -->
-  <meta name="description" content="<%= (post.aiSummary || post.content || '').substring(0, 160) %>">
+  <!-- SEO META (CLEAN + OPTIMIZED) -->
+  <meta name="description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 160) %>">
 
   <meta property="og:title" content="<%= post.title %>">
-  <meta property="og:description" content="<%= (post.aiSummary || post.content || '').substring(0, 150) %>">
+  <meta property="og:description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 150) %>">
   <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>">
   <meta property="og:url" content="<%= baseUrl + '/post/' + post.slug %>">
   <meta property="og:type" content="article">
@@ -73,14 +73,12 @@ function toggleMobileNav() {
     <span><strong>Likes:</strong> <%= post.analytics?.likes || 0 %></span>
   </div>
 
-  <!-- IMAGE -->
   <img
     src="<%= post.mainImage || '/images/default-main.jpg' %>"
     class="article-image"
     alt="<%= post.title %>"
   >
 
-  <!-- AI SUMMARY -->
   <% if (post.aiSummary) { %>
     <div class="ai-summary">
       <h3>Quick Summary</h3>
@@ -88,7 +86,6 @@ function toggleMobileNav() {
     </div>
   <% } %>
 
-  <!-- CONTENT -->
   <div class="post-content">
     <%- post.content %>
   </div>
