@@ -1,17 +1,18 @@
 <header class="site-header">
   <div class="top-bar">
+
     <a href="/" class="logo-text">VOXARIA</a>
 
-    <!-- Search -->
+    <!-- SEARCH -->
     <form action="/search" method="GET" class="search-form">
       <input type="text" name="q" placeholder="Search articles..." required>
       <button type="submit">Search</button>
     </form>
 
-    <!-- Single Navigation Menu -->
+    <!-- NAVIGATION -->
     <nav class="main-nav" id="mainNav">
       <ul>
-        <li class="<%= currentPage === 'Home' ? 'active' : '' %>"><a href="/">Home</a></li>
+        <li class="<%= currentPage === 'home' ? 'active' : '' %>"><a href="/">Home</a></li>
         <li class="<%= currentPage === 'News' ? 'active' : '' %>"><a href="/category/News">News</a></li>
         <li class="<%= currentPage === 'Articles' ? 'active' : '' %>"><a href="/category/Articles">Articles</a></li>
         <li class="<%= currentPage === 'Entertainment' ? 'active' : '' %>"><a href="/category/Entertainment">Entertainment</a></li>
@@ -23,8 +24,9 @@
       </ul>
     </nav>
 
-    <!-- Hamburger for Mobile -->
+    <!-- HAMBURGER -->
     <div class="hamburger-menu" onclick="toggleNav()">☰</div>
+
   </div>
 </header>
 
@@ -32,21 +34,28 @@
   .main-nav ul {
     display: flex;
     gap: 15px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
+
   .main-nav li.active a {
     color: #ff4b2b;
     font-weight: bold;
   }
+
   .hamburger-menu {
     display: none;
     cursor: pointer;
     font-size: 24px;
   }
+
   .search-form {
     display: inline-flex;
     gap: 5px;
     margin-left: 20px;
   }
+
   @media (max-width: 1024px) {
     .main-nav ul {
       display: none;
@@ -54,6 +63,7 @@
       background: #222;
       padding: 15px;
     }
+
     .hamburger-menu {
       display: block;
     }
@@ -63,6 +73,9 @@
 <script>
   function toggleNav() {
     const navList = document.querySelector('.main-nav ul');
-    navList.style.display = navList.style.display === 'flex' || navList.style.display === '' ? 'none' : 'flex';
+
+    const isHidden = window.getComputedStyle(navList).display === 'none';
+
+    navList.style.display = isHidden ? 'flex' : 'none';
   }
 </script>

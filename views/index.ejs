@@ -10,12 +10,16 @@
 <%- include('partials/header', { currentPage: currentPage }) %>
 
 <%
-const recentPosts = Array.isArray(typeof recentPosts !== "undefined" ? recentPosts : null) ? recentPosts : [];
-const randomPost = typeof randomPost !== "undefined" ? randomPost : null;
-const breakingNews = Array.isArray(typeof breakingNews !== "undefined" ? breakingNews : null) ? breakingNews : [];
-const featuredGrid = Array.isArray(typeof featuredGrid !== "undefined" ? featuredGrid : null) ? featuredGrid : [];
-const posts = Array.isArray(typeof posts !== "undefined" ? posts : null) ? posts : [];
-const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trendingPosts : null) ? trendingPosts : [];
+const safeArray = (v) => Array.isArray(v) ? v : [];
+
+const posts = safeArray(posts);
+const breakingNews = safeArray(breakingNews);
+const featuredGrid = safeArray(featuredGrid);
+const recentPosts = safeArray(recentPosts);
+const trendingPosts = safeArray(trendingPosts);
+
+const randomPost = randomPost || null;
+const featuredPost = featuredPost || null;
 %>
 
 <!-- BREAKING NEWS -->
@@ -26,7 +30,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
   <div class="ticker-wrapper">
     <div class="ticker-track">
       <% breakingNews.forEach(bn => { %>
-        <a href="/post/<%= bn.slug || bn._id %>">
+        <a href="/news/<%= bn.slug || bn._id %>">
           <%= bn.title %>
         </a>
       <% }) %>
@@ -40,7 +44,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
 
   <% if (featuredPost) { %>
   <div class="hero-card">
-    <a href="/post/<%= featuredPost.slug || featuredPost._id %>">
+    <a href="/news/<%= featuredPost.slug || featuredPost._id %>">
       <img src="<%= featuredPost.mainImage || '/images/default-main.jpg' %>" alt="<%= featuredPost.title %>">
       <div class="overlay">
         <h2><%= featuredPost.title %></h2>
@@ -49,18 +53,16 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
   </div>
   <% } %>
 
-  <% if (featuredGrid.length > 0) { %>
-    <% featuredGrid.forEach(fg => { %>
-    <div class="featured-card">
-      <a href="/post/<%= fg.slug || fg._id %>">
-        <img src="<%= fg.mainImage || '/images/default-main.jpg' %>" alt="<%= fg.title %>">
-        <div class="overlay">
-          <h3><%= fg.title %></h3>
-        </div>
-      </a>
-    </div>
-    <% }) %>
-  <% } %>
+  <% featuredGrid.forEach(fg => { %>
+  <div class="featured-card">
+    <a href="/news/<%= fg.slug || fg._id %>">
+      <img src="<%= fg.mainImage || '/images/default-main.jpg' %>" alt="<%= fg.title %>">
+      <div class="overlay">
+        <h3><%= fg.title %></h3>
+      </div>
+    </a>
+  </div>
+  <% }) %>
 
 </div>
 
@@ -70,6 +72,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
   <section class="latest-posts">
 
     <% if (posts.length > 0) { %>
+
       <% posts.forEach(post => { %>
         <div class="card">
 
@@ -80,7 +83,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
           >
 
           <h3>
-            <a href="/post/<%= post.slug || post.slug %>">
+            <a href="/news/<%= post.slug %>">
               <%= post.title %>
             </a>
           </h3>
@@ -91,6 +94,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
 
         </div>
       <% }) %>
+
     <% } else { %>
       <p>No posts available.</p>
     <% } %>
@@ -105,7 +109,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
       <ul>
         <% recentPosts.forEach(rp => { %>
           <li>
-            <a href="/post/<%= rp.slug || rp._id %>">
+            <a href="/news/<%= rp.slug || rp._id %>">
               <%= rp.title %>
             </a>
           </li>
@@ -118,7 +122,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
       <ul>
         <% trendingPosts.forEach(tp => { %>
           <li>
-            <a href="/post/<%= tp.slug || tp._id %>">
+            <a href="/news/<%= tp.slug || tp._id %>">
               <%= tp.title %>
             </a>
           </li>
@@ -129,7 +133,7 @@ const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trend
     <% if (randomPost) { %>
     <div class="widget">
       <h3>Featured</h3>
-      <a href="/post/<%= randomPost.slug || randomPost._id %>">
+      <a href="/news/<%= randomPost.slug || randomPost._id %>">
         <img 
           src="<%= randomPost.thumbnail || '/images/default-thumb.jpg' %>" 
           style="width:100%; border-radius:5px;"

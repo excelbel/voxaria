@@ -85,10 +85,6 @@
       flex-wrap: wrap;
     }
 
-    .tools button {
-      background: #28a745;
-    }
-
     .tools button.secondary {
       background: #6c757d;
     }
@@ -102,13 +98,12 @@
   <h2>Edit Post</h2>
 
   <!-- TITLE -->
-  <input type="text" name="title" id="title" value="<%= post.title %>" placeholder="Title" required>
+  <input type="text" name="title" id="title" value="<%= post.title %>" required>
 
   <div class="meta">
     🔗 Slug: <span id="slugPreview"><%= post.slug %></span>
   </div>
 
-  <!-- SEO SCORE -->
   <div class="seo-score" id="seoScore">SEO Score: 0%</div>
 
   <!-- AUTHOR + CATEGORY -->
@@ -128,17 +123,17 @@
   <!-- TOOLS -->
   <div class="tools">
     <button type="button" onclick="generateSummary()">🧠 AI Summary</button>
-    <button type="button" onclick="copyLink()" class="secondary">🔗 Copy Link</button>
-    <button type="button" onclick="saveDraft()" class="secondary">💾 Save Draft</button>
+    <button type="button" class="secondary" onclick="copyLink()">🔗 Copy Link</button>
+    <button type="button" class="secondary" onclick="saveDraft()">💾 Save Draft</button>
   </div>
 
   <!-- THUMBNAIL -->
-  <input type="text" name="thumbnail" id="thumb" value="<%= post.thumbnail %>" placeholder="Thumbnail URL">
-  <img src="<%= post.thumbnail %>" class="preview" id="thumbPreview">
+  <input type="text" name="thumbnail" id="thumb" value="<%= post.thumbnail %>">
+  <img src="<%= post.thumbnail || '/images/default-thumb.jpg' %>" class="preview" id="thumbPreview">
 
   <!-- MAIN IMAGE -->
-  <input type="text" name="mainImage" id="main" value="<%= post.mainImage %>" placeholder="Main Image URL">
-  <img src="<%= post.mainImage %>" class="preview" id="mainPreview">
+  <input type="text" name="mainImage" id="main" value="<%= post.mainImage %>">
+  <img src="<%= post.mainImage || '/images/default-main.jpg' %>" class="preview" id="mainPreview">
 
   <!-- BREAKING -->
   <label>
@@ -157,26 +152,26 @@ const content = document.getElementById("content");
 const charCount = document.getElementById("charCount");
 const seoScore = document.getElementById("seoScore");
 
-/* SLUG */
 function slugify(text) {
   return text.toLowerCase().trim()
     .replace(/\s+/g, "-")
     .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
+    .replace(/\-+/g, "-");
 }
 
+/* SLUG UPDATE */
 title.addEventListener("input", () => {
   slugPreview.textContent = slugify(title.value);
   updateSEO();
 });
 
-/* CHARACTER COUNT */
+/* CHAR COUNT */
 content.addEventListener("input", () => {
   charCount.textContent = content.value.length;
   updateSEO();
 });
 
-/* SEO SCORE (simple logic) */
+/* SEO SCORE */
 function updateSEO() {
   let score = 0;
 
@@ -190,43 +185,40 @@ function updateSEO() {
 
 /* IMAGE PREVIEW */
 document.getElementById("thumb").addEventListener("input", e => {
-  document.getElementById("thumbPreview").src = e.target.value;
+  document.getElementById("thumbPreview").src = e.target.value || '/images/default-thumb.jpg';
 });
 
 document.getElementById("main").addEventListener("input", e => {
-  document.getElementById("mainPreview").src = e.target.value;
+  document.getElementById("mainPreview").src = e.target.value || '/images/default-main.jpg';
 });
 
-/* COPY LINK */
+/* COPY LINK (FIXED ROUTE) */
 function copyLink() {
-  const baseUrl = window.location.origin;
-  const url = baseUrl + "/post/" + slugify(title.value);
-
+  const url = window.location.origin + "/news/" + slugify(title.value);
   navigator.clipboard.writeText(url);
   alert("Link copied!");
 }
 
-/* AI SUMMARY (frontend placeholder) */
+/* AI SUMMARY PLACEHOLDER */
 function generateSummary() {
-  alert("AI Summary feature requires backend API (I can add it for you next).");
+  alert("Connect backend AI service for summary generation.");
 }
 
-/* AUTO SAVE DRAFT */
+/* SAVE DRAFT */
 function saveDraft() {
-  const draft = {
+  localStorage.setItem("voxaria_draft", JSON.stringify({
     title: title.value,
     content: content.value
-  };
-  localStorage.setItem("voxaria_draft", JSON.stringify(draft));
-  alert("Draft saved locally");
+  }));
+  alert("Draft saved");
 }
 
 /* LOAD DRAFT */
 window.onload = () => {
   const draft = JSON.parse(localStorage.getItem("voxaria_draft"));
   if (draft) {
-    title.value = draft.title || title.value;
-    content.value = draft.content || content.value;
+    title.value = draft.title || "";
+    content.value = draft.content || "";
   }
   updateSEO();
 };

@@ -11,36 +11,43 @@
 
 <main class="article-layout">
 
-  <h1 class="article-title">Search Results for "<%= query %>"</h1>
+  <h1 class="article-title">
+    Search Results for "<%= query || '' %>"
+  </h1>
 
   <section class="news-grid">
     <div class="grid-container">
 
-      <% if(posts.length === 0){ %>
-        <p>No articles found for "<%= query %>".</p>
+      <% if (!Array.isArray(posts) || posts.length === 0) { %>
+        <p>No articles found for "<%= query || '' %>".</p>
       <% } else { %>
 
         <% posts.forEach(post => { %>
           <div class="news-card">
 
-            <% if(post.thumbnail){ %>
-              <img src="<%= post.thumbnail %>" alt="<%= post.title %>">
-            <% } else { %>
-              <img src="/images/default-thumb.jpg" alt="No image">
-            <% } %>
+            <img 
+              src="<%= post.thumbnail || '/images/default-thumb.jpg' %>" 
+              alt="<%= post.title %>"
+            >
 
             <h3>
-              <a href="/post/<%= post.slug || post.slug %>"><%= post.title %></a>
+              <a href="/news/<%= post.slug %>">
+                <%= post.title %>
+              </a>
             </h3>
 
             <p class="article-meta">
-              <span><strong>Author:</strong> <%= post.author %></span> |
-              <span><strong>Category:</strong> <%= post.category %></span>
+              <span><strong>Author:</strong> <%= post.author || 'Admin' %></span> |
+              <span><strong>Category:</strong> <%= post.category || 'General' %></span>
             </p>
 
-            <p><%= post.content.substring(0, 100) %>...</p>
+            <p>
+              <%= (post.content || '').substring(0, 100) %>...
+            </p>
 
-            <a href="/post/<%= post.slug %>" class="read-more">Read Article</a>
+            <a href="/news/<%= post.slug %>" class="read-more">
+              Read Article
+            </a>
 
           </div>
         <% }) %>

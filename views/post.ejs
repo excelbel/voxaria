@@ -9,12 +9,10 @@
   <meta property="og:title" content="<%= post.title %>">
   <meta property="og:description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 150) %>">
   <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>">
-  <meta property="og:url" content="<%= baseUrl + '/post/' + (post.slug || post.slug) %>">
-
-  
+  <meta property="og:url" content="<%= baseUrl + '/news/' + post.slug %>">
   <meta property="og:type" content="article">
 
-  <link rel="canonical" href="<%= baseUrl + '/post/' + (post.slug || post.slug) %>">
+  <link rel="canonical" href="<%= baseUrl + '/news/' + post.slug %>">
   <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -23,9 +21,9 @@
 <%- include('partials/header', { currentPage: 'post' }) %>
 
 <%
-  const slug = href="/post/<%= post.slug %>"
-  const shareUrl = baseUrl + '/post/' + slug;
-  const shareText = encodeURIComponent(post.title);
+const slug = post.slug || post._id;
+const shareUrl = baseUrl + '/news/' + slug;
+const shareText = encodeURIComponent(post.title);
 %>
 
 <main class="article-layout">
@@ -35,7 +33,7 @@
   <h1 class="article-title"><%= post.title %></h1>
 
   <div class="article-meta">
-    <span><strong>Date:</strong> <%= post.date ? new Date(post.date).toDateString() : "" %></span>
+    <span><strong>Date:</strong> <%= post.createdAt ? new Date(post.createdAt).toDateString() : "" %></span>
     <span><strong>Category:</strong> <%= post.category || "General" %></span>
     <span><strong>Views:</strong> <%= post.analytics?.views || 0 %></span>
     <span><strong>Likes:</strong> <%= post.analytics?.likes || 0 %></span>
@@ -58,28 +56,24 @@
     <%- post.content %>
   </div>
 
-  <!-- SHARE ENGINE V2 -->
+  <!-- SHARE ENGINE -->
   <div class="share-buttons">
 
-    <!-- WhatsApp -->
     <a target="_blank"
       href="https://wa.me/?text=<%= shareText %>%20<%= encodeURIComponent(shareUrl) %>">
       WhatsApp
     </a>
 
-    <!-- Facebook -->
     <a target="_blank"
       href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(shareUrl) %>">
       Facebook
     </a>
 
-    <!-- Twitter -->
     <a target="_blank"
       href="https://twitter.com/intent/tweet?text=<%= shareText %>&url=<%= encodeURIComponent(shareUrl) %>">
       Twitter
     </a>
 
-    <!-- Copy Link -->
     <button onclick="copyLink()">Copy Link</button>
 
   </div>
@@ -88,33 +82,33 @@
     function copyLink() {
       const url = "<%= shareUrl %>";
 
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(url).then(() => {
+      navigator.clipboard?.writeText(url)
+        .then(() => alert("Link copied"))
+        .catch(() => {
+          const input = document.createElement("input");
+          input.value = url;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand("copy");
+          document.body.removeChild(input);
           alert("Link copied");
         });
-      } else {
-        const input = document.createElement("input");
-        input.value = url;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand("copy");
-        document.body.removeChild(input);
-        alert("Link copied");
-      }
     }
   </script>
 
   <!-- LIKE -->
   <div class="post-actions">
     <form action="/like/<%= post.slug %>" method="POST">
-      <button type="submit">👍 Like (<%= post.analytics?.likes || 0 %>)</button>
+      <button type="submit">
+        👍 Like (<%= post.analytics?.likes || 0 %>)
+      </button>
     </form>
   </div>
 
 </article>
 
 <!-- RELATED -->
-<% if (relatedPosts && relatedPosts.length > 0) { %>
+<% if (Array.isArray(relatedPosts) && relatedPosts.length > 0) { %>
 <section class="related-posts">
   <h2>Related Articles</h2>
 
@@ -123,7 +117,7 @@
       <div class="related-card">
         <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>" alt="<%= rp.title %>">
         <h3>
-          <a href="/post/<%= rp.slug || rp.slug %>"><%= rp.title %></a>
+          <a href="/news/<%= rp.slug %>"><%= rp.title %></a>
         </h3>
       </div>
     <% }) %>
