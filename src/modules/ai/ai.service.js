@@ -1,85 +1,88 @@
-const axios = require("axios");
+const OpenAI = require("openai");
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 /* =========================
-   BASIC AI CALL (IF USING API)
-   Replace with OpenAI / Gemini / etc
+   NEWS PACKAGE GENERATOR
+   (FULL ARTICLE + SEO + SUMMARY)
 ========================= */
-async function callAI(prompt) {
-  // Example placeholder (replace with real API)
-  // You can plug OpenAI, Claude, Gemini here
+async function generateNewsPackage(text) {
+  try {
+    if (!text) return null;
 
-  return `AI_RESPONSE: ${prompt}`;
-}
+    const prompt = `
+You are a professional newsroom AI.
 
-/* =========================
-   BBC STYLE WRITER
-========================= */
-async function bbcWriter(title, content) {
-  const prompt = `
-You are a BBC World News editor.
+Turn the input into:
+1. A strong SEO title
+2. A news article (clean, readable, engaging)
+3. A short summary (2-3 lines)
+4. Category (News, Politics, Sports, Entertainment, Tech, World, etc.)
+5. SEO description (max 155 characters)
+6. Image prompt (for blog header image)
+7. Breaking score (0-100 based on urgency)
 
-Rewrite the content professionally:
-
-Rules:
-- formal journalism tone
-- clear structure
-- no exaggeration
-- no repetition
-- global news standard
-
-TITLE: ${title}
-
-CONTENT:
-${content}
-
-Return as clean HTML article.
-`;
-
-  return await callAI(prompt);
-}
-
-/* =========================
-   NEWS SUMMARY GENERATOR
-========================= */
-async function generateSummary(text) {
-  const prompt = `
-Summarize this news article in a clear, short, professional tone:
-
-TEXT:
+INPUT:
 ${text}
 
-Return 3–5 sentences only.
+Return ONLY valid JSON in this format:
+{
+  "title": "",
+  "article": "",
+  "summary": "",
+  "category": "",
+  "seoDescription": "",
+  "imagePrompt": "",
+  "breakingScore": 0
+}
 `;
 
-  return await callAI(prompt);
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a professional newsroom AI." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.7
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+
+    return JSON.parse(content);
+
+  } catch (err) {
+    console.error("AI PACKAGE ERROR:", err.message);
+
+    return {
+      title: null,
+      article: text,
+      summary: "",
+      category: "News",
+      seoDescription: "",
+      imagePrompt: "",
+      breakingScore: 0
+    };
+  }
 }
 
 /* =========================
-   HEADLINE OPTIMIZER
+   BREAKING NEWS EXTRACTOR
+   (FIXES YOUR getBreakingNews ERROR)
 ========================= */
-async function generateHeadline(title) {
-  const prompt = `
-Improve this news headline for clarity and impact:
+function getBreakingNews(posts = []) {
+  if (!Array.isArray(posts)) return [];
 
-TITLE:
-${title}
-
-Rules:
-- keep it short
-- journalistic tone
-- no clickbait
-
-Return only the headline.
-`;
-
-  return await callAI(prompt);
+  return posts
+    .filter(p => p?.breakingScore >= 70 || p?.isBreaking === true)
+    .slice(0, 5);
 }
 
 /* =========================
-   AI PACKAGE EXPORT
+   EXPORTS
 ========================= */
 module.exports = {
-  bbcWriter,
-  generateSummary,
-  generateHeadline
+  generateNewsPackage,
+  getBreakingNews
 };

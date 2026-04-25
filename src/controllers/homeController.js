@@ -1,8 +1,10 @@
 const Post = require("../models/post");
-const { getCache, setCache } = require("../modules/cache/cache.service");
-const { getBreakingNews } = require("../modules/ai/ai.service");
-const { buildLayout } = require("../modules/posts/post.service");
+const { getCache, setCache } = require("../services/cacheService");
+const { getBreakingNews } = require("../services/aiService");
 
+/* =========================
+   HOME PAGE CONTROLLER
+========================= */
 exports.home = async (req, res) => {
   try {
     let posts = await getCache("home_posts");
@@ -13,31 +15,50 @@ exports.home = async (req, res) => {
         .limit(20)
         .lean();
 
-      await setCache("home_posts", posts, 60);
+      await setCache("home_posts", posts, 300);
     }
 
-    const breakingNews = getBreakingNews(posts);
-    const layout = buildLayout(posts);
+    // Ensure safe arrays
+    const safePosts = Array.isArray(posts) ? posts : [];
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    // Featured logic (simple fallback)
+    const featuredPost = safePosts[0] || null;
+    const featuredGrid = safePosts.slice(1, 5);
 
-    const paginatedPosts = posts.slice((page - 1) * limit, page * limit);
+    // Recent posts
+    const recentPosts = safePosts.slice(0, 10);
+
+    // Trending (basic fallback using views)
+    const trendingPosts = [...safePosts]
+      .sort((a, b) => (b.views || 0) - (a.views || 0))
+      .slice(0, 5);
+
+    // Breaking news (safe call)
+    const breakingNews = getBreakingNews(safePosts) || [];
 
     res.render("index", {
-      breakingNews: breakingNews || [],
-      featuredGrid: layout.grid || [],
-      featuredPost: layout.hero || null,
-      trendingPosts: layout.trending || [],
-      posts: paginatedPosts,
-      recentPosts: posts.slice(0, 8),
-      currentPage: "home",
-      page,
-      totalPages: Math.ceil(posts.length / limit)
+      posts: safePosts,
+      featuredPost,
+      featuredGrid,
+      recentPosts,
+      trendingPosts,
+      breakingNews,
+      randomPost: safePosts[Math.floor(Math.random() * safePosts.length)] || null,
+      currentPage: "Home"
     });
 
   } catch (err) {
-    console.log("HOME ERROR:", err.message);
-    res.status(500).send("Server Error");
+    console.error("HOME ERROR:", err.message);
+
+    res.render("index", {
+      posts: [],
+      featuredPost: null,
+      featuredGrid: [],
+      recentPosts: [],
+      trendingPosts: [],
+      breakingNews: [],
+      randomPost: null,
+      currentPage: "Home"
+    });
   }
 };
