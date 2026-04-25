@@ -86,45 +86,54 @@ app.get("/", async (req, res) => {
 
     const latest = layout.latest || [];
 
+    const paginatedPosts = latest.slice((page - 1) * limit, page * limit);
+
+    const recentPosts = latest.slice(0, 8);
+
     const randomPost =
       latest.length > 0
         ? latest[Math.floor(Math.random() * latest.length)]
         : null;
 
-    const recentPosts = latest.slice(0, 8);
-
     res.render("index", {
-      posts: latest.slice((page - 1) * limit, page * limit),
+      posts: paginatedPosts || [],
+
       featuredPost: layout.hero || null,
       breakingNews: layout.breaking || [],
       featuredGrid: layout.featuredGrid || [],
       trendingPosts: layout.trending || [],
+
       verifiedPosts: layout.topVerified || [],
       editorialQueue: layout.editorialQueue || [],
 
-      recentPosts,
-      randomPost,
+      recentPosts: recentPosts || [],
+      randomPost: randomPost || null,
 
       currentPage: "home",
       page,
-      totalPages: Math.ceil(latest.length / limit)
+      totalPages: Math.ceil((latest.length || 0) / limit)
     });
+
   } catch (err) {
-    console.log("V10 ERROR:", err.message);
+    console.log("HOME ERROR:", err.message);
     res.status(500).send("Server Error");
   }
 });
 
 /* =========================
-   REAL-TIME SOCKET ENGINE
+   SOCKET ENGINE
 ========================= */
 io.on("connection", (socket) => {
   console.log("Newsroom user connected");
 
   socket.on("join", async () => {
-    const { getNewsV8 } = require("./services/newsroomV8");
-    const live = await getNewsV8(15);
-    socket.emit("live-feed", live);
+    try {
+      const { getNewsV8 } = require("./services/newsroomV8");
+      const live = await getNewsV8(15);
+      socket.emit("live-feed", live);
+    } catch (err) {
+      console.log("SOCKET ERROR:", err.message);
+    }
   });
 });
 
@@ -140,6 +149,7 @@ app.get("/api/live-news", async (req, res) => {
 
     res.json(posts);
   } catch (err) {
+    console.log("API ERROR:", err.message);
     res.status(500).json({ error: "failed" });
   }
 });
@@ -159,14 +169,15 @@ app.get("/post/:slug", async (req, res) => {
       .lean();
 
     const shareUrl = `${BASE_URL}/post/${post.slug || post._id}`;
-    const shareText = post.title;
+    const shareText = post.title || "";
 
     res.render("post", {
       post,
-      relatedPosts: related,
+      relatedPosts: related || [],
       shareUrl,
       shareText
     });
+
   } catch (err) {
     console.log("POST ERROR:", err.message);
     res.status(500).send("Server Error");
@@ -177,12 +188,17 @@ app.get("/post/:slug", async (req, res) => {
    START SERVER
 ========================= */
 async function start() {
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log("MongoDB Connected");
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("MongoDB Connected");
 
-  server.listen(PORT, "0.0.0.0", () => {
-    console.log("V7 Newsroom running on", PORT);
-  });
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log("V7 Newsroom running on", PORT);
+    });
+
+  } catch (err) {
+    console.log("DB CONNECTION ERROR:", err.message);
+  }
 }
 
 start();
