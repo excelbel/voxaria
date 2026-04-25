@@ -18,11 +18,12 @@ exports.home = async (req, res) => {
     const breakingNews = getBreakingNews(posts);
 
     res.render("index", {
-      posts,
-      breakingNews,
-      featuredGrid: posts.slice(1, 5),
-      currentPage: "home"
-    });
+  breakingNews,
+  featuredGrid,
+  posts,
+  recentPosts: recentPosts || [],
+  currentPage
+});
 
   } catch (err) {
     console.log(err);
