@@ -326,3 +326,32 @@ body.dark-mode textarea {
     padding: 25px;
   }
 }
+
+.share-bar {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.share-bar a,
+.share-bar button {
+  background: #111;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.share-bar a:hover,
+.share-bar button:hover {
+  background: #333;
+}

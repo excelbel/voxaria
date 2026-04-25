@@ -3,63 +3,29 @@
 <head>
   <title><%= post.title %> | Voxaria</title>
 
-  <!-- SEO META (CLEAN + OPTIMIZED) -->
+  <!-- SEO META -->
   <meta name="description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 160) %>">
 
   <meta property="og:title" content="<%= post.title %>">
   <meta property="og:description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 150) %>">
   <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>">
-  <meta property="og:url" content="<%= baseUrl + '/post/' + post.slug %>">
+  <meta property="og:url" content="<%= baseUrl + '/post/' + (post.slug || post._id) %>">
   <meta property="og:type" content="article">
 
-  <link rel="canonical" href="<%= baseUrl + '/post/' + post.slug %>">
-
+  <link rel="canonical" href="<%= baseUrl + '/post/' + (post.slug || post._id) %>">
   <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="top-bar">
-    <a href="/" class="logo-text">VOXARIA</a>
+<%- include('partials/header', { currentPage: 'post' }) %>
 
-    <nav class="main-nav desktop-nav">
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/category/News">News</a></li>
-        <li><a href="/category/Articles">Articles</a></li>
-        <li><a href="/category/Entertainment">Entertainment</a></li>
-        <li><a href="/category/International">International</a></li>
-        <li><a href="/category/Politics">Politics</a></li>
-        <li><a href="/category/Sports">Sports</a></li>
-      </ul>
-    </nav>
+<%
+  const slug = post.slug || post._id;
+  const shareUrl = baseUrl + '/post/' + slug;
+  const shareText = encodeURIComponent(post.title);
+%>
 
-    <div class="hamburger-menu" onclick="toggleMobileNav()">☰</div>
-  </div>
-
-  <nav class="main-nav mobile-nav" id="mobileNav">
-    <ul>
-      <li><a href="/">Home</a></li>
-      <li><a href="/category/News">News</a></li>
-      <li><a href="/category/Articles">Articles</a></li>
-      <li><a href="/category/Entertainment">Entertainment</a></li>
-      <li><a href="/category/International">International</a></li>
-      <li><a href="/category/Politics">Politics</a></li>
-      <li><a href="/category/Sports">Sports</a></li>
-    </ul>
-  </nav>
-</header>
-
-<script>
-function toggleMobileNav() {
-  const nav = document.getElementById("mobileNav");
-  nav.style.display = nav.style.display === "block" ? "none" : "block";
-}
-</script>
-
-<!-- ARTICLE -->
 <main class="article-layout">
 
 <article class="article">
@@ -67,7 +33,7 @@ function toggleMobileNav() {
   <h1 class="article-title"><%= post.title %></h1>
 
   <div class="article-meta">
-    <span><strong>Date:</strong> <%= post.date ? post.date.toDateString() : "" %></span>
+    <span><strong>Date:</strong> <%= post.date ? new Date(post.date).toDateString() : "" %></span>
     <span><strong>Category:</strong> <%= post.category || "General" %></span>
     <span><strong>Views:</strong> <%= post.analytics?.views || 0 %></span>
     <span><strong>Likes:</strong> <%= post.analytics?.likes || 0 %></span>
@@ -90,43 +56,62 @@ function toggleMobileNav() {
     <%- post.content %>
   </div>
 
-  <!-- SHARE -->
+  <!-- SHARE ENGINE V2 -->
   <div class="share-buttons">
 
+    <!-- WhatsApp -->
     <a target="_blank"
-      href="https://wa.me/?text=<%= encodeURIComponent(post.title + ' ' + baseUrl + '/post/' + post.slug) %>">
+      href="https://wa.me/?text=<%= shareText %>%20<%= encodeURIComponent(shareUrl) %>">
       WhatsApp
     </a>
 
+    <!-- Facebook -->
     <a target="_blank"
-      href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(baseUrl + '/post/' + post.slug) %>">
+      href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(shareUrl) %>">
       Facebook
     </a>
 
+    <!-- Twitter -->
+    <a target="_blank"
+      href="https://twitter.com/intent/tweet?text=<%= shareText %>&url=<%= encodeURIComponent(shareUrl) %>">
+      Twitter
+    </a>
+
+    <!-- Copy Link -->
     <button onclick="copyLink()">Copy Link</button>
 
   </div>
 
   <script>
     function copyLink() {
-      const url = "<%= baseUrl + '/post/' + post.slug %>";
-      navigator.clipboard.writeText(url);
-      alert("Link copied!");
+      const url = "<%= shareUrl %>";
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert("Link copied");
+        });
+      } else {
+        const input = document.createElement("input");
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+        alert("Link copied");
+      }
     }
   </script>
 
   <!-- LIKE -->
   <div class="post-actions">
     <form action="/like/<%= post._id %>" method="POST">
-      <button type="submit">
-        👍 Like (<%= post.analytics?.likes || 0 %>)
-      </button>
+      <button type="submit">👍 Like (<%= post.analytics?.likes || 0 %>)</button>
     </form>
   </div>
 
 </article>
 
-<!-- RELATED POSTS -->
+<!-- RELATED -->
 <% if (relatedPosts && relatedPosts.length > 0) { %>
 <section class="related-posts">
   <h2>Related Articles</h2>
@@ -136,37 +121,13 @@ function toggleMobileNav() {
       <div class="related-card">
         <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>" alt="<%= rp.title %>">
         <h3>
-          <a href="/post/<%= rp.slug %>"><%= rp.title %></a>
+          <a href="/post/<%= rp.slug || rp._id %>"><%= rp.title %></a>
         </h3>
       </div>
     <% }) %>
   </div>
 </section>
 <% } %>
-
-<!-- COMMENTS -->
-<section class="comments-section">
-
-  <h2>Comments (<%= (post.comments || []).length %>)</h2>
-
-  <% if (post.comments && post.comments.length > 0) { %>
-    <% post.comments.forEach(comment => { %>
-      <div class="comment">
-        <strong><%= comment.name %></strong>
-        <p><%= comment.text %></p>
-      </div>
-    <% }) %>
-  <% } else { %>
-    <p>No comments yet.</p>
-  <% } %>
-
-  <form action="/post/<%= post._id %>/comment" method="POST">
-    <input name="name" placeholder="Your name" required>
-    <textarea name="text" placeholder="Write a comment..." required></textarea>
-    <button type="submit">Submit</button>
-  </form>
-
-</section>
 
 </main>
 

@@ -25,12 +25,15 @@ const postSchema = new mongoose.Schema({
   seoTitle: { type: String, default: "" },
   tags: [String],
 
-  date: { type: Date, default: Date.now },
+  // IMPORTANT: use ONE date field consistently
+  createdAt: { type: Date, default: Date.now },
+
   author: { type: String, default: "Admin" },
   category: { type: String, default: "General" },
 
   isBreaking: { type: Boolean, default: false },
 
+  // safe default images from public/
   thumbnail: { type: String, default: "/images/default-thumb.jpg" },
   mainImage: { type: String, default: "/images/default-main.jpg" },
 
@@ -40,8 +43,8 @@ const postSchema = new mongoose.Schema({
   subscribers: [{ type: String }]
 });
 
-/* SAFE SLUG GENERATION (NO next used incorrectly) */
-postSchema.pre("save", async function () {
+/* SAFE SLUG GENERATION */
+postSchema.pre("save", function () {
   if (!this.slug) {
     this.slug = slugify(this.title, { lower: true, strict: true });
   }

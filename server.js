@@ -5,16 +5,20 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const compression = require("compression");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const Post = require("./models/post");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 const PORT = process.env.PORT || 10000;
-const BASE_URL = "https://voxaria.org";
+const BASE_URL = process.env.BASE_URL || "https://voxaria.org";
 
 /* =========================
-   MONGOOSE CONFIG
+   MONGOOSE
 ========================= */
 mongoose.set("strictQuery", true);
 
@@ -30,15 +34,12 @@ app.use(express.static(path.join(__dirname, "public"), {
 }));
 
 /* =========================
-   PERFORMANCE MIDDLEWARE
+   MIDDLEWARE
 ========================= */
 app.use(compression());
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-/* =========================
-   SESSION (SAFE)
-========================= */
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "voxaria_secret",
@@ -46,117 +47,149 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      httpOnly: true
     }
   })
 );
 
 /* =========================
-   GLOBAL SAFETY LOCALS
-   (PREVENT ALL EJS CRASHES)
+   GLOBAL LOCALS SAFETY
 ========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl = BASE_URL;
 
   res.locals.featuredPost = null;
-  res.locals.featuredGrid = [];
   res.locals.breakingNews = [];
+  res.locals.featuredGrid = [];
   res.locals.trendingPosts = [];
-  res.locals.recentPosts = [];
-  res.locals.randomPost = null;
 
   next();
 });
 
 /* =========================
-   HOME VIEW ENGINE BUILDER
+   AI HEAT SCORE (V7 CORE)
 ========================= */
-function buildHomeView(posts = []) {
-  const safe = Array.isArray(posts) ? posts : [];
+function calculateHeat(post) {
+  const a = post.analytics || {};
 
-  return {
-    featuredPost: safe[0] || null,
-    breakingNews: safe.slice(0, 5),
-    featuredGrid: safe.slice(1, 7),
-    trendingPosts: safe.slice(5, 12),
-    recentPosts: safe.slice(0, 10),
-    latestPosts: safe.slice(0, 20)
-  };
+  const views = a.views || 0;
+  const likes = a.likes || 0;
+  const shares = a.shares || 0;
+
+  const ageHours =
+    (Date.now() - new Date(post.createdAt || post.date).getTime()) /
+    3600000;
+
+  const freshness = Math.max(0, 72 - ageHours);
+
+  const engagement = (views * 0.1) + (likes * 2) + (shares * 3);
+
+  return freshness + engagement;
 }
 
 /* =========================
-   HEALTH CHECK
+   NEWS RANKING ENGINE
 ========================= */
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
-});
+async function getLiveNews(limit = 50) {
+  const posts = await Post.find({})
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  return posts
+    .map(p => ({
+      ...p,
+      heat: calculateHeat(p),
+      isHot: (p.analytics?.views || 0) > 500
+    }))
+    .sort((a, b) => b.heat - a.heat);
+}
 
 /* =========================
-   HOME ROUTE (FAST + SAFE)
+   HOME PAGE
 ========================= */
+const {
+  getEnterpriseFeed,
+  buildEnterpriseLayout
+} = require("./services/mediaNetworkV10");
+
 app.get("/", async (req, res) => {
   try {
-    const posts = await Post.find({})
-      .sort({ createdAt: -1 })
-      .limit(30)
-      .lean();
+    const feed = await getEnterpriseFeed(100);
 
-    const view = buildHomeView(posts);
+    const layout = buildEnterpriseLayout(feed);
 
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
-    const totalPages = Math.ceil(posts.length / limit);
 
-    const paginatedPosts = view.latestPosts.slice(
-      (page - 1) * limit,
-      page * limit
-    );
-
-    const randomPost =
-      posts.length > 0
-        ? posts[Math.floor(Math.random() * posts.length)]
-        : null;
+    const latest = layout.latest;
 
     res.render("index", {
-      posts: paginatedPosts,
-      featuredPost: view.featuredPost,
-      breakingNews: view.breakingNews,
-      featuredGrid: view.featuredGrid,
-      trendingPosts: view.trendingPosts,
-      recentPosts: view.recentPosts,
-      randomPost,
+      posts: latest.slice((page - 1) * limit, page * limit),
 
+      featuredPost: layout.hero,
+      breakingNews: layout.breaking,
+      trendingPosts: layout.trending,
+
+      verifiedPosts: layout.topVerified,
+      editorialQueue: layout.editorialQueue,
+
+      currentPage: "home",
       page,
-      totalPages,
-      currentPage: "home"
+      totalPages: Math.ceil(latest.length / limit)
     });
 
   } catch (err) {
-    console.log("HOME ERROR:", err.message);
+    console.log("V10 ERROR:", err.message);
     res.status(500).send("Server Error");
+  }
+});
+/* =========================
+   REAL-TIME SOCKET ENGINE
+========================= */
+io.on("connection", (socket) => {
+  console.log("Newsroom user connected");
+
+  socket.on("join", async () => {
+    const { getNewsV8 } = require("./services/newsroomV8");
+
+    const live = await getNewsV8(15);
+    socket.emit("live-feed", live);
+  });
+});
+
+/* =========================
+   LIVE NEWS API (FRONTEND POLLING)
+========================= */
+app.get("/api/live-news", async (req, res) => {
+  try {
+    const news = await getLiveNews(20);
+    res.json(news);
+  } catch (err) {
+    res.status(500).json({ error: "failed" });
   }
 });
 
 /* =========================
-   SINGLE POST PAGE
+   POST PAGE
 ========================= */
 app.get("/post/:slug", async (req, res) => {
   try {
     const post = await Post.findOne({ slug: req.params.slug }).lean();
-
     if (!post) return res.status(404).send("Not found");
 
-    const relatedPosts = await Post.find({
+    const related = await Post.find({
       _id: { $ne: post._id }
-    })
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
+    }).limit(5).lean();
+
+    const shareUrl = `${BASE_URL}/post/${post.slug || post._id}`;
+    const shareText = post.title;
 
     res.render("post", {
       post,
-      relatedPosts
+      relatedPosts: related,
+      shareUrl,
+      shareText
     });
 
   } catch (err) {
@@ -168,20 +201,13 @@ app.get("/post/:slug", async (req, res) => {
 /* =========================
    START SERVER
 ========================= */
-async function startServer() {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
+async function start() {
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log("MongoDB Connected");
 
-    console.log("MongoDB Connected");
-
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on ${PORT}`);
-    });
-
-  } catch (err) {
-    console.log("Startup Error:", err.message);
-    process.exit(1);
-  }
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log("V7 Newsroom running on", PORT);
+  });
 }
 
-startServer();
+start();
