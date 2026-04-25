@@ -158,21 +158,32 @@ app.get("/api/live-news", async (req, res) => {
 ========================= */
 app.get("/post/:slug", async (req, res) => {
   try {
-    const post = await Post.findOne({ slug: req.params.slug }).lean();
+    const param = req.params.slug;
+
+    let post;
+
+    // If it's a MongoDB ObjectId, search by _id
+    if (mongoose.Types.ObjectId.isValid(param)) {
+      post = await Post.findById(param).lean();
+    }
+
+    // If not found, fallback to slug
+    if (!post) {
+      post = await Post.findOne({ slug: param }).lean();
+    }
+
     if (!post) return res.status(404).send("Not found");
 
     const related = await Post.find({
       _id: { $ne: post._id }
-    })
-      .limit(5)
-      .lean();
+    }).limit(5).lean();
 
     const shareUrl = `${BASE_URL}/post/${post.slug || post._id}`;
-    const shareText = post.title || "";
+    const shareText = post.title;
 
     res.render("post", {
       post,
-      relatedPosts: related || [],
+      relatedPosts: related,
       shareUrl,
       shareText
     });

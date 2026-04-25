@@ -9,10 +9,12 @@
   <meta property="og:title" content="<%= post.title %>">
   <meta property="og:description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 150) %>">
   <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>">
-  <meta property="og:url" content="<%= baseUrl + '/post/' + (post.slug || post._id) %>">
+  <meta property="og:url" content="<%= baseUrl + '/post/' + (post.slug || post.slug) %>">
+
+  
   <meta property="og:type" content="article">
 
-  <link rel="canonical" href="<%= baseUrl + '/post/' + (post.slug || post._id) %>">
+  <link rel="canonical" href="<%= baseUrl + '/post/' + (post.slug || post.slug) %>">
   <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -21,7 +23,7 @@
 <%- include('partials/header', { currentPage: 'post' }) %>
 
 <%
-  const slug = post.slug || post._id;
+  const slug = href="/post/<%= post.slug %>"
   const shareUrl = baseUrl + '/post/' + slug;
   const shareText = encodeURIComponent(post.title);
 %>
@@ -104,7 +106,7 @@
 
   <!-- LIKE -->
   <div class="post-actions">
-    <form action="/like/<%= post._id %>" method="POST">
+    <form action="/like/<%= post.slug %>" method="POST">
       <button type="submit">👍 Like (<%= post.analytics?.likes || 0 %>)</button>
     </form>
   </div>
@@ -121,7 +123,7 @@
       <div class="related-card">
         <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>" alt="<%= rp.title %>">
         <h3>
-          <a href="/post/<%= rp.slug || rp._id %>"><%= rp.title %></a>
+          <a href="/post/<%= rp.slug || rp.slug %>"><%= rp.title %></a>
         </h3>
       </div>
     <% }) %>
