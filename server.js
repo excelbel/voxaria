@@ -124,21 +124,21 @@ app.get("/", async (req, res) => {
 
     const latest = layout.latest;
 
-    res.render("index", {
-      posts: latest.slice((page - 1) * limit, page * limit),
+    const viewData = {
+  posts: latest.slice((page - 1) * limit, page * limit),
+  featuredPost: layout.hero,
+  breakingNews: layout.breaking,
+  featuredGrid: layout.featuredGrid || [],
+  trendingPosts: layout.trending,
+  verifiedPosts: layout.topVerified,
+  editorialQueue: layout.editorialQueue,
+  recentPosts: latest.slice(0, 8),
+  currentPage: "home",
+  page,
+  totalPages: Math.ceil(latest.length / limit)
+};
 
-      featuredPost: layout.hero,
-      breakingNews: layout.breaking,
-      trendingPosts: layout.trending,
-
-      verifiedPosts: layout.topVerified,
-      editorialQueue: layout.editorialQueue,
-
-      currentPage: "home",
-      page,
-      totalPages: Math.ceil(latest.length / limit)
-    });
-
+res.render("index", viewData);
   } catch (err) {
     console.log("V10 ERROR:", err.message);
     res.status(500).send("Server Error");
