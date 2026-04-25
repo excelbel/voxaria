@@ -7,15 +7,18 @@
 </head>
 <body>
 
+<%
+var recentPosts = typeof recentPosts !== "undefined" ? recentPosts : [];
+var randomPost = typeof randomPost !== "undefined" ? randomPost : null;
+var breakingNews = typeof breakingNews !== "undefined" ? breakingNews : [];
+var featuredGrid = typeof featuredGrid !== "undefined" ? featuredGrid : [];
+var posts = typeof posts !== "undefined" ? posts : [];
+var trendingPosts = typeof trendingPosts !== "undefined" ? trendingPosts : [];
+var featuredPost = typeof featuredPost !== "undefined" ? featuredPost : null;
+%>
+
 <%- include('partials/header', { currentPage: currentPage }) %>
 
-<%
-recentPosts = typeof recentPosts !== "undefined" ? recentPosts : [];
-randomPost = typeof randomPost !== "undefined" ? randomPost : null;
-breakingNews = typeof breakingNews !== "undefined" ? breakingNews : [];
-featuredGrid = typeof featuredGrid !== "undefined" ? featuredGrid : [];
-posts = typeof posts !== "undefined" ? posts : [];
-%>
 <!-- BREAKING NEWS -->
 <% if (breakingNews.length > 0) { %>
 <div class="breaking-news">

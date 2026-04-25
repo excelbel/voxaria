@@ -84,19 +84,19 @@ app.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
 
-    const latest = layout.latest || [];
+    const latest = Array.isArray(layout.latest) ? layout.latest : [];
 
     const paginatedPosts = latest.slice((page - 1) * limit, page * limit);
 
-    const recentPosts = (latest || []).slice(0, 8);
+    const recentPosts = latest.slice(0, 8);
 
-const randomPost =
-  Array.isArray(latest) && latest.length > 0
-    ? latest[Math.floor(Math.random() * latest.length)]
-    : null;
+    const randomPost =
+      latest.length > 0
+        ? latest[Math.floor(Math.random() * latest.length)]
+        : null;
 
     res.render("index", {
-      posts: paginatedPosts || [],
+      posts: paginatedPosts,
 
       featuredPost: layout.hero || null,
       breakingNews: layout.breaking || [],
@@ -106,12 +106,12 @@ const randomPost =
       verifiedPosts: layout.topVerified || [],
       editorialQueue: layout.editorialQueue || [],
 
-      recentPosts: recentPosts || [],
-      randomPost: randomPost || null,
+      recentPosts,
+      randomPost,
 
       currentPage: "home",
       page,
-      totalPages: Math.ceil((latest.length || 0) / limit)
+      totalPages: Math.ceil(latest.length / limit)
     });
 
   } catch (err) {
@@ -119,7 +119,6 @@ const randomPost =
     res.status(500).send("Server Error");
   }
 });
-
 /* =========================
    SOCKET ENGINE
 ========================= */
