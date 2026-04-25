@@ -10,13 +10,12 @@
 <%- include('partials/header', { currentPage: currentPage }) %>
 
 <%
-var recentPosts = typeof recentPosts !== "undefined" ? recentPosts : [];
-var randomPost = typeof randomPost !== "undefined" ? randomPost : null;
-var breakingNews = typeof breakingNews !== "undefined" ? breakingNews : [];
-var featuredGrid = typeof featuredGrid !== "undefined" ? featuredGrid : [];
-var posts = typeof posts !== "undefined" ? posts : [];
-var trendingPosts = typeof trendingPosts !== "undefined" ? trendingPosts : [];
-var featuredPost = typeof featuredPost !== "undefined" ? featuredPost : null;
+const recentPosts = Array.isArray(typeof recentPosts !== "undefined" ? recentPosts : null) ? recentPosts : [];
+const randomPost = typeof randomPost !== "undefined" ? randomPost : null;
+const breakingNews = Array.isArray(typeof breakingNews !== "undefined" ? breakingNews : null) ? breakingNews : [];
+const featuredGrid = Array.isArray(typeof featuredGrid !== "undefined" ? featuredGrid : null) ? featuredGrid : [];
+const posts = Array.isArray(typeof posts !== "undefined" ? posts : null) ? posts : [];
+const trendingPosts = Array.isArray(typeof trendingPosts !== "undefined" ? trendingPosts : null) ? trendingPosts : [];
 %>
 
 <!-- BREAKING NEWS -->
