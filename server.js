@@ -88,12 +88,12 @@ app.get("/", async (req, res) => {
 
     const paginatedPosts = latest.slice((page - 1) * limit, page * limit);
 
-    const recentPosts = latest.slice(0, 8);
+    const recentPosts = (latest || []).slice(0, 8);
 
-    const randomPost =
-      latest.length > 0
-        ? latest[Math.floor(Math.random() * latest.length)]
-        : null;
+const randomPost =
+  Array.isArray(latest) && latest.length > 0
+    ? latest[Math.floor(Math.random() * latest.length)]
+    : null;
 
     res.render("index", {
       posts: paginatedPosts || [],

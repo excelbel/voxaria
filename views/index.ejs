@@ -9,16 +9,13 @@
 
 <%- include('partials/header', { currentPage: currentPage }) %>
 
-<% 
-  breakingNews = breakingNews || [];
-  featuredGrid = featuredGrid || [];
-  posts = posts || [];
-  recentPosts = recentPosts || [];
-  trendingPosts = trendingPosts || [];
-  randomPost = randomPost || null;
-  featuredPost = featuredPost || null;
+<%
+recentPosts = typeof recentPosts !== "undefined" ? recentPosts : [];
+randomPost = typeof randomPost !== "undefined" ? randomPost : null;
+breakingNews = typeof breakingNews !== "undefined" ? breakingNews : [];
+featuredGrid = typeof featuredGrid !== "undefined" ? featuredGrid : [];
+posts = typeof posts !== "undefined" ? posts : [];
 %>
-
 <!-- BREAKING NEWS -->
 <% if (breakingNews.length > 0) { %>
 <div class="breaking-news">
