@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const Post = require("../models/post");
 
 const { fetchNewsAndSave } = require("../modules/news/news.fetcher");
-const { generateNewsPackage } = require("../services/aiService");
+const { generateNewsPackage } = require('../modules/ai/ai.services');
 
 /* =========================
    WORKER CORE

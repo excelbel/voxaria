@@ -1,6 +1,6 @@
 const Post = require("../models/post");
 const { getCache, setCache } = require("../services/cacheService");
-const { getBreakingNews } = require("../services/aiService");
+const { getBreakingNews } = require('../modules/ai/ai.services');
 
 /* =========================
    HOME PAGE CONTROLLER
