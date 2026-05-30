@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const Post = require("../models/post");
 
 const { fetchNewsAndSave } = require("../modules/news/news.fetcher");
-const { generateNewsPackage } = require('../modules/ai/ai.services');
+const { generateNewsPackage } = require('../modules/ai/ai.service');
 const { generateImage } = require("../modules/media/image.service");
 
 /* =========================
