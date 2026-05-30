@@ -1,5 +1,5 @@
 const Post = require("../models/post");
-const { getCache, setCache } = require("../services/cacheService");
+const { getCache, setCache } = require('../modules/cache/cache.service');
 const { getBreakingNews } = require('../modules/ai/ai.service');
 
 /* =========================
