@@ -2,23 +2,23 @@
 
   <div class="hero-grid">
 
-    <% if (featuredPost) { %>
+    <% if (safeFeaturedPost) { %>
       <div class="hero-card">
 
         <img 
-          src="<%= featuredPost.mainImage || '/images/default-main.jpg' %>" 
-          alt="<%= featuredPost.title %>"
+          src="<%= safeFeaturedPost.mainImage || '/images/default-main.jpg' %>" 
+          alt="<%= safeFeaturedPost.title %>"
         >
 
         <div class="overlay">
           <h2>
             <a href="/news/<%= featuredPost.slug || featuredPost._id %>">
-              <%= featuredPost.title %>
+              <%= safeFeaturedPost.title %>
             </a>
           </h2>
 
           <p>
-            <%= (featuredPost.content || '').substring(0, 120) %>...
+            <%= (safeFeaturedPost.content || '').substring(0, 120) %>...
           </p>
 
         </div>
@@ -27,7 +27,7 @@
     <% } %>
 
     <% if (Array.isArray(featuredGrid) && featuredGrid.length > 0) { %>
-      <% featuredGrid.forEach(post => { %>
+      <% safeFeaturedGrid.forEach(post => { %>
 
         <div class="featured-card">
 

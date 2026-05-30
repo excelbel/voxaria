@@ -83,7 +83,7 @@
 
       <ul>
         <% if (Array.isArray(recentPosts)) { %>
-          <% recentPosts.forEach(rp => { %>
+          <% safeRecentPosts.forEach(rp => { %>
             <li>
               <a href="/news/<%= rp.slug || rp._id %>">
                 <%= rp.title %>
@@ -99,7 +99,7 @@
 
       <ul>
         <% if (Array.isArray(trendingPosts)) { %>
-          <% trendingPosts.forEach(tp => { %>
+          <% safeTrendingPosts.forEach(tp => { %>
             <li>
               <a href="/news/<%= tp.slug || tp._id %>">
                 <%= tp.title %>

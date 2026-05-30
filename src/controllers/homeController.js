@@ -22,7 +22,7 @@ exports.home = async (req, res) => {
     const safePosts = Array.isArray(posts) ? posts : [];
 
     // Featured logic (simple fallback)
-    const featuredPost = safePosts[0] || null;
+    const safeFeaturedPost = safePosts[0] || null;
     const featuredGrid = safePosts.slice(1, 5);
 
     // Recent posts
@@ -38,7 +38,7 @@ exports.home = async (req, res) => {
 
     res.render("index", {
       posts: safePosts,
-      featuredPost,
+      safeFeaturedPost,
       featuredGrid,
       recentPosts,
       trendingPosts,
@@ -52,7 +52,7 @@ exports.home = async (req, res) => {
 
     res.render("index", {
       posts: [],
-      featuredPost: null,
+      safeFeaturedPost: null,
       featuredGrid: [],
       recentPosts: [],
       trendingPosts: [],

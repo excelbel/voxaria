@@ -12,24 +12,28 @@
 <%
 const safeArray = (v) => Array.isArray(v) ? v : [];
 
-const posts = safeArray(posts);
-const breakingNews = safeArray(breakingNews);
-const featuredGrid = safeArray(featuredGrid);
-const recentPosts = safeArray(recentPosts);
-const trendingPosts = safeArray(trendingPosts);
+const safePosts = safeArray(posts);
+const safeBreakingNews = safeArray(breakingNews);
+const safeFeaturedGrid = safeArray(featuredGrid);
+const safeRecentPosts = safeArray(recentPosts);
+const safeTrendingPosts = safeArray(trendingPosts);
 
-const randomPost = randomPost || null;
-const featuredPost = featuredPost || null;
+const safesafeRandomPost = safeRandomPost || null;
+const safeFeaturedPost = featuredPost || null;
+%>
+
+const safeRandomPost = safeRandomPost || null;
+const safeFeaturedPost = safeFeaturedPost || null;
 %>
 
 <!-- BREAKING NEWS -->
-<% if (breakingNews.length > 0) { %>
+<% if (safeBreakingNews.length > 0) { %>
 <div class="breaking-news">
   <span class="breaking-label">BREAKING</span>
 
   <div class="ticker-wrapper">
     <div class="ticker-track">
-      <% breakingNews.forEach(bn => { %>
+      <% safeBreakingNews.forEach(bn => { %>
         <a href="/news/<%= bn.slug || bn._id %>">
           <%= bn.title %>
         </a>
@@ -42,18 +46,18 @@ const featuredPost = featuredPost || null;
 <!-- HERO SECTION -->
 <div class="hero-featured">
 
-  <% if (featuredPost) { %>
+  <% if (safeFeaturedPost) { %>
   <div class="hero-card">
-    <a href="/news/<%= featuredPost.slug || featuredPost._id %>">
+    <a href="/news/<%= safeFeaturedPost.slug || safeFeaturedPost._id %>">
       <img src="<%= featuredPost.mainImage || '/images/default-main.jpg' %>" alt="<%= featuredPost.title %>">
       <div class="overlay">
-        <h2><%= featuredPost.title %></h2>
+        <h2><%= safeFeaturedPost.title %></h2>
       </div>
     </a>
   </div>
   <% } %>
 
-  <% featuredGrid.forEach(fg => { %>
+  <% safeFeaturedGrid.forEach(fg => { %>
   <div class="featured-card">
     <a href="/news/<%= fg.slug || fg._id %>">
       <img src="<%= fg.mainImage || '/images/default-main.jpg' %>" alt="<%= fg.title %>">
@@ -107,7 +111,7 @@ const featuredPost = featuredPost || null;
     <div class="widget">
       <h3>Recent Posts</h3>
       <ul>
-        <% recentPosts.forEach(rp => { %>
+        <% safeRecentPosts.forEach(rp => { %>
           <li>
             <a href="/news/<%= rp.slug || rp._id %>">
               <%= rp.title %>
@@ -120,7 +124,7 @@ const featuredPost = featuredPost || null;
     <div class="widget">
       <h3>Trending</h3>
       <ul>
-        <% trendingPosts.forEach(tp => { %>
+        <% safeTrendingPosts.forEach(tp => { %>
           <li>
             <a href="/news/<%= tp.slug || tp._id %>">
               <%= tp.title %>
@@ -130,15 +134,15 @@ const featuredPost = featuredPost || null;
       </ul>
     </div>
 
-    <% if (randomPost) { %>
+    <% if (safeRandomPost) { %>
     <div class="widget">
       <h3>Featured</h3>
-      <a href="/news/<%= randomPost.slug || randomPost._id %>">
+      <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
         <img 
-          src="<%= randomPost.thumbnail || '/images/default-thumb.jpg' %>" 
+          src="<%= safeRandomPost.thumbnail || '/images/default-thumb.jpg' %>" 
           style="width:100%; border-radius:5px;"
         >
-        <p><%= randomPost.title %></p>
+        <p><%= safeRandomPost.title %></p>
       </a>
     </div>
     <% } %>
