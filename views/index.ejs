@@ -19,13 +19,8 @@ const safeRecentPosts = safeArray(recentPosts);
 const safeTrendingPosts = safeArray(trendingPosts);
 
 const safeRandomPost = randomPost || null;
-const safeFeaturedPost = safeFeaturedPost || null;
+const safeFeaturedPost = featuredPost || null;
 %>
-
-const randomPost = randomPost || null;
-const safeFeaturedPost = safeFeaturedPost || null;
-%>
-
 <!-- BREAKING NEWS -->
 <% if (safeBreakingNews.length > 0) { %>
 <div class="breaking-news">
