@@ -18,11 +18,11 @@ const safeFeaturedGrid = safeArray(featuredGrid);
 const safeRecentPosts = safeArray(recentPosts);
 const safeTrendingPosts = safeArray(trendingPosts);
 
-const safesafeRandomPost = safeRandomPost || null;
-const safeFeaturedPost = featuredPost || null;
+const safeRandomPost = randomPost || null;
+const safeFeaturedPost = safeFeaturedPost || null;
 %>
 
-const safeRandomPost = safeRandomPost || null;
+const randomPost = randomPost || null;
 const safeFeaturedPost = safeFeaturedPost || null;
 %>
 
@@ -49,7 +49,7 @@ const safeFeaturedPost = safeFeaturedPost || null;
   <% if (safeFeaturedPost) { %>
   <div class="hero-card">
     <a href="/news/<%= safeFeaturedPost.slug || safeFeaturedPost._id %>">
-      <img src="<%= featuredPost.mainImage || '/images/default-main.jpg' %>" alt="<%= featuredPost.title %>">
+      <img src="<%= safeFeaturedPost.mainImage || '/images/default-main.jpg' %>" alt="<%= safeFeaturedPost.title %>">
       <div class="overlay">
         <h2><%= safeFeaturedPost.title %></h2>
       </div>
@@ -134,15 +134,15 @@ const safeFeaturedPost = safeFeaturedPost || null;
       </ul>
     </div>
 
-    <% if (safeRandomPost) { %>
+    <% if (randomPost) { %>
     <div class="widget">
       <h3>Featured</h3>
-      <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
+      <a href="/news/<%= randomPost.slug || randomPost._id %>">
         <img 
-          src="<%= safeRandomPost.thumbnail || '/images/default-thumb.jpg' %>" 
+          src="<%= randomPost.thumbnail || '/images/default-thumb.jpg' %>" 
           style="width:100%; border-radius:5px;"
         >
-        <p><%= safeRandomPost.title %></p>
+        <p><%= randomPost.title %></p>
       </a>
     </div>
     <% } %>

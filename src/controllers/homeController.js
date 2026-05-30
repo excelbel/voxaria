@@ -23,7 +23,7 @@ exports.home = async (req, res) => {
 
     // Featured logic (simple fallback)
     const safeFeaturedPost = safePosts[0] || null;
-    const featuredGrid = safePosts.slice(1, 5);
+    const safeFeaturedGrid = safePosts.slice(1, 5);
 
     // Recent posts
     const recentPosts = safePosts.slice(0, 10);
@@ -39,11 +39,11 @@ exports.home = async (req, res) => {
     res.render("index", {
       posts: safePosts,
       safeFeaturedPost,
-      featuredGrid,
+      safeFeaturedGrid,
       recentPosts,
       trendingPosts,
       breakingNews,
-      randomPost: safePosts[Math.floor(Math.random() * safePosts.length)] || null,
+      safeRandomPost: safePosts[Math.floor(Math.random() * safePosts.length)] || null,
       currentPage: "Home"
     });
 
@@ -53,11 +53,11 @@ exports.home = async (req, res) => {
     res.render("index", {
       posts: [],
       safeFeaturedPost: null,
-      featuredGrid: [],
+      safeFeaturedGrid: [],
       recentPosts: [],
       trendingPosts: [],
       breakingNews: [],
-      randomPost: null,
+      safeRandomPost: null,
       currentPage: "Home"
     });
   }

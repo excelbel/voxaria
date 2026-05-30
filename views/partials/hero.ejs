@@ -12,7 +12,7 @@
 
         <div class="overlay">
           <h2>
-            <a href="/news/<%= featuredPost.slug || featuredPost._id %>">
+            <a href="/news/<%= featuredPost.slug || safefeaturedPost._id %>">
               <%= safeFeaturedPost.title %>
             </a>
           </h2>
@@ -26,7 +26,7 @@
       </div>
     <% } %>
 
-    <% if (Array.isArray(featuredGrid) && featuredGrid.length > 0) { %>
+    <% if (Array.isArray(safeFeaturedGrid) && safeFeaturedGrid.length > 0) { %>
       <% safeFeaturedGrid.forEach(post => { %>
 
         <div class="featured-card">

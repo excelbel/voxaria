@@ -110,19 +110,19 @@
       </ul>
     </div>
 
-    <% if (randomPost) { %>
+    <% if (safeRandomPost) { %>
       <div class="widget">
         <h3>Featured</h3>
 
-        <a href="/news/<%= randomPost.slug || randomPost._id %>">
+        <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
 
           <img 
-            src="<%= randomPost.thumbnail || '/images/default-thumb.jpg' %>" 
-            alt="<%= randomPost.title %>" 
+            src="<%= safeRandomPost.thumbnail || '/images/default-thumb.jpg' %>" 
+            alt="<%= safeRandomPost.title %>" 
             style="width:100%; border-radius:5px;"
           >
 
-          <p><%= randomPost.title %></p>
+          <p><%= safeRandomPost.title %></p>
 
         </a>
       </div>
