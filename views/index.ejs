@@ -18,8 +18,8 @@ const safeFeaturedGrid = safeArray(featuredGrid);
 const safeRecentPosts = safeArray(recentPosts);
 const safeTrendingPosts = safeArray(trendingPosts);
 
-const safeRandomPost = randomPost || null;
-const safeFeaturedPost = featuredPost || null;
+const safeRandomPost = typeof randomPost !== "undefined" ? randomPost : null;
+const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : null;
 %>
 <!-- BREAKING NEWS -->
 <% if (safeBreakingNews.length > 0) { %>
