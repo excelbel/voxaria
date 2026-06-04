@@ -129,15 +129,15 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
       </ul>
     </div>
 
-    <% if (randomPost) { %>
+    <% if (safeRandomPost) { %>
     <div class="widget">
       <h3>Featured</h3>
-      <a href="/news/<%= randomPost.slug || randomPost._id %>">
+      <a href="/news/<%= saferandomPost.slug || saferandomPost._id %>">
         <img 
-          src="<%= randomPost.thumbnail || '/images/default-thumb.jpg' %>" 
+          src="<%= saferandomPost.thumbnail || '/images/default-thumb.jpg' %>" 
           style="width:100%; border-radius:5px;"
         >
-        <p><%= randomPost.title %></p>
+        <p><%= saferandomPost.title %></p>
       </a>
     </div>
     <% } %>
