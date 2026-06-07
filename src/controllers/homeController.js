@@ -63,27 +63,3 @@ exports.home = async (req, res) => {
   }
 };
 
-const Post = require("../models/post");
-
-exports.singlePost = async (req, res) => {
-try {
-const post = await Post.findOne({
-slug: req.params.slug
-}).lean();
-
-```
-if (!post) {
-  return res.status(404).send("Post not found");
-}
-
-res.render("post", {
-  post,
-  currentPage: post.title
-});
-```
-
-} catch (err) {
-console.error("POST ERROR:", err.message);
-res.status(500).send("Server Error");
-}
-};
