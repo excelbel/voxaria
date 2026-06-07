@@ -7,16 +7,16 @@ const { getBreakingNews } = require("../modules/ai/ai.service");
 ========================= */
 exports.home = async (req, res) => {
   try {
-    let posts = await getCache("home_posts");
+   let posts = await getCache("home_posts");
 
-    if (!posts) {
-      posts = await Post.find()
-        .sort({ createdAt: -1 })
-        .limit(20)
-        .lean();
+if (!posts) {
+  posts = await Post.find()
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .lean();
 
-      await setCache("home_posts", posts, 300);
-    }
+  await setCache("home_posts", posts, 60); // refresh every 1 min
+}
 
     const safePosts = Array.isArray(posts) ? posts : [];
 

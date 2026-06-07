@@ -1,27 +1,35 @@
 const axios = require("axios");
 const Post = require("../../models/post");
 
+/* =========================
+   MULTI SOURCE FETCHER
+========================= */
 async function fetchNewsAndSave() {
   console.log("News fetcher started");
 
   try {
-    const response = await axios.get(
-      "https://newsapi.org/v2/top-headlines",
-      {
-        params: {
-          country: "us",
-          apiKey: process.env.NEWS_API_KEY
-        },
-        timeout: 10000
+    const sources = [
+      `https://newsapi.org/v2/top-headlines?country=us&apiKey=${process.env.NEWS_API_KEY}`,
+      `https://newsapi.org/v2/top-headlines?country=gb&apiKey=${process.env.NEWS_API_KEY}`
+    ];
+
+    let allArticles = [];
+
+    for (const url of sources) {
+      try {
+        const res = await axios.get(url, { timeout: 10000 });
+        const articles = res?.data?.articles || [];
+        allArticles = allArticles.concat(articles);
+      } catch (err) {
+        console.log("Source failed:", err.message);
       }
-    );
+    }
 
-    const articles = response?.data?.articles || [];
-    console.log("Articles received:", articles.length);
+    console.log("Total articles:", allArticles.length);
 
-    const results = [];
+    const slugs = [];
 
-    for (const article of articles) {
+    for (const article of allArticles) {
       try {
         if (!article?.title) continue;
 
@@ -30,29 +38,35 @@ async function fetchNewsAndSave() {
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)/g, "");
 
-        const updated = await Post.updateOne(
-          { slug },
-          {
-            title: article.title,
-            slug,
-            content: article.description || "No content available",
-            category: "News",
-            mainImage: article.urlToImage || "/images/default-main.jpg",
-            source: "API",
-            views: 0,
-            aiProcessed: false,
-            updatedAt: new Date()
-          },
-          { upsert: true }
-        );
+        const existing = await Post.findOne({ slug });
 
-        results.push(slug);
+        if (existing) {
+          slugs.push(slug);
+          continue;
+        }
+
+        await Post.create({
+          title: article.title,
+          slug,
+          content: article.description || "No content available",
+          category: "News",
+          mainImage: article.urlToImage || "/images/default-main.jpg",
+          source: "API",
+          views: 0,
+          aiProcessed: false,
+          createdAt: new Date()
+        });
+
+        slugs.push(slug);
+
       } catch (err) {
         console.log("Article error:", err.message);
       }
     }
 
-    return results;
+    console.log("Saved posts:", slugs.length);
+    return slugs;
+
   } catch (err) {
     console.log("News fetch error:", err.message);
     return [];

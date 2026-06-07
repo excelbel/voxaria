@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const mongoose = require("mongoose");
 const Post = require("../models/post");
-
 const { fetchNewsAndSave } = require("../modules/news/news.fetcher");
 const { generateNewsPackage } = require("../modules/ai/ai.service");
 
@@ -18,18 +17,21 @@ async function connectDB() {
 
 async function processNews() {
   try {
-    console.log("📡 Fetching news batch...");
+    console.log("📡 Running news cycle...");
 
-    const news = await fetchNewsAndSave();
+    const slugs = await fetchNewsAndSave();
 
-    if (!Array.isArray(news) || news.length === 0) {
-      console.log("No news found");
+    if (!slugs.length) {
+      console.log("No slugs returned");
       return;
     }
 
-    for (const slug of news) {
+    console.log("Processing slugs:", slugs.length);
+
+    for (const slug of slugs) {
       try {
-        const post = await Post.findOne({ slug }).lean();
+        const post = await Post.findOne({ slug });
+
         if (!post) continue;
 
         const ai = await generateNewsPackage(post.content || post.title);
@@ -50,23 +52,31 @@ async function processNews() {
           }
         );
 
-        console.log("✔ Processed:", post.title);
+        console.log("✔ Updated:", post.title);
+
       } catch (err) {
-        console.log("❌ AI processing error:", err.message);
+        console.log("AI error:", err.message);
       }
     }
 
-    console.log("✅ Batch completed");
+    console.log("✅ Cycle complete");
+
   } catch (err) {
-    console.log("❌ Process error:", err.message);
+    console.log("Process error:", err.message);
   }
 }
 
 async function runWorker() {
   await connectDB();
+
   await processNews();
 
-  setInterval(processNews, 20 * 60 * 1000);
+  // safer interval (avoids overlap issues)
+  setInterval(() => {
+    processNews().catch(err =>
+      console.log("Worker crash:", err.message)
+    );
+  }, 10 * 60 * 1000); // every 10 mins
 }
 
 runWorker();
