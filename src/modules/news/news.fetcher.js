@@ -37,7 +37,7 @@ async function fetchNewsAndSave() {
           title: article.title,
           content: article.description || "No content available",
           category: "News",
-          image: article.urlToImage || "",
+          mainimage: article.urlToImage || "",
           source: "API",
           analytics: {
             views: 0,
