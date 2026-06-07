@@ -1,9 +1,6 @@
 const axios = require("axios");
 const Post = require("../../models/post");
 
-/* =========================
-   FETCH NEWS FROM API
-========================= */
 async function fetchNewsAndSave() {
   console.log("News fetcher started");
 
@@ -20,39 +17,45 @@ async function fetchNewsAndSave() {
     );
 
     const articles = response?.data?.articles || [];
-
     console.log("Articles received:", articles.length);
+
+    const results = [];
 
     for (const article of articles) {
       try {
         if (!article?.title) continue;
 
-        const exists = await Post.findOne({
-          title: article.title
-        });
+        const slug = article.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
 
-        if (exists) continue;
-
-        await Post.create({
-          title: article.title,
-          content: article.description || "No content available",
-          category: "News",
-          mainimage: article.urlToImage || "",
-          source: "API",
-          analytics: {
+        const updated = await Post.updateOne(
+          { slug },
+          {
+            title: article.title,
+            slug,
+            content: article.description || "No content available",
+            category: "News",
+            mainImage: article.urlToImage || "/images/default-main.jpg",
+            source: "API",
             views: 0,
-            likes: 0,
-            shares: 0
-          }
-        });
+            aiProcessed: false,
+            updatedAt: new Date()
+          },
+          { upsert: true }
+        );
 
+        results.push(slug);
       } catch (err) {
         console.log("Article error:", err.message);
       }
     }
 
+    return results;
   } catch (err) {
     console.log("News fetch error:", err.message);
+    return [];
   }
 }
 

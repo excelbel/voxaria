@@ -1,128 +1,123 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <title><%= post.title %> | Voxaria</title>
+  <meta charset="UTF-8">
 
-  <!-- SEO META -->
-  <meta name="description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 160) %>">
+  <title><%= post?.title || 'Voxaria' %> | Voxaria</title>
 
-  <meta property="og:title" content="<%= post.title %>">
-  <meta property="og:description" content="<%= ((post.aiSummary || post.content || '').replace(/<[^>]*>/g, '')).substring(0, 150) %>">
-  <meta property="og:image" content="<%= post.mainImage || '/images/default-main.jpg' %>">
-  <meta property="og:url" content="<%= baseUrl + '/news/' + post.slug %>">
-  <meta property="og:type" content="article">
+<meta
+name="description"
+content="<%= ((post?.aiSummary || post?.content || '').replace(/<[^>]*>/g, '')).substring(0,160) %>"
 
-  <link rel="canonical" href="<%= baseUrl + '/news/' + post.slug %>">
+>
+
+  <meta property="og:title" content="<%= post?.title || 'Voxaria' %>">
+
+<meta
+property="og:description"
+content="<%= ((post?.aiSummary || post?.content || '').replace(/<[^>]*>/g, '')).substring(0,150) %>"
+
+>
+
+<meta
+property="og:image"
+content="<%= post?.mainImage || '/image/default-main.jpg' %>"
+
+>
+
   <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<%- include('partials/header', { currentPage: 'post' }) %>
+<%- include('partials/header', { currentPage: currentPage || 'post' }) %>
 
 <%
-const slug = post.slug || post._id;
-const shareUrl = baseUrl + '/news/' + slug;
-const shareText = encodeURIComponent(post.title);
+const safePost = post || {};
+const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : [];
+const slug = safePost.slug || safePost._id || '';
 %>
 
 <main class="article-layout">
 
-<article class="article">
+  <article class="article">
 
-  <h1 class="article-title"><%= post.title %></h1>
+```
+<h1 class="article-title">
+  <%= safePost.title || 'Untitled Post' %>
+</h1>
 
-  <div class="article-meta">
-    <span><strong>Date:</strong> <%= post.createdAt ? new Date(post.createdAt).toDateString() : "" %></span>
-    <span><strong>Category:</strong> <%= post.category || "General" %></span>
-    <span><strong>Views:</strong> <%= post.analytics?.views || 0 %></span>
-    <span><strong>Likes:</strong> <%= post.analytics?.likes || 0 %></span>
+<div class="article-meta">
+  <span>
+    <strong>Date:</strong>
+    <%= safePost.createdAt ? new Date(safePost.createdAt).toDateString() : '' %>
+  </span>
+
+  <span>
+    <strong>Category:</strong>
+    <%= safePost.category || 'General' %>
+  </span>
+
+  <span>
+    <strong>Views:</strong>
+    <%= safePost.views || 0 %>
+  </span>
+</div>
+
+<img
+  src="<%= safePost.mainImage || '/image/default-main.jpg' %>"
+  alt="<%= safePost.title || 'Post Image' %>"
+  class="article-image"
+>
+
+<% if (safePost.aiSummary) { %>
+  <div class="ai-summary">
+    <h3>Quick Summary</h3>
+    <p><%= safePost.aiSummary %></p>
   </div>
+<% } %>
 
-  <img
-    src="<%= post.mainImage || '/images/default-main.jpg' %>"
-    class="article-image"
-    alt="<%= post.title %>"
-  >
+<div class="post-content">
+  <%- safePost.content || '<p>No content available.</p>' %>
+</div>
+```
 
-  <% if (post.aiSummary) { %>
-    <div class="ai-summary">
-      <h3>Quick Summary</h3>
-      <p><%= post.aiSummary %></p>
+  </article>
+
+<% if (safeRelatedPosts.length > 0) { %>
+
+  <section class="related-posts">
+
+```
+<h2>Related Articles</h2>
+
+<div class="related-grid">
+
+  <% safeRelatedPosts.forEach(rp => { %>
+
+    <div class="related-card">
+
+      <img
+        src="<%= rp.mainImage || '/image/default-thumb.jpg' %>"
+        alt="<%= rp.title %>"
+      >
+
+      <h3>
+        <a href="/news/<%= rp.slug || rp._id %>">
+          <%= rp.title %>
+        </a>
+      </h3>
+
     </div>
-  <% } %>
 
-  <div class="post-content">
-    <%- post.content %>
-  </div>
+  <% }) %>
 
-  <!-- SHARE ENGINE -->
-  <div class="share-buttons">
+</div>
+```
 
-    <a target="_blank"
-      href="https://wa.me/?text=<%= shareText %>%20<%= encodeURIComponent(shareUrl) %>">
-      WhatsApp
-    </a>
+  </section>
 
-    <a target="_blank"
-      href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(shareUrl) %>">
-      Facebook
-    </a>
-
-    <a target="_blank"
-      href="https://twitter.com/intent/tweet?text=<%= shareText %>&url=<%= encodeURIComponent(shareUrl) %>">
-      Twitter
-    </a>
-
-    <button onclick="copyLink()">Copy Link</button>
-
-  </div>
-
-  <script>
-    function copyLink() {
-      const url = "<%= shareUrl %>";
-
-      navigator.clipboard?.writeText(url)
-        .then(() => alert("Link copied"))
-        .catch(() => {
-          const input = document.createElement("input");
-          input.value = url;
-          document.body.appendChild(input);
-          input.select();
-          document.execCommand("copy");
-          document.body.removeChild(input);
-          alert("Link copied");
-        });
-    }
-  </script>
-
-  <!-- LIKE -->
-  <div class="post-actions">
-    <form action="/like/<%= post.slug %>" method="POST">
-      <button type="submit">
-        👍 Like (<%= post.analytics?.likes || 0 %>)
-      </button>
-    </form>
-  </div>
-
-</article>
-
-<!-- RELATED -->
-<% if (Array.isArray(relatedPosts) && relatedPosts.length > 0) { %>
-<section class="related-posts">
-  <h2>Related Articles</h2>
-
-  <div class="related-grid">
-    <% relatedPosts.forEach(rp => { %>
-      <div class="related-card">
-        <img src="<%= rp.thumbnail || '/images/default-thumb.jpg' %>" alt="<%= rp.title %>">
-        <h3>
-          <a href="/news/<%= rp.slug %>"><%= rp.title %></a>
-        </h3>
-      </div>
-    <% }) %>
-  </div>
-</section>
 <% } %>
 
 </main>

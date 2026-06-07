@@ -4,126 +4,69 @@ const mongoose = require("mongoose");
 const Post = require("../models/post");
 
 const { fetchNewsAndSave } = require("../modules/news/news.fetcher");
-const { generateNewsPackage } = require('../modules/ai/ai.service');
+const { generateNewsPackage } = require("../modules/ai/ai.service");
 
-/* =========================
-   WORKER CORE
-========================= */
-async function runWorker() {
+async function connectDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("🧠 Worker connected to DB");
-
-    await processNews();
-
-    setInterval(processNews, 20 * 60 * 1000);
   } catch (err) {
-    console.log("Worker failed to start:", err.message);
+    console.error("DB connection failed:", err.message);
+    process.exit(1);
   }
 }
 
-/* =========================
-   NEWS PROCESSING PIPELINE
-========================= */
 async function processNews() {
   try {
     console.log("📡 Fetching news batch...");
 
-   async function fetchNewsAndSave() {
-  console.log("News fetcher started");
+    const news = await fetchNewsAndSave();
 
-  try {
-    const response = await axios.get(
-      "https://newsapi.org/v2/top-headlines",
-      {
-        params: {
-          country: "us",
-          apiKey: process.env.NEWS_API_KEY
-        },
-        timeout: 10000
-      }
-    );
-
-    const articles = response?.data?.articles || [];
-
-    console.log("Articles received:", articles.length);
-
-    for (const article of articles) {
-      try {
-        if (!article?.title) continue;
-
-        const exists = await Post.findOne({
-          title: article.title
-        });
-
-        if (exists) continue;
-
-        await Post.create({
-          title: article.title,
-          content: article.description || "No content available",
-          category: "News",
-          mainImage: article.urlToImage || "",
-          source: "API"
-        });
-
-      } catch (err) {
-        console.log("Article error:", err.message);
-      }
+    if (!Array.isArray(news) || news.length === 0) {
+      console.log("No news found");
+      return;
     }
 
-    return articles;
-
-  } catch (err) {
-    console.log("News fetch error:", err.message);
-    return [];
-  }
-}
-
-    for (const item of news) {
+    for (const slug of news) {
       try {
-        if (!item?.title) continue;
+        const post = await Post.findOne({ slug }).lean();
+        if (!post) continue;
 
-        /* =========================
-           AI NEWS ENGINE
-        ========================= */
-        const ai = await generateNewsPackage(
-          item.content || item.description || item.title
-        );
+        const ai = await generateNewsPackage(post.content || post.title);
 
-        /* =========================
-           DATABASE SAVE
-        ========================= */
         await Post.updateOne(
-          { slug: item.slug },
+          { slug },
           {
-            title: ai.title || item.title,
-            slug: item.slug,
-            content: ai.article,
-            aiSummary: ai.summary,
-            category: ai.category,
-            seoDescription: ai.seoDescription,
-            mainImage: item.urlToImage || "/images/default-main.jpg",
-            imagePrompt: ai.imagePrompt,
-            breakingScore: ai.breakingScore,
+            title: ai?.title || post.title,
+            content: ai?.article || post.content,
+            aiSummary: ai?.summary || "",
+            category: ai?.category || "News",
+            seoDescription: ai?.seoDescription || "",
+            mainImage: post.mainImage,
+            imagePrompt: ai?.imagePrompt || "",
+            breakingScore: ai?.breakingScore || 0,
             aiProcessed: true,
             updatedAt: new Date()
-          },
-          { upsert: true }
+          }
         );
 
+        console.log("✔ Processed:", post.title);
       } catch (err) {
         console.log("❌ AI processing error:", err.message);
       }
     }
 
-    console.log("✅ Batch processed successfully");
-
+    console.log("✅ Batch completed");
   } catch (err) {
     console.log("❌ Process error:", err.message);
   }
 }
 
-/* =========================
-   START WORKER
-========================= */
+async function runWorker() {
+  await connectDB();
+  await processNews();
+
+  setInterval(processNews, 20 * 60 * 1000);
+}
+
 runWorker();
