@@ -21,7 +21,7 @@ app.set("trust proxy", 1);
 /* =========================
    STATIC FILES
 ========================= */
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 /* =========================
    SESSION CONFIG (PRODUCTION SAFE)
