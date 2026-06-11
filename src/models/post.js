@@ -1,21 +1,58 @@
 const mongoose = require("mongoose");
 
-const postSchema = new mongoose.Schema(
-  {
-    title: String,
-    slug: { type: String, unique: true },
-    content: String,
-    aiSummary: String,
-    category: String,
-    seoDescription: String,
-    mainImage: String,
-    imagePrompt: String,
-    breakingScore: Number,
-    views: { type: Number, default: 0 },
-    author: { type: String, default: "Admin" },
-    aiProcessed: { type: Boolean, default: false }
+const postSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  slug: { type: String, unique: true, index: true },
+
+  content: { type: String, default: "" },
+
+  category: {
+    type: String,
+    default: "news",
+    index: true
   },
-  { timestamps: true }
-);
+
+  thumbnail: String,
+  mainImage: String,
+
+  author: { type: String, default: "Admin" },
+
+  views: { type: Number, default: 0 },
+
+  isBreaking: { type: Boolean, default: false },
+
+  /* =========================
+     AI GENERATED CONTENT
+  ========================= */
+  aiSummary: { type: String, default: "" },
+  seoDescription: { type: String, default: "" },
+  imagePrompt: { type: String, default: "" },
+
+  /* =========================
+     ENGAGEMENT (future-proof)
+  ========================= */
+  likes: { type: Number, default: 0 },
+
+  /* optional structured analytics */
+  analytics: {
+    views: { type: Number, default: 0 },
+    likes: { type: Number, default: 0 }
+  },
+
+  /* =========================
+     SOURCE INFO
+  ========================= */
+  source: { type: String, default: "admin" },
+
+  /* =========================
+     AI / SYSTEM FLAGS
+  ========================= */
+  aiProcessed: { type: Boolean, default: false },
+
+  /* =========================
+     TIMESTAMPS
+  ========================= */
+  createdAt: { type: Date, default: Date.now }
+});
 
 module.exports = mongoose.model("Post", postSchema);
