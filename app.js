@@ -6,25 +6,25 @@ const path = require("path");
 const app = express();
 
 /* =========================
-   CORE MIDDLEWARE
+CORE MIDDLEWARE
 ========================= */
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =========================
-   VIEW ENGINE
+VIEW ENGINE
 ========================= */
 app.set("view engine", "ejs");
 app.set("trust proxy", 1);
 
 /* =========================
-   STATIC FILES
+STATIC FILES
 ========================= */
 app.use(express.static(path.join(__dirname, "public")));
 
 /* =========================
-   SESSION CONFIG
+SESSION CONFIG
 ========================= */
 app.use(
   session({
@@ -39,7 +39,7 @@ app.use(
 );
 
 /* =========================
-   GLOBAL LOCALS
+GLOBAL LOCALS
 ========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl =
@@ -54,28 +54,22 @@ app.use((req, res, next) => {
 });
 
 /* =========================
-   ROUTES
+ROUTES
 ========================= */
-
-/* Main Site Routes */
 app.use("/", require("./routes"));
 
-/* Admin Routes */
-app.use("/admin", require("./routes/admin"));
-
 /* =========================
-   404 HANDLER
+404 HANDLER
 ========================= */
 app.use((req, res) => {
   res.status(404).send("Page not found");
 });
 
 /* =========================
-   GLOBAL ERROR HANDLER
+GLOBAL ERROR HANDLER
 ========================= */
 app.use((err, req, res, next) => {
-  console.error("APP ERROR:", err);
-
+  console.error("APP ERROR:", err.message);
   res.status(500).send("Server Error");
 });
 
