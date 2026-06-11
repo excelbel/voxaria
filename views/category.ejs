@@ -1,136 +1,81 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Category: <%= category %> - VOXARIA</title>
+  <title><%= category %> | Voxaria</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<%- include('partials/header', { currentPage: currentPage }) %>
+<%- include('partials/header', { currentPage: category }) %>
 
-<main class="container-main">
+<div class="article-layout">
 
-  <section class="latest-posts">
-    <h2>Category: <%= category %></h2>
+  <h1 style="margin-bottom:30px;">
+    <%= category %> News
+  </h1>
 
-    <% if (!Array.isArray(posts) || posts.length === 0) { %>
-      <p>No articles found in this category.</p>
-    <% } else { %>
+<% if (posts && posts.length > 0) { %>
 
-      <% posts.forEach(post => { %>
-        <div class="card">
+```
+<div class="container">
 
-          <% if (post.thumbnail) { %>
-            <img 
-              src="<%= post.thumbnail %>" 
-              alt="<%= post.title %>" 
-              style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;"
-            >
-          <% } else { %>
-            <img 
-              src="/images/default-thumb.jpg" 
-              alt="No image" 
-              style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;"
-            >
-          <% } %>
+  <% posts.forEach(post => { %>
 
-          <h3>
-            <a href="/news/<%= post.slug || post._id %>">
-              <%= post.title %>
-            </a>
-          </h3>
+    <div class="card">
 
-          <p>
-            <strong>Date:</strong>
-            <%= post.date ? new Date(post.date).toDateString() : "No date" %>
-          </p>
+      <img
+        src="<%= post.mainImage || '/images/default-main.jpg' %>"
+        alt="<%= post.title %>"
+      >
 
-          <p><strong>Author:</strong> <%= post.author || "Admin" %></p>
-
-          <p><strong>Views:</strong> <%= post.views || 0 %></p>
-
-          <a href="/news/<%= post.slug || post._id %>">Read Article</a>
-
-        </div>
-      <% }) %>
-
-    <% } %>
-
-    <!-- PAGINATION -->
-    <div class="pagination" style="margin-top:20px; display:flex; justify-content:center; gap:10px;">
-
-      <% if (page > 1) { %>
-        <a href="/category/<%= category %>?page=<%= page - 1 %>">Previous</a>
-      <% } %>
-
-      <span>Page <%= page || 1 %> of <%= totalPages || 1 %></span>
-
-      <% if (page < totalPages) { %>
-        <a href="/category/<%= category %>?page=<%= page + 1 %>">Next</a>
-      <% } %>
-
-    </div>
-
-  </section>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-
-    <div class="widget">
-      <h3>Recent Posts</h3>
-
-      <ul>
-        <% if (Array.isArray(recentPosts)) { %>
-          <% safeRecentPosts.forEach(rp => { %>
-            <li>
-              <a href="/news/<%= rp.slug || rp._id %>">
-                <%= rp.title %>
-              </a>
-            </li>
-          <% }) %>
-        <% } %>
-      </ul>
-    </div>
-
-    <div class="widget">
-      <h3>Trending</h3>
-
-      <ul>
-        <% if (Array.isArray(trendingPosts)) { %>
-          <% safeTrendingPosts.forEach(tp => { %>
-            <li>
-              <a href="/news/<%= tp.slug || tp._id %>">
-                <%= tp.title %>
-              </a>
-            </li>
-          <% }) %>
-        <% } %>
-      </ul>
-    </div>
-
-    <% if (safeRandomPost) { %>
-      <div class="widget">
-        <h3>Featured</h3>
-
-        <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
-
-          <img 
-            src="<%= safeRandomPost.thumbnail || '/images/default-thumb.jpg' %>" 
-            alt="<%= safeRandomPost.title %>" 
-            style="width:100%; border-radius:5px;"
-          >
-
-          <p><%= safeRandomPost.title %></p>
-
+      <h3>
+        <a href="/news/<%= post.slug || post._id %>">
+          <%= post.title %>
         </a>
-      </div>
-    <% } %>
+      </h3>
 
-  </aside>
+      <p>
+        <%= (post.aiSummary || '').substring(0, 150) %>...
+      </p>
 
-</main>
+      <p>
+        <strong>Date:</strong>
+        <%= post.createdAt ? new Date(post.createdAt).toDateString() : '' %>
+      </p>
+
+      <a href="/news/<%= post.slug || post._id %>">
+        Read Full Article
+      </a>
+
+    </div>
+
+  <% }) %>
+
+</div>
+```
+
+<% } else { %>
+
+```
+<div class="widget">
+  <h3>No Articles Found</h3>
+  <p>
+    There are currently no articles in the
+    <strong><%= category %></strong> category.
+  </p>
+</div>
+```
+
+<% } %>
+
+</div>
+
+<footer class="bottom-links">
+  <p>© 2026 Voxaria. All Rights Reserved.</p>
+</footer>
 
 </body>
 </html>
