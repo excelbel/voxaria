@@ -45,13 +45,7 @@ router.get("/category/:category", homeController.categoryPosts);
 
 router.get("/news/:slug", homeController.singlePost);
 
-router.get("/debug/categories", async (req, res) => {
-  const Post = require("../src/models/post");
 
-  const categories = await Post.distinct("category");
-
-  res.json(categories);
-});
 
 module.exports = router;
 
