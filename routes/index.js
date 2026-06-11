@@ -29,8 +29,7 @@ router.get("/admin", async (req, res) => {
       .lean();
 
     res.render("admin", {
-      posts,
-      role: "admin",
+      posts: posts || [],
       currentPage: "Admin"
     });
 
@@ -45,26 +44,25 @@ router.get("/admin", async (req, res) => {
 ========================= */
 router.post("/admin/create", async (req, res) => {
   try {
-    const { title, author, category, content, thumbnail, mainImage } = req.body;
-
-    const slug = title
+    const slug = (req.body.title || "")
       .toLowerCase()
+      .trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
     await Post.create({
-      title,
+      title: req.body.title,
       slug,
-      author,
-      category,
-      content,
-      thumbnail,
-      mainImage,
-      views: 0,
-      createdAt: new Date()
+      author: req.body.author || "Admin",
+      category: req.body.category || "news",
+      content: req.body.content || "",
+      thumbnail: req.body.thumbnail || "",
+      mainImage: req.body.mainImage || "",
+      isBreaking: req.body.isBreaking === "on"
     });
 
     res.redirect("/admin");
+
   } catch (err) {
     console.error("CREATE ERROR:", err.message);
     res.status(500).send("Error creating post");
@@ -72,16 +70,22 @@ router.post("/admin/create", async (req, res) => {
 });
 
 /* =========================
-   EDIT POST PAGE
+   EDIT PAGE
 ========================= */
 router.get("/admin/edit/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id).lean();
 
-    res.render("edit-post", { post });
+    if (!post) return res.status(404).send("Post not found");
+
+    res.render("edit", {
+      post,
+      currentPage: "Admin"
+    });
+
   } catch (err) {
-    console.error("EDIT LOAD ERROR:", err.message);
-    res.status(500).send("Error loading edit page");
+    console.error("EDIT GET ERROR:", err.message);
+    res.status(500).send("Server Error");
   }
 });
 
@@ -90,8 +94,25 @@ router.get("/admin/edit/:id", async (req, res) => {
 ========================= */
 router.post("/admin/edit/:id", async (req, res) => {
   try {
-    await Post.findByIdAndUpdate(req.params.id, req.body);
+    const slug = (req.body.title || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    await Post.findByIdAndUpdate(req.params.id, {
+      title: req.body.title,
+      slug,
+      author: req.body.author,
+      category: req.body.category,
+      content: req.body.content,
+      thumbnail: req.body.thumbnail,
+      mainImage: req.body.mainImage,
+      isBreaking: req.body.isBreaking === "on"
+    });
+
     res.redirect("/admin");
+
   } catch (err) {
     console.error("UPDATE ERROR:", err.message);
     res.status(500).send("Error updating post");
@@ -105,6 +126,7 @@ router.get("/admin/delete/:id", async (req, res) => {
   try {
     await Post.findByIdAndDelete(req.params.id);
     res.redirect("/admin");
+
   } catch (err) {
     console.error("DELETE ERROR:", err.message);
     res.status(500).send("Error deleting post");
@@ -122,6 +144,7 @@ router.get("/api/posts/latest", async (req, res) => {
       .lean();
 
     res.json(posts);
+
   } catch (err) {
     console.error("LIVE POSTS ERROR:", err.message);
     res.status(500).json({ error: "Failed to load posts" });

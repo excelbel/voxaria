@@ -28,7 +28,7 @@ exports.home = async (req, res) => {
       .sort((a, b) => (b.views || 0) - (a.views || 0))
       .slice(0, 5);
 
-    const breakingNews = getBreakingNews(safePosts) || [];
+    const breakingNews = getBreakingNews(safePosts);
 
     const safeRandomPost =
       safePosts.length > 0
@@ -63,13 +63,17 @@ exports.home = async (req, res) => {
 };
 
 /* =========================
-   SINGLE POST
+   SINGLE POST PAGE
 ========================= */
 exports.singlePost = async (req, res) => {
   try {
-    const post = await Post.findOne({ slug: req.params.slug }).lean();
+    const post = await Post.findOne({
+      slug: req.params.slug
+    }).lean();
 
-    if (!post) return res.status(404).send("Post not found");
+    if (!post) {
+      return res.status(404).send("Post not found");
+    }
 
     await Post.updateOne(
       { _id: post._id },
@@ -77,6 +81,7 @@ exports.singlePost = async (req, res) => {
     );
 
     const relatedPosts = await Post.find({
+      _id: { $ne: post._id },
       category: post.category
     })
       .sort({ createdAt: -1 })
@@ -100,20 +105,7 @@ exports.singlePost = async (req, res) => {
 ========================= */
 exports.categoryPosts = async (req, res) => {
   try {
-    const category = (req.params.category || "").trim();
-
-    if (!category) {
-      return res.render("category", {
-        posts: [],
-        category: "Unknown",
-        recentPosts: [],
-        trendingPosts: [],
-        safeRandomPost: null,
-        page: 1,
-        totalPages: 1,
-        currentPage: "Category"
-      });
-    }
+    const category = req.params.category;
 
     const posts = await Post.find({
       category: { $regex: new RegExp("^" + category + "$", "i") }
@@ -136,6 +128,8 @@ exports.categoryPosts = async (req, res) => {
         ? posts[Math.floor(Math.random() * posts.length)]
         : null;
 
+    const totalPages = 1;
+
     res.render("category", {
       posts,
       category,
@@ -143,7 +137,7 @@ exports.categoryPosts = async (req, res) => {
       trendingPosts,
       safeRandomPost,
       page: 1,
-      totalPages: 1,
+      totalPages,
       currentPage: category
     });
 
