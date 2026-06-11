@@ -1,11 +1,8 @@
-
 const express = require("express");
 const router = express.Router();
 
 const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
-
-
 
 /* =========================
    HOME
@@ -13,12 +10,17 @@ const Post = require("../src/models/post");
 router.get("/", homeController.home);
 
 /* =========================
+   CATEGORY POSTS
+========================= */
+router.get("/category/:category", homeController.categoryPosts);
+
+/* =========================
    SINGLE POST
 ========================= */
 router.get("/news/:slug", homeController.singlePost);
 
 /* =========================
-   LIVE POSTS API (NEW)
+   LIVE POSTS API
 ========================= */
 router.get("/api/posts/latest", async (req, res) => {
   try {
@@ -34,18 +36,4 @@ router.get("/api/posts/latest", async (req, res) => {
   }
 });
 
-const express = require("express");
-const router = express.Router();
-
-const homeController = require("../src/controllers/homeController");
-
-router.get("/", homeController.home);
-
-router.get("/category/:category", homeController.categoryPosts);
-
-router.get("/news/:slug", homeController.singlePost);
-
-
-
 module.exports = router;
-
