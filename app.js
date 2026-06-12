@@ -2,6 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const compression = require("compression");
 const path = require("path");
+const MongoStore = require("connect-mongo");
 
 const app = express();
 
@@ -24,18 +25,16 @@ app.set("trust proxy", 1);
 app.use(express.static(path.join(__dirname, "public")));
 
 /* =========================
-   SESSION CONFIG
+   SESSION (FIXED FOR RENDER)
 ========================= */
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
-
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "voxaria",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 60 * 60 * 24
     }),
     cookie: {
       httpOnly: true,
@@ -43,20 +42,18 @@ app.use(
     }
   })
 );
+
 /* =========================
-   GLOBAL LOCALS (SAFE DEFAULTS)
+   GLOBAL LOCALS
 ========================= */
 app.use((req, res, next) => {
   res.locals.baseUrl =
     process.env.BASE_URL ||
     `${req.protocol}://${req.get("host")}`;
 
-  res.locals.currentPage = "";
-
-  // safe defaults (avoid undefined errors in EJS)
   res.locals.featuredGrid = [];
   res.locals.breakingNews = [];
-  res.locals.posts = [];
+  res.locals.currentPage = "";
 
   next();
 });
@@ -67,34 +64,18 @@ app.use((req, res, next) => {
 app.use("/", require("./routes"));
 
 /* =========================
-   HEALTH CHECK (OPTIONAL BUT USEFUL)
-========================= */
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    message: "Server is running"
-  });
-});
-
-/* =========================
    404 HANDLER
 ========================= */
 app.use((req, res) => {
-  res.status(404).render("404", {
-    currentPage: "404"
-  });
+  res.status(404).send("Page not found");
 });
 
 /* =========================
-   GLOBAL ERROR HANDLER
+   ERROR HANDLER
 ========================= */
 app.use((err, req, res, next) => {
-  console.error("APP ERROR:", err);
-
-  res.status(500).render("error", {
-    message: "Server Error",
-    currentPage: "error"
-  });
+  console.error("APP ERROR:", err.message);
+  res.status(500).send("Server Error");
 });
 
 module.exports = app;

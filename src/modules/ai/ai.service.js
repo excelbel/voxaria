@@ -48,9 +48,9 @@ ${text}
   }
 }
 
-/**
- * Breaking news detection
- */
+/* =========================
+   BREAKING DETECTOR
+========================= */
 function isBreaking(text = "") {
   const t = text.toLowerCase();
 
@@ -64,29 +64,15 @@ function isBreaking(text = "") {
   );
 }
 
-/**
- * FIXED: missing function your controller needs
- */
+/* =========================
+   BREAKING NEWS FILTER
+========================= */
 function getBreakingNews(posts = []) {
-  if (!Array.isArray(posts)) return [];
-
-  return posts.filter(p => p.isBreaking === true).slice(0, 5);
-}
-
-/**
- * OPTIONAL helper for trending fallback use
- */
-function getTrending(posts = []) {
-  if (!Array.isArray(posts)) return [];
-
-  return [...posts]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
-    .slice(0, 5);
+  return posts.filter(p => isBreaking(p.title || p.content || ""));
 }
 
 module.exports = {
   generateNewsPackage,
   isBreaking,
-  getBreakingNews,
-  getTrending
+  getBreakingNews
 };
