@@ -3,105 +3,56 @@ const Post = require("../../models/post");
 const { generateNewsPackage } = require("../ai/ai.service");
 const { detectCategory } = require("../utils/categoryEngine");
 
-function createSlug(title = "") {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-/* =========================
-   NEWS ENGINE
-========================= */
 async function fetchNewsAndSave() {
   console.log("News engine running...");
 
   try {
-    const url = `https://newsapi.org/v2/top-headlines?country=us&pageSize=30&apiKey=${process.env.NEWS_API_KEY}`;
+    const url =
+      `https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
 
-    const res = await axios.get(url, { timeout: 15000 });
-    const articles = res?.data?.articles || [];
-
-    console.log("Fetched articles:", articles.length);
+    const res = await axios.get(url);
+    const articles = res.data.articles || [];
 
     for (const article of articles) {
       try {
         if (!article?.title) continue;
 
-        const slug = createSlug(article.title);
-        const rawText = `${article.title} ${article.description || ""}`;
+        const slug = article.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
 
-        /* =========================
-           DUPLICATE CHECK (IMPROVED)
-        ========================= */
-        const exists = await Post.findOne({
-          $or: [
-            { slug },
-            { title: article.title }
-          ]
-        });
-
+        const exists = await Post.findOne({ slug });
         if (exists) continue;
 
-        /* =========================
-           CATEGORY ENGINE
-           (News, Sports, Politics, etc)
-        ========================= */
-        let category = detectCategory
-          ? detectCategory(rawText)
-          : "news";
+        const rawText = `${article.title} ${article.description || ""}`;
 
-        /* fallback safety */
-        const allowed = [
-          "news",
-          "article",
-          "entertainment",
-          "international",
-          "journal",
-          "politics",
-          "sports",
-          "security"
-        ];
+        const category = detectCategory(rawText) || "news";
 
-        if (!allowed.includes(category)) {
-          category = "news";
+        let aiData = null;
+
+        if (process.env.OPENAI_API_KEY) {
+          try {
+            aiData = await generateNewsPackage(rawText);
+          } catch (err) {
+            aiData = null;
+          }
         }
 
-        /* =========================
-           AI PROCESSING (SAFE FALLBACK)
-        ========================= */
-        let ai = null;
-
-        try {
-          ai = await generateNewsPackage(rawText);
-        } catch (err) {
-          console.log("AI failed, using fallback");
-        }
-
-        /* =========================
-           CREATE POST
-        ========================= */
         await Post.create({
-          title: ai?.title || article.title,
+          title: aiData?.title || article.title,
           slug,
           content:
-            ai?.article ||
+            aiData?.article ||
             article.description ||
             "No content available",
-
           category,
-
           thumbnail: article.urlToImage || "/images/default-thumb.jpg",
           mainImage: article.urlToImage || "/images/default-main.jpg",
-
-          source: "NEWSAPI",
           views: 0,
           isBreaking: false,
-
           createdAt: new Date()
         });
-
-        console.log("Saved:", slug);
 
       } catch (err) {
         console.log("Article error:", err.message);
