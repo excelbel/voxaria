@@ -7,11 +7,10 @@ async function fetchNewsAndSave() {
   console.log("News engine running...");
 
   try {
-    const url =
-      `https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
+    const url = `https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
 
     const res = await axios.get(url);
-    const articles = res.data.articles || [];
+    const articles = res.data?.articles || [];
 
     for (const article of articles) {
       try {
@@ -27,28 +26,25 @@ async function fetchNewsAndSave() {
 
         const rawText = `${article.title} ${article.description || ""}`;
 
-        const category = detectCategory(rawText) || "news";
+        const category = detectCategory(rawText);
 
         let aiData = null;
 
-        if (process.env.OPENAI_API_KEY) {
-          try {
-            aiData = await generateNewsPackage(rawText);
-          } catch (err) {
-            aiData = null;
-          }
+        try {
+          aiData = await generateNewsPackage(rawText);
+        } catch (err) {
+          aiData = null;
         }
 
         await Post.create({
           title: aiData?.title || article.title,
           slug,
-          content:
-            aiData?.article ||
-            article.description ||
-            "No content available",
-          category,
+          content: aiData?.article || article.description || "No content available",
+          category: category || "news",
+
           thumbnail: article.urlToImage || "/images/default-thumb.jpg",
           mainImage: article.urlToImage || "/images/default-main.jpg",
+
           views: 0,
           isBreaking: false,
           createdAt: new Date()
