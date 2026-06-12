@@ -2,7 +2,6 @@ const express = require("express");
 const session = require("express-session");
 const compression = require("compression");
 const path = require("path");
-const MongoStore = require("connect-mongo");
 
 const app = express();
 
@@ -25,17 +24,14 @@ app.set("trust proxy", 1);
 app.use(express.static(path.join(__dirname, "public")));
 
 /* =========================
-   SESSION (FIXED FOR RENDER)
+   SESSION (SAFE FIX)
+   NOTE: avoids connect-mongo crash
 ========================= */
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "voxaria",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
-      ttl: 60 * 60 * 24
-    }),
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production"
