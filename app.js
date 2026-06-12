@@ -26,6 +26,7 @@ app.use(express.static(path.join(__dirname, "public")));
 /* =========================
    SESSION CONFIG
 ========================= */
+const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
 app.use(
