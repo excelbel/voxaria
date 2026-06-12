@@ -26,18 +26,22 @@ app.use(express.static(path.join(__dirname, "public")));
 /* =========================
    SESSION CONFIG
 ========================= */
+const MongoStore = require("connect-mongo");
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "voxaria_secret_key",
+    secret: process.env.SESSION_SECRET || "voxaria",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI
+    }),
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production"
     }
   })
 );
-
 /* =========================
    GLOBAL LOCALS (SAFE DEFAULTS)
 ========================= */

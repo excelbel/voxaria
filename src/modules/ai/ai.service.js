@@ -4,20 +4,27 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+/* =========================
+   NEWS GENERATOR (FULL ARTICLE)
+========================= */
 async function generateNewsPackage(text) {
   try {
+    if (!text) return null;
+
     const prompt = `
 You are a senior newsroom editor.
 
-Rewrite this into a FULL professional news article.
+Rewrite the input into a FULL professional news article.
 
 Rules:
 - 800 to 1200 words
 - proper paragraphs
 - no bullet points
-- real journalism tone
+- journalistic tone
+- human readable
+- SEO optimized headline
 
-Also return JSON:
+Return ONLY valid JSON:
 
 {
   "title": "",
@@ -35,26 +42,33 @@ ${text}
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a newsroom AI." },
+        { role: "system", content: "You are a professional newsroom AI editor." },
         { role: "user", content: prompt }
       ],
       temperature: 0.7
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    const content = response.choices?.[0]?.message?.content;
+
+    return JSON.parse(content);
 
   } catch (err) {
     console.log("AI ERROR:", err.message);
-    return null;
+
+    return {
+      title: "Untitled News",
+      article: text,
+      summary: "",
+      category: "News",
+      seoDescription: "",
+      imagePrompt: ""
+    };
   }
 }
 
-
-
-
-/**
- * Auto decide breaking news
- */
+/* =========================
+   BREAKING DETECTION
+========================= */
 function isBreaking(text = "") {
   const t = text.toLowerCase();
 
@@ -64,8 +78,31 @@ function isBreaking(text = "") {
     t.includes("attack") ||
     t.includes("killed") ||
     t.includes("explosion") ||
-    t.includes("crisis")
+    t.includes("crisis") ||
+    t.includes("death") ||
+    t.includes("war")
   );
 }
 
-module.exports.isBreaking = isBreaking;
+/* =========================
+   BREAKING NEWS FILTER (FIX FOR YOUR ERROR)
+========================= */
+function getBreakingNews(posts = []) {
+  if (!Array.isArray(posts)) return [];
+
+  return posts
+    .filter(p =>
+      p?.isBreaking === true ||
+      (p?.views || 0) >= 100
+    )
+    .slice(0, 5);
+}
+
+/* =========================
+   EXPORTS
+========================= */
+module.exports = {
+  generateNewsPackage,
+  isBreaking,
+  getBreakingNews
+};
