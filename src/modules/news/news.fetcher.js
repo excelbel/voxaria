@@ -36,7 +36,8 @@ async function fetchNewsAndSave() {
         } catch (e) {
           ai = null;
         }
-
+console.log(article.title);
+console.log("CATEGORY:", category);
         await Post.create({
           title: ai?.title || article.title,
           slug,
