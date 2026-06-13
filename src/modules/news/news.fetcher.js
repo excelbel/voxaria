@@ -36,6 +36,7 @@ async function fetchNewsAndSave() {
         } catch (e) {
           ai = null;
         }
+        const category = detectCategory(rawText);
 console.log(article.title);
 console.log("CATEGORY:", category);
         await Post.create({
