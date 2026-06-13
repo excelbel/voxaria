@@ -150,5 +150,8 @@ router.get("/api/posts/latest", async (req, res) => {
     res.status(500).json({ error: "Failed to load posts" });
   }
 });
-
+router.get("/debug/categories", async (req, res) => {
+  const categories = await Post.distinct("category");
+  res.json(categories);
+});
 module.exports = router;

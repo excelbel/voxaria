@@ -101,7 +101,7 @@ exports.singlePost = async (req, res) => {
 };
 
 /* =========================
-   CATEGORY PAGE (FIXED)
+   CATEGORY PAGE
 ========================= */
 exports.categoryPosts = async (req, res) => {
   try {
@@ -112,6 +112,9 @@ exports.categoryPosts = async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .lean();
+
+    console.log("CATEGORY REQUEST:", category);
+    console.log("POSTS FOUND:", posts.length);
 
     const recentPosts = await Post.find()
       .sort({ createdAt: -1 })
@@ -128,8 +131,6 @@ exports.categoryPosts = async (req, res) => {
         ? posts[Math.floor(Math.random() * posts.length)]
         : null;
 
-    const totalPages = 1;
-
     res.render("category", {
       posts,
       category,
@@ -137,7 +138,7 @@ exports.categoryPosts = async (req, res) => {
       trendingPosts,
       safeRandomPost,
       page: 1,
-      totalPages,
+      totalPages: 1,
       currentPage: category
     });
 
