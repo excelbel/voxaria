@@ -5,12 +5,57 @@ const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
 
 /* =========================
+   ADMIN MIDDLEWARE
+========================= */
+function requireAdmin(req, res, next) {
+  if (req.session && req.session.isAdmin) {
+    return next();
+  }
+
+  return res.redirect("/login");
+}
+
+/* =========================
+   LOGIN PAGE
+========================= */
+router.get("/login", (req, res) => {
+  res.render("login", {
+    error: null
+  });
+});
+
+router.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (
+    username === process.env.ADMIN_USERNAME &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    req.session.isAdmin = true;
+    return res.redirect("/admin");
+  }
+
+  return res.render("login", {
+    error: "Invalid username or password"
+  });
+});
+
+/* =========================
+   LOGOUT
+========================= */
+router.get("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.redirect("/login");
+  });
+});
+
+/* =========================
    HOME
 ========================= */
 router.get("/", homeController.home);
 
 /* =========================
-   CATEGORY POSTS
+   CATEGORY PAGE
 ========================= */
 router.get("/category/:category", homeController.categoryPosts);
 
@@ -22,17 +67,16 @@ router.get("/news/:slug", homeController.singlePost);
 /* =========================
    ADMIN DASHBOARD
 ========================= */
-router.get("/admin", async (req, res) => {
+router.get("/admin", requireAdmin, async (req, res) => {
   try {
     const posts = await Post.find()
       .sort({ createdAt: -1 })
       .lean();
 
     res.render("admin", {
-      posts: posts || [],
+      posts,
       currentPage: "Admin"
     });
-
   } catch (err) {
     console.error("ADMIN ERROR:", err.message);
     res.status(500).send("Server Error");
@@ -42,7 +86,7 @@ router.get("/admin", async (req, res) => {
 /* =========================
    CREATE POST
 ========================= */
-router.post("/admin/create", async (req, res) => {
+router.post("/admin/create", requireAdmin, async (req, res) => {
   try {
     const slug = (req.body.title || "")
       .toLowerCase()
@@ -54,7 +98,7 @@ router.post("/admin/create", async (req, res) => {
       title: req.body.title,
       slug,
       author: req.body.author || "Admin",
-      category: req.body.category || "news",
+      category: req.body.category || "News",
       content: req.body.content || "",
       thumbnail: req.body.thumbnail || "",
       mainImage: req.body.mainImage || "",
@@ -62,7 +106,6 @@ router.post("/admin/create", async (req, res) => {
     });
 
     res.redirect("/admin");
-
   } catch (err) {
     console.error("CREATE ERROR:", err.message);
     res.status(500).send("Error creating post");
@@ -72,17 +115,18 @@ router.post("/admin/create", async (req, res) => {
 /* =========================
    EDIT PAGE
 ========================= */
-router.get("/admin/edit/:id", async (req, res) => {
+router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id).lean();
 
-    if (!post) return res.status(404).send("Post not found");
+    if (!post) {
+      return res.status(404).send("Post not found");
+    }
 
     res.render("edit", {
       post,
       currentPage: "Admin"
     });
-
   } catch (err) {
     console.error("EDIT GET ERROR:", err.message);
     res.status(500).send("Server Error");
@@ -92,7 +136,7 @@ router.get("/admin/edit/:id", async (req, res) => {
 /* =========================
    UPDATE POST
 ========================= */
-router.post("/admin/edit/:id", async (req, res) => {
+router.post("/admin/edit/:id", requireAdmin, async (req, res) => {
   try {
     const slug = (req.body.title || "")
       .toLowerCase()
@@ -112,7 +156,6 @@ router.post("/admin/edit/:id", async (req, res) => {
     });
 
     res.redirect("/admin");
-
   } catch (err) {
     console.error("UPDATE ERROR:", err.message);
     res.status(500).send("Error updating post");
@@ -122,11 +165,10 @@ router.post("/admin/edit/:id", async (req, res) => {
 /* =========================
    DELETE POST
 ========================= */
-router.get("/admin/delete/:id", async (req, res) => {
+router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
   try {
     await Post.findByIdAndDelete(req.params.id);
     res.redirect("/admin");
-
   } catch (err) {
     console.error("DELETE ERROR:", err.message);
     res.status(500).send("Error deleting post");
@@ -144,14 +186,26 @@ router.get("/api/posts/latest", async (req, res) => {
       .lean();
 
     res.json(posts);
-
   } catch (err) {
     console.error("LIVE POSTS ERROR:", err.message);
-    res.status(500).json({ error: "Failed to load posts" });
+    res.status(500).json({
+      error: "Failed to load posts"
+    });
   }
 });
+
+/* =========================
+   DEBUG CATEGORIES
+========================= */
 router.get("/debug/categories", async (req, res) => {
-  const categories = await Post.distinct("category");
-  res.json(categories);
+  try {
+    const categories = await Post.distinct("category");
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
 });
+
 module.exports = router;

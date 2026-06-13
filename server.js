@@ -52,6 +52,11 @@ async function startServer() {
     await mongoose.connect(mongoUri);
 
     console.log("MongoDB Connected");
+    const { fetchNewsAndSave } = require("./src/modules/news/news.fetcher");
+
+fetchNewsAndSave();
+
+setInterval(fetchNewsAndSave, 30 * 60 * 1000);
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
