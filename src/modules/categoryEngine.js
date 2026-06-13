@@ -18,17 +18,25 @@ function detectCategory(text = "") {
     return "Politics";
   }
 
-  // Sports//
+  // Sports (FIXED)
   if (
     t.includes("sport") ||
     t.includes("football") ||
+    t.includes("soccer") ||
     t.includes("nba") ||
+    t.includes("nfl") ||
     t.includes("fifa") ||
     t.includes("tennis") ||
+    t.includes("cricket") ||
+    t.includes("basketball") ||
+    t.includes("baseball") ||
     t.includes("match") ||
     t.includes("league") ||
     t.includes("cup") ||
+    t.includes("tournament") ||
     t.includes("win") ||
+    t.includes("won") ||
+    t.includes("victory") ||
     t.includes("championship")
   ) {
     return "Sports";
@@ -94,19 +102,20 @@ function detectCategory(text = "") {
     return "Journals";
   }
 
-  // Articles
+  // Article (optional deep content)
   if (
-  t.includes("article") ||
-  t.includes("analysis") ||
-  t.includes("feature") ||
-  t.includes("report")
-) {
-  return "Article";
-}
+    t.includes("exclusive") ||
+    t.includes("investigation") ||
+    t.includes("deep dive") ||
+    t.includes("explainer") ||
+    t.includes("opinion") ||
+    t.includes("analysis") ||
+    t.includes("special report")
+  ) {
+    return "Article";
+  }
 
   return "News";
 }
 
-module.exports = {
-  detectCategory
-};
+module.exports = { detectCategory };
