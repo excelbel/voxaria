@@ -1,110 +1,110 @@
 function detectCategory(text = "") {
   const t = text.toLowerCase();
 
-  /* POLITICS */
+  // Politics
   if (
     t.includes("politic") ||
     t.includes("election") ||
     t.includes("government") ||
     t.includes("president") ||
     t.includes("senate") ||
+    t.includes("congress") ||
     t.includes("minister") ||
-    t.includes("parliament") ||
     t.includes("governor") ||
-    t.includes("lawmaker") ||
-    t.includes("campaign") ||
-    t.includes("vote")
+    t.includes("parliament") ||
+    t.includes("trump") ||
+    t.includes("biden")
   ) {
     return "Politics";
   }
 
-  /* SPORTS */
+  // Sports
   if (
     t.includes("sport") ||
     t.includes("football") ||
     t.includes("soccer") ||
-    t.includes("basketball") ||
-    t.includes("tennis") ||
     t.includes("fifa") ||
     t.includes("uefa") ||
     t.includes("premier league") ||
+    t.includes("champions league") ||
+    t.includes("nba") ||
+    t.includes("nfl") ||
+    t.includes("basketball") ||
+    t.includes("tennis") ||
+    t.includes("cricket") ||
+    t.includes("olympics") ||
     t.includes("match") ||
-    t.includes("player") ||
-    t.includes("coach") ||
-    t.includes("championship")
+    t.includes("tournament")
   ) {
     return "Sports";
   }
 
-  /* ENTERTAINMENT */
+  // Entertainment
   if (
     t.includes("movie") ||
     t.includes("music") ||
-    t.includes("celebrity") ||
     t.includes("actor") ||
     t.includes("actress") ||
-    t.includes("film") ||
+    t.includes("celebrity") ||
+    t.includes("hollywood") ||
     t.includes("netflix") ||
-    t.includes("showbiz") ||
-    t.includes("award") ||
+    t.includes("tv show") ||
+    t.includes("film") ||
     t.includes("concert") ||
     t.includes("entertainment")
   ) {
     return "Entertainment";
   }
 
-  /* SECURITY */
+  // Security
   if (
-    t.includes("security") ||
     t.includes("attack") ||
     t.includes("crime") ||
-    t.includes("terror") ||
-    t.includes("military") ||
     t.includes("police") ||
-    t.includes("kidnap") ||
+    t.includes("military") ||
+    t.includes("terrorist") ||
+    t.includes("shooting") ||
+    t.includes("war") ||
+    t.includes("security") ||
     t.includes("armed") ||
-    t.includes("violence") ||
-    t.includes("war")
+    t.includes("killed")
   ) {
     return "Security";
   }
 
-  /* JOURNALS */
-  if (
-    t.includes("research") ||
-    t.includes("study") ||
-    t.includes("scientist") ||
-    t.includes("science") ||
-    t.includes("academic") ||
-    t.includes("journal") ||
-    t.includes("university")
-  ) {
-    return "Journals";
-  }
-
-  /* INTERNATIONAL */
+  // International
   if (
     t.includes("world") ||
-    t.includes("global") ||
     t.includes("international") ||
+    t.includes("global") ||
     t.includes("foreign") ||
     t.includes("united nations") ||
+    t.includes("eu") ||
     t.includes("china") ||
     t.includes("russia") ||
-    t.includes("ukraine") ||
-    t.includes("europe") ||
-    t.includes("africa") ||
-    t.includes("asia")
+    t.includes("ukraine")
   ) {
     return "International";
   }
 
-  /* ARTICLE */
+  // Journals
+  if (
+    t.includes("research") ||
+    t.includes("study") ||
+    t.includes("scientist") ||
+    t.includes("university") ||
+    t.includes("academic") ||
+    t.includes("journal")
+  ) {
+    return "Journals";
+  }
+
+  // Articles
   if (
     t.includes("opinion") ||
     t.includes("analysis") ||
     t.includes("editorial") ||
-    t.includes("article")
+    t.includes("feature")
   ) {
     return "Article";
   }
@@ -112,4 +112,6 @@ function detectCategory(text = "") {
   return "News";
 }
 
-module.exports = { detectCategory };
+module.exports = {
+  detectCategory
+};

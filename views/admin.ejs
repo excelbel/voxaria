@@ -8,135 +8,155 @@
 
 <style>
 body{
-font-family:Arial,sans-serif;
-background:#f4f6f9;
-margin:0;
-padding:20px;
+  font-family:Arial,sans-serif;
+  background:#f4f6f9;
+  margin:0;
+  padding:20px;
 }
 
 .container{
-max-width:1200px;
-margin:auto;
+  max-width:1200px;
+  margin:auto;
 }
 
-h1{
-margin-bottom:20px;
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+.logout{
+  text-decoration:none;
+  background:#dc3545;
+  color:#fff;
+  padding:10px 15px;
+  border-radius:5px;
+}
+
+.logout:hover{
+  background:#b02a37;
 }
 
 .card{
-background:#fff;
-padding:20px;
-border-radius:8px;
-margin-bottom:25px;
-box-shadow:0 2px 10px rgba(0,0,0,.08);
+  background:#fff;
+  padding:20px;
+  border-radius:8px;
+  margin-bottom:25px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.stat-box{
+  background:#fff;
+  padding:20px;
+  border-radius:8px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  text-align:center;
 }
 
 input,
 textarea,
 select{
-width:100%;
-padding:12px;
-margin-bottom:12px;
-border:1px solid #ddd;
-border-radius:6px;
-box-sizing:border-box;
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border:1px solid #ddd;
+  border-radius:6px;
+  box-sizing:border-box;
 }
 
 textarea{
-min-height:220px;
-resize:vertical;
+  min-height:220px;
+  resize:vertical;
 }
 
 button{
-background:#007bff;
-color:#fff;
-border:none;
-padding:12px 20px;
-border-radius:6px;
-cursor:pointer;
+  background:#007bff;
+  color:#fff;
+  border:none;
+  padding:12px 20px;
+  border-radius:6px;
+  cursor:pointer;
 }
 
 button:hover{
-background:#0056b3;
-}
-
-.stats{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:15px;
-margin-bottom:20px;
-}
-
-.stat-box{
-background:#fff;
-padding:20px;
-border-radius:8px;
-box-shadow:0 2px 10px rgba(0,0,0,.08);
-text-align:center;
+  background:#0056b3;
 }
 
 .post-list{
-list-style:none;
-padding:0;
-margin:0;
+  list-style:none;
+  padding:0;
 }
 
 .post-item{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:15px;
-border-bottom:1px solid #eee;
-gap:15px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  padding:15px 0;
+  border-bottom:1px solid #eee;
 }
 
 .post-item img{
-width:80px;
-height:60px;
-object-fit:cover;
-border-radius:5px;
+  width:90px;
+  height:65px;
+  object-fit:cover;
+  border-radius:6px;
+}
+
+.post-info{
+  flex:1;
 }
 
 .post-title{
-flex:1;
-font-weight:600;
+  font-weight:bold;
+  margin-bottom:5px;
 }
 
-.post-actions a{
-margin-left:10px;
-text-decoration:none;
-font-weight:bold;
-}
-
-.post-actions a:first-child{
-color:#007bff;
-}
-
-.post-actions a:last-child{
-color:#dc3545;
+.category{
+  font-size:12px;
+  color:#666;
 }
 
 .badge{
-display:inline-block;
-padding:4px 10px;
-background:#dc3545;
-color:#fff;
-font-size:12px;
-border-radius:20px;
-margin-left:10px;
+  display:inline-block;
+  padding:3px 8px;
+  background:#dc3545;
+  color:#fff;
+  border-radius:20px;
+  font-size:11px;
 }
 
-.logout{
-float:right;
-text-decoration:none;
-background:#dc3545;
-color:#fff;
-padding:10px 15px;
-border-radius:5px;
+.post-actions a{
+  margin-left:10px;
+  text-decoration:none;
+  font-weight:bold;
 }
 
-.logout:hover{
-background:#b02a37;
+.edit{
+  color:#007bff;
+}
+
+.delete{
+  color:#dc3545;
+}
+
+.search-box{
+  margin-bottom:20px;
+}
+
+@media(max-width:700px){
+  .post-item{
+    flex-direction:column;
+    align-items:flex-start;
+  }
 }
 </style>
 
@@ -146,22 +166,26 @@ background:#b02a37;
 
 <div class="container">
 
-<a href="/logout" class="logout">Logout</a>
-
-<h1>VOXARIA Admin Dashboard</h1>
+<div class="header">
+  <h1>VOXARIA Admin Dashboard</h1>
+  <a href="/logout" class="logout">Logout</a>
+</div>
 
 <div class="stats">
-<div class="stat-box">
-<h2><%= posts ? posts.length : 0 %></h2>
-<p>Total Posts</p>
-</div>
+  <div class="stat-box">
+    <h2><%= posts ? posts.length : 0 %></h2>
+    <p>Total Posts</p>
+  </div>
 
-<div class="stat-box">
-<h2>
-<%= posts ? posts.filter(p => p.isBreaking).length : 0 %>
-</h2>
-<p>Breaking News</p>
-</div>
+  <div class="stat-box">
+    <h2><%= posts ? posts.filter(p => p.isBreaking).length : 0 %></h2>
+    <p>Breaking News</p>
+  </div>
+
+  <div class="stat-box">
+    <h2><%= posts ? posts.filter(p => p.category === 'Politics').length : 0 %></h2>
+    <p>Politics</p>
+  </div>
 </div>
 
 <div class="card">
@@ -174,57 +198,39 @@ background:#b02a37;
 type="text"
 name="title"
 placeholder="Story Title"
-required
-
->
+required>
 
 <input
 type="text"
 name="author"
-placeholder="Author"
 value="Admin"
-
->
+placeholder="Author">
 
 <select name="category">
-
 <option value="News">News</option>
-
 <option value="Article">Article</option>
-
 <option value="Entertainment">Entertainment</option>
-
 <option value="International">International</option>
-
 <option value="Journals">Journals</option>
-
 <option value="Politics">Politics</option>
-
 <option value="Security">Security</option>
-
 <option value="Sports">Sports</option>
-
 </select>
 
 <input
 type="text"
 name="thumbnail"
-placeholder="Thumbnail Image URL"
-
->
+placeholder="Thumbnail URL">
 
 <input
 type="text"
 name="mainImage"
-placeholder="Main Image URL"
-
->
+placeholder="Main Image URL">
 
 <textarea
 name="content"
-placeholder="Write your story here..."
-required
-></textarea>
+placeholder="Write story..."
+required></textarea>
 
 <label>
 <input type="checkbox" name="isBreaking">
@@ -245,9 +251,15 @@ Publish Story
 
 <h2>Published Stories</h2>
 
-<ul class="post-list">
+<input
+type="text"
+id="searchInput"
+class="search-box"
+placeholder="Search stories...">
 
-<% if (Array.isArray(posts) && posts.length > 0) { %>
+<ul class="post-list" id="postList">
+
+<% if(posts && posts.length > 0){ %>
 
 <% posts.forEach(post => { %>
 
@@ -255,31 +267,35 @@ Publish Story
 
 <img
 src="<%= post.thumbnail || '/images/default-thumb.jpg' %>"
-alt="<%= post.title %>"
+onerror="this.src='/images/default-thumb.jpg'">
 
->
+<div class="post-info">
 
 <div class="post-title">
-
-<%= post.title %>
+  <%= post.title %>
 
 <% if(post.isBreaking){ %> <span class="badge">Breaking</span>
 <% } %>
 
 </div>
 
+<div class="category">
+  <%= post.category || 'News' %>
+</div>
+
+</div>
+
 <div class="post-actions">
 
-<a href="/admin/edit/<%= post._id %>">
-Edit
-</a>
+<a
+class="edit"
+href="/admin/edit/<%= post._id %>">
+Edit </a>
 
 <a
+class="delete"
 href="/admin/delete/<%= post._id %>"
-onclick="return confirm('Delete this story?')"
-
->
-
+onclick="return confirm('Delete this story?')">
 Delete </a>
 
 </div>
@@ -290,7 +306,7 @@ Delete </a>
 
 <% } else { %>
 
-<p>No stories found.</p>
+<p>No stories available.</p>
 
 <% } %>
 
@@ -299,6 +315,25 @@ Delete </a>
 </div>
 
 </div>
+
+<script>
+const searchInput = document.getElementById("searchInput");
+
+searchInput.addEventListener("keyup", function(){
+  const filter = this.value.toLowerCase();
+
+  document.querySelectorAll(".post-item")
+    .forEach(item => {
+
+      const title = item.innerText.toLowerCase();
+
+      item.style.display =
+        title.includes(filter)
+        ? "flex"
+        : "none";
+    });
+});
+</script>
 
 </body>
 </html>
