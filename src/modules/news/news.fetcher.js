@@ -10,11 +10,11 @@ async function fetchNewsAndSave() {
     const url = `https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
 
     const res = await axios.get(url);
-    const articles = res.data?.articles || [];
+    const articles = res.data.articles || [];
 
     for (const article of articles) {
       try {
-        if (!article?.title) continue;
+        if (!article.title) continue;
 
         const slug = article.title
           .toLowerCase()
@@ -26,25 +26,24 @@ async function fetchNewsAndSave() {
 
         const rawText = `${article.title} ${article.description || ""}`;
 
-        const category = detectCategory(rawText);
+        // FORCE CATEGORY FIRST (IMPORTANT FIX)
+        let category = detectCategory(rawText);
 
-        let aiData = null;
-
+        // AI enrichment (optional, not controlling category anymore)
+        let ai = null;
         try {
-          aiData = await generateNewsPackage(rawText);
-        } catch (err) {
-          aiData = null;
+          ai = await generateNewsPackage(rawText);
+        } catch (e) {
+          ai = null;
         }
 
         await Post.create({
-          title: aiData?.title || article.title,
+          title: ai?.title || article.title,
           slug,
-          content: aiData?.article || article.description || "No content available",
-          category: category || "news",
-
+          content: ai?.article || article.description || "No content",
+          category, // IMPORTANT FIX HERE
           thumbnail: article.urlToImage || "/images/default-thumb.jpg",
           mainImage: article.urlToImage || "/images/default-main.jpg",
-
           views: 0,
           isBreaking: false,
           createdAt: new Date()

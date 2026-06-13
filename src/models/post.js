@@ -7,10 +7,19 @@ const postSchema = new mongoose.Schema({
   content: { type: String, default: "" },
 
   category: {
-    type: String,
-    default: "news",
-    index: true
-  },
+  type: String,
+  enum: [
+    "News",
+    "Article",
+    "Entertainment",
+    "International",
+    "Journals",
+    "Politics",
+    "Security",
+    "Sports"
+  ],
+  default: "News"
+},
 
   thumbnail: String,
   mainImage: String,
