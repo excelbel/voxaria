@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const homeController = require("../src/controllers/homeController");
-const Post = require("../src/models/post");
+const Post = require("../src/models/post")
+const upload = require("../src/config/upload");
 
 /* =========================
    ADMIN MIDDLEWARE
@@ -115,23 +116,50 @@ router.post("/admin/create", requireAdmin, async (req, res) => {
 /* =========================
    EDIT PAGE
 ========================= */
-router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id).lean();
+router.post(
+  "/edit/:id",
+  upload.fields([
+    { name: "thumbnailFile", maxCount: 1 },
+    { name: "mainImageFile", maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      const Post = require("../src/models/post")
 
-    if (!post) {
-      return res.status(404).send("Post not found");
+      const post = await Post.findById(req.params.id);
+
+      if (!post) return res.status(404).send("Post not found");
+
+      // TEXT FIELDS
+      post.title = req.body.title;
+      post.content = req.body.content;
+      post.author = req.body.author;
+      post.category = req.body.category;
+      post.isBreaking = req.body.isBreaking === "on";
+
+      // IMAGE: THUMBNAIL
+      if (req.files?.thumbnailFile) {
+        post.thumbnail = "/uploads/" + req.files.thumbnailFile[0].filename;
+      } else if (req.body.thumbnail) {
+        post.thumbnail = req.body.thumbnail;
+      }
+
+      // IMAGE: MAIN
+      if (req.files?.mainImageFile) {
+        post.mainImage = "/uploads/" + req.files.mainImageFile[0].filename;
+      } else if (req.body.mainImage) {
+        post.mainImage = req.body.mainImage;
+      }
+
+      await post.save();
+
+      res.redirect("/admin/posts");
+    } catch (err) {
+      console.log(err);
+      res.status(500).send("Error updating post");
     }
-
-    res.render("edit", {
-      post,
-      currentPage: "Admin"
-    });
-  } catch (err) {
-    console.error("EDIT GET ERROR:", err.message);
-    res.status(500).send("Server Error");
   }
-});
+);
 
 /* =========================
    UPDATE POST

@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 });
 
 /* =========================
-   DATABASE CONNECT + SERVER START
+   DATABASE + SERVER START
 ========================= */
 async function startServer() {
   try {
@@ -56,15 +56,28 @@ async function startServer() {
 
     const { fetchNewsAndSave } = require("./src/modules/news/news.fetcher");
 
-fetchNewsAndSave();
+    /* =========================
+       SAFE NEWS SCHEDULER
+    ========================= */
+    let isFetching = false;
 
-// Run every 30 minutes
-cron.schedule("*/30 * * * *", async () => {
-  console.log("Running scheduled news fetch...");
-  await fetchNewsAndSave();
-});
+    cron.schedule("*/30 * * * *", async () => {
+      if (isFetching) {
+        console.log("News fetch already running, skipping...");
+        return;
+      }
 
+      isFetching = true;
 
+      try {
+        console.log("Running scheduled news fetch...");
+        await fetchNewsAndSave();
+      } catch (err) {
+        console.log("News fetch error:", err.message);
+      }
+
+      isFetching = false;
+    });
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

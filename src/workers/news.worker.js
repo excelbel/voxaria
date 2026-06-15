@@ -1,10 +1,12 @@
 require("dotenv").config();
 
 const mongoose = require("mongoose");
-const Post = require("../models/post");
-const { fetchNewsAndSave } = require("../modules/news/news.fetcher");
-const { generateNewsPackage } = require("../modules/ai/ai.service");
+const Post = require("../../models/post");
+const { generateNewsPackage } = require("../modules/ai/ai.service")
 
+/* =========================
+   DB CONNECTION
+========================= */
 async function connectDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -15,29 +17,27 @@ async function connectDB() {
   }
 }
 
-async function processNews() {
+/* =========================
+   AI PROCESS ONLY
+   (NO FETCHING, NO INTERVALS)
+========================= */
+async function processNews(posts = []) {
   try {
-    console.log("📡 Running news cycle...");
+    console.log("📡 Running AI processing cycle...");
 
-    const slugs = await fetchNewsAndSave();
-
-    if (!slugs.length) {
-      console.log("No slugs returned");
+    if (!Array.isArray(posts) || posts.length === 0) {
+      console.log("No posts provided for processing");
       return;
     }
 
-    console.log("Processing slugs:", slugs.length);
+    console.log("Processing posts:", posts.length);
 
-    for (const slug of slugs) {
+    for (const post of posts) {
       try {
-        const post = await Post.findOne({ slug });
-
-        if (!post) continue;
-
         const ai = await generateNewsPackage(post.content || post.title);
 
         await Post.updateOne(
-          { slug },
+          { slug: post.slug },
           {
             title: ai?.title || post.title,
             content: ai?.article || post.content,
@@ -59,24 +59,27 @@ async function processNews() {
       }
     }
 
-    console.log("✅ Cycle complete");
+    console.log("✅ AI processing complete");
 
   } catch (err) {
     console.log("Process error:", err.message);
   }
 }
 
+/* =========================
+   RUN WORKER ONCE ONLY
+========================= */
 async function runWorker() {
   await connectDB();
 
-  await processNews();
-
-  // safer interval (avoids overlap issues)
-  setInterval(() => {
-    processNews().catch(err =>
-      console.log("Worker crash:", err.message)
-    );
-  }, 10 * 60 * 1000); // every 10 mins
+  console.log("Worker ready (waiting for data input)");
 }
 
 runWorker();
+
+/* =========================
+   EXPORT ONLY
+========================= */
+module.exports = {
+  processNews
+};

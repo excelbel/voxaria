@@ -88,12 +88,19 @@
     .tools button.secondary {
       background: #6c757d;
     }
+
+    .upload-label {
+      font-size: 13px;
+      margin: 5px 0;
+      display: block;
+      color: #333;
+    }
   </style>
 </head>
 
 <body>
 
-<form action="/admin/edit/<%= post?._id %>" method="POST">
+<form action="/admin/edit/<%= post?._id %>" method="POST" enctype="multipart/form-data">
 
   <h2>Edit Post</h2>
 
@@ -130,12 +137,21 @@
     <button type="button" class="secondary" onclick="saveDraft()">💾 Save Draft</button>
   </div>
 
-  <!-- THUMBNAIL -->
-  <input type="text" name="thumbnail" id="thumb" value="<%= post?.thumbnail || '' %>">
+  <!-- ================= THUMBNAIL ================= -->
+  <label class="upload-label">Upload Thumbnail</label>
+  <input type="file" name="thumbnailFile" id="thumbFile" accept="image/*">
+
+  <input type="text" name="thumbnail" id="thumb" value="<%= post?.thumbnail || '' %>" placeholder="Or paste image URL">
+
   <img src="<%= post?.thumbnail || '/images/default-thumb.jpg' %>" class="preview" id="thumbPreview">
 
-  <!-- MAIN IMAGE -->
-  <input type="text" name="mainImage" id="main" value="<%= post?.mainImage || '' %>">
+
+  <!-- ================= MAIN IMAGE ================= -->
+  <label class="upload-label">Upload Main Image</label>
+  <input type="file" name="mainImageFile" id="mainFile" accept="image/*">
+
+  <input type="text" name="mainImage" id="main" value="<%= post?.mainImage || '' %>" placeholder="Or paste image URL">
+
   <img src="<%= post?.mainImage || '/images/default-main.jpg' %>" class="preview" id="mainPreview">
 
   <!-- BREAKING -->
@@ -155,7 +171,7 @@ const content = document.getElementById("content");
 const charCount = document.getElementById("charCount");
 const seoScore = document.getElementById("seoScore");
 
-/* SLUGIFY */
+/* SLUG */
 function slugify(text = "") {
   return text
     .toLowerCase()
@@ -165,18 +181,16 @@ function slugify(text = "") {
     .replace(/\-+/g, "-");
 }
 
-/* INIT CHAR COUNT */
+/* CHAR COUNT */
 charCount.textContent = content.value.length;
 
-/* SLUG UPDATE */
-title.addEventListener("input", () => {
-  slugPreview.textContent = slugify(title.value);
+content.addEventListener("input", () => {
+  charCount.textContent = content.value.length;
   updateSEO();
 });
 
-/* CHAR COUNT */
-content.addEventListener("input", () => {
-  charCount.textContent = content.value.length;
+title.addEventListener("input", () => {
+  slugPreview.textContent = slugify(title.value);
   updateSEO();
 });
 
@@ -192,7 +206,27 @@ function updateSEO() {
   seoScore.textContent = "SEO Score: " + score + "%";
 }
 
-/* IMAGE PREVIEW */
+/* IMAGE PREVIEW (FILE UPLOAD) */
+function previewFile(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(previewId).src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("thumbFile").addEventListener("change", function () {
+  previewFile(this, "thumbPreview");
+});
+
+document.getElementById("mainFile").addEventListener("change", function () {
+  previewFile(this, "mainPreview");
+});
+
+/* URL IMAGE PREVIEW */
 document.getElementById("thumb").addEventListener("input", e => {
   document.getElementById("thumbPreview").src =
     e.target.value || "/images/default-thumb.jpg";
@@ -203,7 +237,7 @@ document.getElementById("main").addEventListener("input", e => {
     e.target.value || "/images/default-main.jpg";
 });
 
-/* COPY LINK (USE REAL SLUG) */
+/* COPY LINK */
 function copyLink() {
   const slug = "<%= post?.slug || '' %>";
   const url = window.location.origin + "/news/" + slug;
@@ -212,7 +246,7 @@ function copyLink() {
   alert("Link copied!");
 }
 
-/* AI PLACEHOLDER */
+/* AI */
 function generateSummary() {
   alert("Connect backend AI service for summary generation.");
 }
