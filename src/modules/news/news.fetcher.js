@@ -98,11 +98,16 @@ ${cleanContent}
 
         let ai = null;
 
-        try {
-          ai = await generateNewsPackage(rawText);
-        } catch (err) {
-          console.log("AI ERROR:", err.message);
-        }
+try {
+  ai = await generateNewsPackage(rawText);
+} catch (err) {
+  if (err.status === 429 || err.message.includes("429")) {
+    console.log("AI quota hit, skipping AI");
+    ai = null;
+  } else {
+    console.log("AI ERROR:", err.message);
+  }
+}
 
         const postData = {
           title: ai?.title || article.title,
