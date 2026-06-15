@@ -20,15 +20,14 @@ app.set("trust proxy", 1);
 
 /* =========================
    STATIC FILES
+   — "public" folder serves everything including /uploads
+   — upload.js saves files to public/uploads/
+   — so /uploads/filename.jpg works automatically
 ========================= */
 app.use(express.static(path.join(__dirname, "public")));
 
-// ADD THIS 👇
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 /* =========================
-   SESSION (SAFE FIX)
-   NOTE: avoids connect-mongo crash
+   SESSION
 ========================= */
 app.use(
   session({
