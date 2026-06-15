@@ -87,32 +87,33 @@ router.get("/admin", requireAdmin, async (req, res) => {
 /* =========================
    CREATE POST
 ========================= */
-router.post("/admin/create", requireAdmin, async (req, res) => {
+router.post("/admin/create", async (req, res) => {
   try {
-    const slug = (req.body.title || "")
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
+    const title = req.body?.title;
 
-    await Post.create({
-      title: req.body.title,
-      slug,
-      author: req.body.author || "Admin",
-      category: req.body.category || "News",
-      content: req.body.content || "",
-      thumbnail: req.body.thumbnail || "",
-      mainImage: req.body.mainImage || "",
-      isBreaking: req.body.isBreaking === "on"
-    });
+    if (!title) {
+      return res.status(400).send("Title is required");
+    }
 
-    res.redirect("/admin");
+    const postData = {
+      title,
+      content: req.body?.content || "",
+      category: req.body?.category || "News",
+      author: req.body?.author || "Admin",
+      thumbnail: req.body?.thumbnail || "",
+      mainImage: req.body?.mainImage || "",
+      isBreaking: req.body?.isBreaking === "on"
+    };
+
+    await Post.create(postData);
+
+    return res.redirect("/admin");
+
   } catch (err) {
-    console.error("CREATE ERROR:", err.message);
-    res.status(500).send("Error creating post");
+    console.log("CREATE ERROR:", err.message);
+    return res.status(500).send("Server error");
   }
 });
-
 /* =========================
    EDIT PAGE
 ========================= */
