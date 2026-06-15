@@ -1,13 +1,39 @@
 /* ===== Base ===== */
+
+html {
+  font-size: 16px;
+}
+
 body {
+  font-size: 1rem;
+  line-height: 1.6;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
   background: #f7f6f5;
   margin: 0;
-  color: #222;
-  display: flex;
+   display: flex;
   flex-direction: column;
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
+}
+
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.75rem;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 1.35rem;
+  line-height: 1.4;
+}
+
+h4 {
+  font-size: 1.1rem;
 }
 
 a {
@@ -51,7 +77,7 @@ button:hover {
 }
 
 .logo-text {
-  font-size: 30px;
+  font-size: 1.8rem;
   color: #ffd700;
   font-weight: bold;
   text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
@@ -60,6 +86,8 @@ button:hover {
 .main-nav {
   background: rgba(20,20,20,0.95);
   transition: max-height 0.4s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .main-nav ul {
@@ -179,13 +207,13 @@ button:hover {
 
 .overlay h2, .overlay h3 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
 .overlay p {
   margin-top: 5px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #f1f1f1;
 }
 
@@ -238,6 +266,7 @@ main.container-main {
 
 /* ===== Sidebar Widgets ===== */
 .widget {
+  
   background: linear-gradient(145deg, #fff9f3, #fff5e8);
   padding: 18px;
   border-radius: 10px;
@@ -247,12 +276,19 @@ main.container-main {
 }
 
 .widget h3 {
+  font-size: 1.1rem;
   margin-bottom: 12px;
   color: #333;
 }
 
+.widget p,
+.widget a {
+  font-size: 0.95rem;
+}
+
 /* ===== Article Page ===== */
 .article {
+  font-size: 1.05rem;
   max-width: 820px;
   margin: 50px auto;
   padding: 35px;
@@ -263,13 +299,14 @@ main.container-main {
 }
 
 .article h1 {
-  font-size: 32px;
+  font-size: 2rem;
   margin-bottom: 15px;
   color: #222;
 }
 
 .article p {
-  line-height: 1.7;
+  font-size: 1.1rem;
+  line-height: 1.8;
   color: #444;
 }
 
@@ -363,15 +400,7 @@ body.dark-mode textarea {
   gap: 10px;
 }
 
-.share-btn {
-  padding: 10px 16px;
-  text-decoration: none;
-  border-radius: 5px;
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-}
+
 
 .whatsapp {
   background: #25D366;
@@ -429,8 +458,7 @@ body.dark-mode textarea {
 }
 
 .post-content {
-  line-height: 1.9;
-  font-size: 17px;
+  font-size: 1.1rem;
 }
 
 .post-content img {
@@ -496,6 +524,7 @@ body.dark-mode textarea {
 }
 
 .card h3 {
+  font-size: 1.1rem;
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -508,56 +537,41 @@ body.dark-mode textarea {
   color: #1877f2;
 }
 
+.card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 /* ===================================
    SHARE BUTTONS
 =================================== */
 
-.share-buttons {
-  margin-top: 40px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+
+
 
 .share-btn {
   padding: 12px 18px;
   border-radius: 6px;
   text-decoration: none;
-  color: white;
+  color: #fff;
   font-weight: 600;
+  border: none;
+  cursor: pointer;
   transition: 0.3s;
 }
-
 .share-btn:hover {
   opacity: 0.85;
 }
 
-.whatsapp {
-  background: #25d366;
-}
-
-.facebook {
-  background: #1877f2;
-}
-
-.twitter {
-  background: #000;
-}
-
-.linkedin {
-  background: #0a66c2;
-}
-
-.copy {
-  background: #555;
-  color: white;
-}
 
 /* ===================================
    MOBILE
 =================================== */
 
 @media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
 
   .article-layout {
     padding: 15px;
