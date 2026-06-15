@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const http = require("http");
 const app = require("./app");
 const { Server } = require("socket.io");
+const cron = require("node-cron");
 
 const PORT = process.env.PORT || 10000;
 
@@ -52,11 +53,18 @@ async function startServer() {
     await mongoose.connect(mongoUri);
 
     console.log("MongoDB Connected");
+
     const { fetchNewsAndSave } = require("./src/modules/news/news.fetcher");
 
 fetchNewsAndSave();
 
-setInterval(fetchNewsAndSave, 30 * 60 * 1000);
+// Run every 30 minutes
+cron.schedule("*/30 * * * *", async () => {
+  console.log("Running scheduled news fetch...");
+  await fetchNewsAndSave();
+});
+
+
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

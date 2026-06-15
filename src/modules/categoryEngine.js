@@ -20,7 +20,7 @@ function detectCategory(text = "") {
 
   // Sports (FIXED)
   if (
-    t.includes("sport") ||
+    
     t.includes("football") ||
     t.includes("soccer") ||
     t.includes("nba") ||
@@ -32,12 +32,15 @@ function detectCategory(text = "") {
     t.includes("baseball") ||
     t.includes("match") ||
     t.includes("league") ||
-    t.includes("cup") ||
+   
     t.includes("tournament") ||
-    t.includes("win") ||
-    t.includes("won") ||
-    t.includes("victory") ||
-    t.includes("championship")
+    
+    t.includes("championship") ||
+    t.includes("soccer") ||
+t.includes("cricket") ||
+t.includes("basketball") ||
+t.includes("baseball") ||
+t.includes("sport")
   ) {
     return "Sports";
   }
@@ -97,23 +100,41 @@ function detectCategory(text = "") {
     t.includes("scientist") ||
     t.includes("university") ||
     t.includes("academic") ||
+     t.includes("science") ||
+  t.includes("research") ||
+  t.includes("study") ||
+  t.includes("nasa") ||
+t.includes("science") ||
+t.includes("physics") ||
+t.includes("space") ||
+t.includes("galaxy") ||
+t.includes("quantum") ||
+t.includes("einstein") ||
     t.includes("journal")
   ) {
     return "Journals";
   }
 
   // Article (optional deep content)
-  if (
-    t.includes("exclusive") ||
-    t.includes("investigation") ||
-    t.includes("deep dive") ||
-    t.includes("explainer") ||
-    t.includes("opinion") ||
-    t.includes("analysis") ||
-    t.includes("special report")
-  ) {
-    return "Article";
-  }
+  // Article
+if (
+  t.includes("analysis") ||
+  t.includes("opinion") ||
+  t.includes("editorial") ||
+  t.includes("feature") ||
+  t.includes("report") ||
+  t.includes("review") ||
+  t.includes("explained") ||
+  t.includes("iphone") ||
+  t.includes("android") ||
+  t.includes("google") ||
+  t.includes("apple") ||
+  t.includes("microsoft") ||
+  t.includes("ai") ||
+  t.includes("chatgpt")
+) {
+  return "Article";
+}
 
   return "News";
 }

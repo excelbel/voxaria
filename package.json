@@ -21,6 +21,7 @@
     "firebase-admin": "^13.8.0",
     "googleapis": "^171.4.0",
     "mongoose": "^9.2.4",
+    "node-cron": "^4.2.1",
     "openai": "^6.34.0",
     "redis": "^5.12.1",
     "sitemap": "^9.0.1",

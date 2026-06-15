@@ -7,13 +7,27 @@ async function fetchNewsAndSave() {
   console.log("NEWS FETCHER STARTED");
 
   try {
-    const url = `https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
+    const urls = [
+  `https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`,
+  `https://newsapi.org/v2/top-headlines?country=us&category=sports&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`,
+  `https://newsapi.org/v2/top-headlines?country=us&category=entertainment&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`,
+  `https://newsapi.org/v2/top-headlines?country=us&category=technology&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`,
+  `https://newsapi.org/v2/top-headlines?country=us&category=science&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`
+];
 
+let articles = [];
+
+
+for (const url of urls) {
+  try {
     const res = await axios.get(url);
-    const articles = res.data.articles || [];
+    articles.push(...(res.data.articles || []));
+  } catch (err) {
+    console.log("Feed error:", err.message);
+  }
+}
 
-    console.log(`Found ${articles.length} articles`);
-
+console.log(`Found ${articles.length} articles`);
     for (const article of articles) {
       try {
         if (!article.title) continue;
