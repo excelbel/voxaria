@@ -152,10 +152,101 @@ button:hover{
   margin-bottom:20px;
 }
 
+/* ── Upload styles ── */
+.upload-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:12px;
+}
+
+.upload-group label.group-label{
+  display:block;
+  font-size:13px;
+  font-weight:bold;
+  color:#444;
+  margin-bottom:6px;
+}
+
+.upload-box{
+  position:relative;
+  border:2px dashed #ccc;
+  border-radius:6px;
+  padding:18px 12px;
+  text-align:center;
+  cursor:pointer;
+  background:#fafafa;
+  transition:border-color .2s;
+  margin-bottom:8px;
+}
+
+.upload-box:hover{
+  border-color:#007bff;
+}
+
+.upload-box input[type="file"]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+}
+
+.upload-box .upload-icon{
+  font-size:26px;
+  display:block;
+  margin-bottom:6px;
+}
+
+.upload-box .upload-text{
+  font-size:13px;
+  color:#555;
+}
+
+.upload-box .upload-sub{
+  font-size:11px;
+  color:#999;
+  margin-top:3px;
+}
+
+.file-name{
+  font-size:12px;
+  color:#007bff;
+  margin-top:4px;
+  min-height:16px;
+  word-break:break-all;
+}
+
+.or-divider{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:6px 0 8px;
+}
+
+.or-divider span{
+  font-size:12px;
+  color:#999;
+  white-space:nowrap;
+}
+
+.or-divider hr{
+  flex:1;
+  border:none;
+  border-top:1px solid #e0e0e0;
+}
+
 @media(max-width:700px){
   .post-item{
     flex-direction:column;
     align-items:flex-start;
+  }
+
+  .upload-grid{
+    grid-template-columns:1fr;
   }
 }
 </style>
@@ -192,55 +283,104 @@ button:hover{
 
 <h2>Create New Story</h2>
 
-<form action="/admin/create" method="POST">
+<!-- IMPORTANT: enctype="multipart/form-data" is required for file uploads -->
+<form action="/admin/create" method="POST" enctype="multipart/form-data">
 
 <input
-type="text"
-name="title"
-placeholder="Story Title"
-required>
+  type="text"
+  name="title"
+  placeholder="Story Title"
+  required>
 
 <input
-type="text"
-name="author"
-value="Admin"
-placeholder="Author">
+  type="text"
+  name="author"
+  value="Admin"
+  placeholder="Author">
 
 <select name="category">
-<option value="News">News</option>
-<option value="Article">Article</option>
-<option value="Entertainment">Entertainment</option>
-<option value="International">International</option>
-<option value="Journals">Journals</option>
-<option value="Politics">Politics</option>
-<option value="Security">Security</option>
-<option value="Sports">Sports</option>
+  <option value="News">News</option>
+  <option value="Article">Article</option>
+  <option value="Entertainment">Entertainment</option>
+  <option value="International">International</option>
+  <option value="Journals">Journals</option>
+  <option value="Politics">Politics</option>
+  <option value="Security">Security</option>
+  <option value="Sports">Sports</option>
 </select>
 
-<input
-type="text"
-name="thumbnail"
-placeholder="Thumbnail URL">
+<!-- Thumbnail + Main Image side by side -->
+<div class="upload-grid">
 
-<input
-type="text"
-name="mainImage"
-placeholder="Main Image URL">
+  <!-- THUMBNAIL -->
+  <div class="upload-group">
+    <label class="group-label">Thumbnail</label>
+
+    <div class="upload-box">
+      <input
+        type="file"
+        name="thumbnailFile"
+        accept="image/*"
+        onchange="showFileName(this, 'thumbName')">
+      <span class="upload-icon">🖼️</span>
+      <div class="upload-text">Click to upload image</div>
+      <div class="upload-sub">PNG, JPG, WEBP</div>
+    </div>
+    <div class="file-name" id="thumbName"></div>
+
+    <div class="or-divider">
+      <hr><span>or paste URL</span><hr>
+    </div>
+
+    <input
+      type="text"
+      name="thumbnail"
+      placeholder="Thumbnail URL">
+  </div>
+
+  <!-- MAIN IMAGE / VIDEO -->
+  <div class="upload-group">
+    <label class="group-label">Main Image / Video</label>
+
+    <div class="upload-box">
+      <input
+        type="file"
+        name="mainImageFile"
+        accept="image/*,video/*"
+        onchange="showFileName(this, 'mainName')">
+      <span class="upload-icon">📷</span>
+      <div class="upload-text">Click to upload image or video</div>
+      <div class="upload-sub">PNG, JPG, MP4, MOV, WEBM</div>
+    </div>
+    <div class="file-name" id="mainName"></div>
+
+    <div class="or-divider">
+      <hr><span>or paste URL</span><hr>
+    </div>
+
+    <input
+      type="text"
+      name="mainImage"
+      placeholder="Main Image URL">
+  </div>
+
+</div>
+<!-- end upload-grid -->
 
 <textarea
-name="content"
-placeholder="Write story..."
-required></textarea>
+  name="content"
+  placeholder="Write story..."
+  required></textarea>
 
 <label>
-<input type="checkbox" name="isBreaking">
- Mark as Breaking News
+  <input type="checkbox" name="isBreaking">
+  Mark as Breaking News
 </label>
 
 <br><br>
 
 <button type="submit">
-Publish Story
+  Publish Story
 </button>
 
 </form>
@@ -252,10 +392,10 @@ Publish Story
 <h2>Published Stories</h2>
 
 <input
-type="text"
-id="searchInput"
-class="search-box"
-placeholder="Search stories...">
+  type="text"
+  id="searchInput"
+  class="search-box"
+  placeholder="Search stories...">
 
 <ul class="post-list" id="postList">
 
@@ -265,40 +405,40 @@ placeholder="Search stories...">
 
 <li class="post-item">
 
-<img
-src="<%= post.thumbnail || '/images/default-thumb.jpg' %>"
-onerror="this.src='/images/default-thumb.jpg'">
+  <img
+    src="<%= post.thumbnail || '/images/default-thumb.jpg' %>"
+    onerror="this.src='/images/default-thumb.jpg'">
 
-<div class="post-info">
+  <div class="post-info">
 
-<div class="post-title">
-  <%= post.title %>
+    <div class="post-title">
+      <%= post.title %>
+      <% if(post.isBreaking){ %> <span class="badge">Breaking</span>
+      <% } %>
+    </div>
 
-<% if(post.isBreaking){ %> <span class="badge">Breaking</span>
-<% } %>
+    <div class="category">
+      <%= post.category || 'News' %>
+    </div>
 
-</div>
+  </div>
 
-<div class="category">
-  <%= post.category || 'News' %>
-</div>
+  <div class="post-actions">
 
-</div>
+    <a
+      class="edit"
+      href="/admin/edit/<%= post._id %>">
+      Edit
+    </a>
 
-<div class="post-actions">
+    <a
+      class="delete"
+      href="/admin/delete/<%= post._id %>"
+      onclick="return confirm('Delete this story?')">
+      Delete
+    </a>
 
-<a
-class="edit"
-href="/admin/edit/<%= post._id %>">
-Edit </a>
-
-<a
-class="delete"
-href="/admin/delete/<%= post._id %>"
-onclick="return confirm('Delete this story?')">
-Delete </a>
-
-</div>
+  </div>
 
 </li>
 
@@ -317,6 +457,7 @@ Delete </a>
 </div>
 
 <script>
+/* Search filter */
 const searchInput = document.getElementById("searchInput");
 
 searchInput.addEventListener("keyup", function(){
@@ -324,15 +465,19 @@ searchInput.addEventListener("keyup", function(){
 
   document.querySelectorAll(".post-item")
     .forEach(item => {
-
       const title = item.innerText.toLowerCase();
-
       item.style.display =
-        title.includes(filter)
-        ? "flex"
-        : "none";
+        title.includes(filter) ? "flex" : "none";
     });
 });
+
+/* Show selected file name under the upload box */
+function showFileName(input, targetId){
+  const el = document.getElementById(targetId);
+  el.textContent = input.files && input.files[0]
+    ? input.files[0].name
+    : '';
+}
 </script>
 
 </body>

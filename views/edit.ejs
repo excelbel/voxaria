@@ -21,16 +21,18 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
     textarea {
       min-height: 180px;
+      resize: vertical;
     }
 
     button {
@@ -43,9 +45,7 @@
       margin-right: 10px;
     }
 
-    button:hover {
-      background: #0056b3;
-    }
+    button:hover { background: #0056b3; }
 
     .preview {
       width: 100%;
@@ -60,9 +60,7 @@
       gap: 10px;
     }
 
-    .row > div {
-      flex: 1;
-    }
+    .row > div { flex: 1; }
 
     .meta {
       font-size: 12px;
@@ -85,15 +83,96 @@
       flex-wrap: wrap;
     }
 
-    .tools button.secondary {
-      background: #6c757d;
+    .tools button.secondary { background: #6c757d; }
+
+    /* ── Upload styles (matches admin.ejs) ── */
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 12px;
     }
 
-    .upload-label {
-      font-size: 13px;
-      margin: 5px 0;
+    .upload-group label.group-label {
       display: block;
-      color: #333;
+      font-size: 13px;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .upload-box {
+      position: relative;
+      border: 2px dashed #ccc;
+      border-radius: 6px;
+      padding: 18px 12px;
+      text-align: center;
+      cursor: pointer;
+      background: #fafafa;
+      transition: border-color .2s;
+      margin-bottom: 8px;
+    }
+
+    .upload-box:hover { border-color: #007bff; }
+
+    .upload-box input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .upload-box .upload-icon {
+      font-size: 26px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .upload-box .upload-text {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .upload-box .upload-sub {
+      font-size: 11px;
+      color: #999;
+      margin-top: 3px;
+    }
+
+    .file-name {
+      font-size: 12px;
+      color: #007bff;
+      margin-top: 4px;
+      min-height: 16px;
+      word-break: break-all;
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0 8px;
+    }
+
+    .or-divider span {
+      font-size: 12px;
+      color: #999;
+      white-space: nowrap;
+    }
+
+    .or-divider hr {
+      flex: 1;
+      border: none;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    @media(max-width: 600px) {
+      .upload-grid { grid-template-columns: 1fr; }
+      .row { flex-direction: column; }
     }
   </style>
 </head>
@@ -137,22 +216,75 @@
     <button type="button" class="secondary" onclick="saveDraft()">💾 Save Draft</button>
   </div>
 
-  <!-- ================= THUMBNAIL ================= -->
-  <label class="upload-label">Upload Thumbnail</label>
-  <input type="file" name="thumbnailFile" id="thumbFile" accept="image/*">
+  <!-- THUMBNAIL + MAIN IMAGE -->
+  <div class="upload-grid">
 
-  <input type="text" name="thumbnail" id="thumb" value="<%= post?.thumbnail || '' %>" placeholder="Or paste image URL">
+    <!-- THUMBNAIL -->
+    <div class="upload-group">
+      <label class="group-label">Thumbnail</label>
 
-  <img src="<%= post?.thumbnail || '/images/default-thumb.jpg' %>" class="preview" id="thumbPreview">
+      <div class="upload-box">
+        <input
+          type="file"
+          name="thumbnailFile"
+          id="thumbFile"
+          accept="image/*"
+          onchange="showFileName(this,'thumbName'); previewFile(this,'thumbPreview')">
+        <span class="upload-icon">🖼️</span>
+        <div class="upload-text">Click to upload image</div>
+        <div class="upload-sub">PNG, JPG, WEBP</div>
+      </div>
+      <div class="file-name" id="thumbName"></div>
 
+      <div class="or-divider"><hr><span>or paste URL</span><hr></div>
 
-  <!-- ================= MAIN IMAGE ================= -->
-  <label class="upload-label">Upload Main Image</label>
-  <input type="file" name="mainImageFile" id="mainFile" accept="image/*">
+      <input
+        type="text"
+        name="thumbnail"
+        id="thumb"
+        value="<%= post?.thumbnail || '' %>"
+        placeholder="Thumbnail URL">
 
-  <input type="text" name="mainImage" id="main" value="<%= post?.mainImage || '' %>" placeholder="Or paste image URL">
+      <img
+        src="<%= post?.thumbnail || '/images/default-thumb.jpg' %>"
+        class="preview"
+        id="thumbPreview">
+    </div>
 
-  <img src="<%= post?.mainImage || '/images/default-main.jpg' %>" class="preview" id="mainPreview">
+    <!-- MAIN IMAGE -->
+    <div class="upload-group">
+      <label class="group-label">Main Image / Video</label>
+
+      <div class="upload-box">
+        <input
+          type="file"
+          name="mainImageFile"
+          id="mainFile"
+          accept="image/*,video/*"
+          onchange="showFileName(this,'mainName'); previewFile(this,'mainPreview')">
+        <span class="upload-icon">📷</span>
+        <div class="upload-text">Click to upload image or video</div>
+        <div class="upload-sub">PNG, JPG, MP4, MOV, WEBM</div>
+      </div>
+      <div class="file-name" id="mainName"></div>
+
+      <div class="or-divider"><hr><span>or paste URL</span><hr></div>
+
+      <input
+        type="text"
+        name="mainImage"
+        id="main"
+        value="<%= post?.mainImage || '' %>"
+        placeholder="Main Image URL">
+
+      <img
+        src="<%= post?.mainImage || '/images/default-main.jpg' %>"
+        class="preview"
+        id="mainPreview">
+    </div>
+
+  </div>
+  <!-- end upload-grid -->
 
   <!-- BREAKING -->
   <label>
@@ -160,16 +292,18 @@
     Breaking News
   </label>
 
+  <br><br>
+
   <button type="submit">Update Post</button>
 
 </form>
 
 <script>
-const title = document.getElementById("title");
+const title       = document.getElementById("title");
 const slugPreview = document.getElementById("slugPreview");
-const content = document.getElementById("content");
-const charCount = document.getElementById("charCount");
-const seoScore = document.getElementById("seoScore");
+const content     = document.getElementById("content");
+const charCount   = document.getElementById("charCount");
+const seoScore    = document.getElementById("seoScore");
 
 /* SLUG */
 function slugify(text = "") {
@@ -197,20 +331,23 @@ title.addEventListener("input", () => {
 /* SEO SCORE */
 function updateSEO() {
   let score = 0;
-
-  if (title.value.length > 10) score += 25;
-  if (content.value.length > 300) score += 25;
-  if (content.value.length > 800) score += 25;
+  if (title.value.length > 10)          score += 25;
+  if (content.value.length > 300)       score += 25;
+  if (content.value.length > 800)       score += 25;
   if (title.value.split(" ").length >= 5) score += 25;
-
   seoScore.textContent = "SEO Score: " + score + "%";
 }
 
-/* IMAGE PREVIEW (FILE UPLOAD) */
+/* SHOW FILE NAME under upload box */
+function showFileName(input, targetId) {
+  const el = document.getElementById(targetId);
+  el.textContent = input.files && input.files[0] ? input.files[0].name : '';
+}
+
+/* IMAGE PREVIEW on file select */
 function previewFile(input, previewId) {
   const file = input.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById(previewId).src = e.target.result;
@@ -218,15 +355,7 @@ function previewFile(input, previewId) {
   reader.readAsDataURL(file);
 }
 
-document.getElementById("thumbFile").addEventListener("change", function () {
-  previewFile(this, "thumbPreview");
-});
-
-document.getElementById("mainFile").addEventListener("change", function () {
-  previewFile(this, "mainPreview");
-});
-
-/* URL IMAGE PREVIEW */
+/* URL IMAGE PREVIEW on paste/type */
 document.getElementById("thumb").addEventListener("input", e => {
   document.getElementById("thumbPreview").src =
     e.target.value || "/images/default-thumb.jpg";
@@ -240,13 +369,12 @@ document.getElementById("main").addEventListener("input", e => {
 /* COPY LINK */
 function copyLink() {
   const slug = "<%= post?.slug || '' %>";
-  const url = window.location.origin + "/news/" + slug;
-
+  const url  = window.location.origin + "/news/" + slug;
   navigator.clipboard.writeText(url);
   alert("Link copied!");
 }
 
-/* AI */
+/* AI SUMMARY */
 function generateSummary() {
   alert("Connect backend AI service for summary generation.");
 }
@@ -254,7 +382,7 @@ function generateSummary() {
 /* SAVE DRAFT */
 function saveDraft() {
   localStorage.setItem("voxaria_draft", JSON.stringify({
-    title: title.value,
+    title:   title.value,
     content: content.value
   }));
   alert("Draft saved");
@@ -264,7 +392,7 @@ function saveDraft() {
 window.onload = () => {
   const draft = JSON.parse(localStorage.getItem("voxaria_draft"));
   if (draft) {
-    title.value = draft.title || "";
+    title.value   = draft.title   || "";
     content.value = draft.content || "";
   }
   updateSEO();
