@@ -76,4 +76,18 @@ app.use((err, req, res, next) => {
   res.status(500).send("Server Error");
 });
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "voxaria",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",      // ADD THIS
+      maxAge: 1000 * 60 * 60 * 24  // ADD THIS — 24 hours
+    }
+  })
+);
+
 module.exports = app;
