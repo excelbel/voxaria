@@ -36,23 +36,22 @@ let isFetching = false;
 
 /* =========================
    RSS FEEDS
-   — Nigerian sources
-   — US / International sources
 ========================= */
 const RSS_FEEDS = [
   // ── NIGERIA ──
   { label: "Punch Nigeria",       url: "https://punchng.com/feed/" },
   { label: "Vanguard Nigeria",    url: "https://www.vanguardngr.com/feed/" },
   { label: "Channels TV",         url: "https://www.channelstv.com/feed/" },
-  { label: "Guardian Nigeria",    url: "https://guardian.ng/feed/" },
   { label: "ThisDay Nigeria",     url: "https://www.thisdaylive.com/index.php/feed/" },
+  { label: "Premium Times",       url: "https://www.premiumtimesng.com/feed" },  // replaces Guardian Nigeria
+  { label: "Daily Trust",         url: "https://dailytrust.com/feed/" },          // replaces AP News
 
   // ── US / INTERNATIONAL ──
   { label: "BBC News",            url: "https://feeds.bbci.co.uk/news/rss.xml" },
-  { label: "Reuters",             url: "https://feeds.reuters.com/reuters/topNews" },
-  { label: "AP News",             url: "https://rsshub.app/apnews/topics/apf-topnews" },
+  { label: "Al Jazeera",          url: "https://www.aljazeera.com/xml/rss/all.xml" },
   { label: "CNN",                 url: "http://rss.cnn.com/rss/edition.rss" },
-  { label: "Al Jazeera",         url: "https://www.aljazeera.com/xml/rss/all.xml" }
+  { label: "NPR News",            url: "https://feeds.npr.org/1001/rss.xml" },         // replaces Reuters
+  { label: "Sky News",            url: "https://feeds.skynews.com/feeds/rss/world.xml" }
 ];
 
 /* =========================
@@ -85,13 +84,13 @@ async function fetchNewsAndSave() {
         try {
           const parsed = await parser.parseURL(feed.url);
           const articles = (parsed.items || []).map(item => ({
-            title:       item.title       || "",
-            description: item.contentSnippet || item.summary || "",
-            content:     item.content     || item.contentSnippet || "",
-            url:         item.link        || "",
-            urlToImage:  item.enclosure?.url || "",
-            author:      item.creator     || parsed.title || feed.label,
-            publishedAt: item.pubDate     || item.isoDate || new Date().toISOString()
+            title:       item.title            || "",
+            description: item.contentSnippet   || item.summary || "",
+            content:     item.content          || item.contentSnippet || "",
+            url:         item.link             || "",
+            urlToImage:  item.enclosure?.url   || "",
+            author:      item.creator          || parsed.title || feed.label,
+            publishedAt: item.pubDate          || item.isoDate || new Date().toISOString()
           }));
           console.log(`${feed.label}: ${articles.length} articles found`);
           return articles;
@@ -151,7 +150,7 @@ async function fetchNewsAndSave() {
         let cleanContent = article.content || article.description || "";
         cleanContent = cleanContent
           .replace(/\[\+\d+\schars\]/g, "")
-          .replace(/<[^>]*>/g, "") // strip HTML tags from RSS
+          .replace(/<[^>]*>/g, "")
           .trim();
 
         if (article.title.length < 20 || cleanContent.length < 30) {
