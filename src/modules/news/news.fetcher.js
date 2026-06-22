@@ -1,9 +1,13 @@
-const axios = require("axios");
+const Parser = require("rss-parser");
 const Post = require("../../models/post");
 const DeletedPost = require("../../models/deletedPost");
-
 const { generateNewsPackage } = require("../ai/ai.service");
 const { detectCategory } = require("../categoryEngine");
+
+const parser = new Parser({
+  timeout: 15000,
+  headers: { "User-Agent": "Mozilla/5.0 (compatible; VoxariaBot/1.0)" }
+});
 
 /* =========================
    HELPERS
@@ -16,6 +20,13 @@ function extractDomain(url) {
   }
 }
 
+function slugify(text = "") {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 /* =========================
    CACHE + LOCK
 ========================= */
@@ -24,24 +35,24 @@ let lastFetchTime = 0;
 let isFetching = false;
 
 /* =========================
-   NEWS FEEDS
+   RSS FEEDS
+   — Nigerian sources
+   — US / International sources
 ========================= */
-const NEWS_FEEDS = [
-  {
-    label: "US Headlines",
-    url: (key) =>
-      `https://newsapi.org/v2/top-headlines?country=us&pageSize=30&apiKey=${key}`
-  },
-  {
-    label: "Nigeria - Punch & Vanguard",
-    url: (key) =>
-      `https://newsapi.org/v2/everything?sources=the-punch,vanguard&pageSize=20&sortBy=publishedAt&apiKey=${key}`
-  },
-  {
-    label: "Nigeria - Keyword Search",
-    url: (key) =>
-      `https://newsapi.org/v2/everything?q=Nigeria+news&language=en&sortBy=publishedAt&pageSize=20&apiKey=${key}`
-  }
+const RSS_FEEDS = [
+  // ── NIGERIA ──
+  { label: "Punch Nigeria",       url: "https://punchng.com/feed/" },
+  { label: "Vanguard Nigeria",    url: "https://www.vanguardngr.com/feed/" },
+  { label: "Channels TV",         url: "https://www.channelstv.com/feed/" },
+  { label: "Guardian Nigeria",    url: "https://guardian.ng/feed/" },
+  { label: "ThisDay Nigeria",     url: "https://www.thisdaylive.com/index.php/feed/" },
+
+  // ── US / INTERNATIONAL ──
+  { label: "BBC News",            url: "https://feeds.bbci.co.uk/news/rss.xml" },
+  { label: "Reuters",             url: "https://feeds.reuters.com/reuters/topNews" },
+  { label: "AP News",             url: "https://rsshub.app/apnews/topics/apf-topnews" },
+  { label: "CNN",                 url: "http://rss.cnn.com/rss/edition.rss" },
+  { label: "Al Jazeera",         url: "https://www.aljazeera.com/xml/rss/all.xml" }
 ];
 
 /* =========================
@@ -68,47 +79,38 @@ async function fetchNewsAndSave() {
   isFetching = true;
 
   try {
-    if (!process.env.NEWS_API_KEY) {
-      throw new Error("NEWS_API_KEY missing in .env");
-    }
-
-    const apiKey = process.env.NEWS_API_KEY;
-
+    // Fetch all RSS feeds in parallel
     const feedResults = await Promise.allSettled(
-      NEWS_FEEDS.map(async (feed) => {
+      RSS_FEEDS.map(async (feed) => {
         try {
-          const res = await axios.get(feed.url(apiKey), {
-            timeout: 15000
-          });
-
-          const articles = res.data?.articles || [];
-
+          const parsed = await parser.parseURL(feed.url);
+          const articles = (parsed.items || []).map(item => ({
+            title:       item.title       || "",
+            description: item.contentSnippet || item.summary || "",
+            content:     item.content     || item.contentSnippet || "",
+            url:         item.link        || "",
+            urlToImage:  item.enclosure?.url || "",
+            author:      item.creator     || parsed.title || feed.label,
+            publishedAt: item.pubDate     || item.isoDate || new Date().toISOString()
+          }));
           console.log(`${feed.label}: ${articles.length} articles found`);
-
           return articles;
         } catch (err) {
-          console.log(
-            `${feed.label} FAILED:`,
-            err.response?.data?.message || err.message
-          );
+          console.log(`${feed.label} FAILED:`, err.message);
           return [];
         }
       })
     );
 
-    /* =========================
-       MERGE ARTICLES
-    ========================= */
+    // Merge and deduplicate by URL
     const seen = new Set();
     const allArticles = [];
 
     for (const result of feedResults) {
       if (result.status !== "fulfilled") continue;
-
       for (const article of result.value) {
         if (!article?.url) continue;
         if (seen.has(article.url)) continue;
-
         seen.add(article.url);
         allArticles.push(article);
       }
@@ -118,62 +120,39 @@ async function fetchNewsAndSave() {
 
     const savedSlugs = [];
 
-    /* =========================
-       PROCESS ARTICLES (CLEAN VERSION)
-    ========================= */
     for (const article of allArticles) {
       try {
         if (!article.title || !article.url) continue;
 
-        const slug = article.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "");
-
+        const slug = slugify(article.title);
         if (!slug) continue;
 
         const domain = extractDomain(article.url);
 
-        /* =========================
-           CHECK DELETED POSTS
-        ========================= */
+        // Check deleted posts
         const wasDeleted = await DeletedPost.findOne({
-          $or: [
-            { slug },
-            { sourceUrl: article.url },
-            { domain }
-          ]
+          $or: [{ slug }, { sourceUrl: article.url }, { domain }]
         });
-
         if (wasDeleted) {
           console.log("Blocked deleted:", article.title);
           continue;
         }
 
-        /* =========================
-           CHECK DUPLICATES
-        ========================= */
+        // Check duplicates
         const exists = await Post.findOne({
-          $or: [
-            { slug },
-            { sourceUrl: article.url }
-          ]
+          $or: [{ slug }, { sourceUrl: article.url }]
         });
-
         if (exists) {
           console.log("Already exists:", article.title);
           continue;
         }
 
-        /* =========================
-           CLEAN CONTENT
-        ========================= */
-        let cleanContent =
-          article.content ||
-          article.description ||
-          "";
-
-        cleanContent = cleanContent.replace(/\[\+\d+\schars\]/g, "");
+        // Clean content
+        let cleanContent = article.content || article.description || "";
+        cleanContent = cleanContent
+          .replace(/\[\+\d+\schars\]/g, "")
+          .replace(/<[^>]*>/g, "") // strip HTML tags from RSS
+          .trim();
 
         if (article.title.length < 20 || cleanContent.length < 30) {
           console.log("Skipped low quality:", article.title);
@@ -190,11 +169,8 @@ ${cleanContent}
 
         const category = detectCategory(rawText);
 
-        /* =========================
-           AI GENERATION (SAFE)
-        ========================= */
+        // AI enhancement (safe — skip if quota hit)
         let ai = null;
-
         try {
           ai = await generateNewsPackage(rawText);
         } catch (err) {
@@ -202,26 +178,23 @@ ${cleanContent}
           ai = null;
         }
 
-        /* =========================
-           SAVE POST
-        ========================= */
         await Post.create({
-          title: ai?.title || article.title,
+          title:          ai?.title || article.title,
           slug,
-          content: ai?.article || cleanContent || "No content available",
+          content:        ai?.article || cleanContent || "No content available",
           category,
-          thumbnail: article.urlToImage || "/images/default-thumb.jpg",
-          mainImage: article.urlToImage || "/images/default-main.jpg",
-          author: article.author || "VOXARIA AI",
-          source: "newsapi",
-          sourceUrl: article.url,
-          aiSummary: ai?.summary || "",
+          thumbnail:      article.urlToImage || "/images/default-thumb.jpg",
+          mainImage:      article.urlToImage || "/images/default-main.jpg",
+          author:         article.author || "VOXARIA",
+          source:         "rss",
+          sourceUrl:      article.url,
+          aiSummary:      ai?.summary || "",
           seoDescription: ai?.seoDescription || "",
-          imagePrompt: ai?.imagePrompt || "",
-          aiProcessed: !!ai,
-          views: 0,
-          isBreaking: false,
-          createdAt: new Date()
+          imagePrompt:    ai?.imagePrompt || "",
+          aiProcessed:    !!ai,
+          views:          0,
+          isBreaking:     false,
+          createdAt:      new Date()
         });
 
         savedSlugs.push(slug);
@@ -239,7 +212,7 @@ ${cleanContent}
     return savedSlugs;
 
   } catch (err) {
-    console.log("Fetcher error:", err.response?.data || err.message);
+    console.log("Fetcher error:", err.message);
     return [];
 
   } finally {
@@ -247,6 +220,4 @@ ${cleanContent}
   }
 }
 
-module.exports = {
-  fetchNewsAndSave
-};
+module.exports = { fetchNewsAndSave };

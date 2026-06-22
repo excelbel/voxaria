@@ -25,6 +25,7 @@
     "node-cron": "^4.2.1",
     "openai": "^6.34.0",
     "redis": "^5.12.1",
+    "rss-parser": "^3.13.0",
     "sitemap": "^9.0.1",
     "slugify": "^1.6.9",
     "socket.io": "^4.8.3",
