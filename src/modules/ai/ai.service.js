@@ -4,7 +4,28 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+/* =========================
+   QUOTA GUARD
+   Once a 429 is hit, skip AI
+   for 1 hour before retrying
+========================= */
+let quotaExhausted = false;
+let quotaResetTime = 0;
+
+const QUOTA_COOLDOWN = 60 * 60 * 1000; // 1 hour
+
 async function generateNewsPackage(text) {
+  // Skip if quota is exhausted
+  if (quotaExhausted) {
+    if (Date.now() < quotaResetTime) {
+      return null; // silent skip — no log spam
+    } else {
+      // Cooldown passed, try again
+      quotaExhausted = false;
+      console.log("AI quota cooldown passed, retrying...");
+    }
+  }
+
   try {
     const prompt = `
 You are a senior newsroom editor.
@@ -40,9 +61,28 @@ ${text}
       temperature: 0.7
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    const raw = response.choices[0].message.content;
+
+    // Strip markdown code fences if present
+    const clean = raw.replace(/```json|```/g, "").trim();
+
+    return JSON.parse(clean);
 
   } catch (err) {
+    // Detect quota error and engage cooldown
+    if (
+      err.status === 429 ||
+      err.message?.includes("429") ||
+      err.message?.includes("quota")
+    ) {
+      if (!quotaExhausted) {
+        quotaExhausted = true;
+        quotaResetTime = Date.now() + QUOTA_COOLDOWN;
+        console.log("AI quota hit — pausing AI for 1 hour");
+      }
+      return null;
+    }
+
     console.log("AI ERROR:", err.message);
     return null;
   }
