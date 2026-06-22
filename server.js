@@ -25,9 +25,7 @@ io.on("connection", (socket) => {
   socket.on("join", async () => {
     try {
       const { getNews } = require("./modules/posts/post.service");
-
       const feed = await getNews(20);
-
       socket.emit("live-feed", feed);
     } catch (err) {
       console.log("Socket feed error:", err.message);
@@ -58,10 +56,13 @@ async function startServer() {
 
     /* =========================
        SAFE NEWS SCHEDULER
+       Runs every 6 hours = 4 runs/day
+       3 feeds x 4 runs = 12 requests/day
+       Well within the 100/day free limit
     ========================= */
     let isFetching = false;
 
-    cron.schedule("*/30 * * * *", async () => {
+    cron.schedule("0 */6 * * *", async () => {
       if (isFetching) {
         console.log("News fetch already running, skipping...");
         return;
@@ -78,6 +79,19 @@ async function startServer() {
 
       isFetching = false;
     });
+
+    // Run once immediately on startup
+    setTimeout(async () => {
+      if (isFetching) return;
+      isFetching = true;
+      try {
+        console.log("Running initial news fetch...");
+        await fetchNewsAndSave();
+      } catch (err) {
+        console.log("Initial fetch error:", err.message);
+      }
+      isFetching = false;
+    }, 5000);
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
