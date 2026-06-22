@@ -1,7 +1,20 @@
 const axios = require("axios");
 const Post = require("../../models/post");
+const DeletedPost = require("../../models/deletedPost");
+
 const { generateNewsPackage } = require("../ai/ai.service");
 const { detectCategory } = require("../categoryEngine");
+
+/* =========================
+   HELPERS
+========================= */
+function extractDomain(url) {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return "";
+  }
+}
 
 /* =========================
    CACHE + LOCK
@@ -12,10 +25,6 @@ let isFetching = false;
 
 /* =========================
    NEWS FEEDS
-   NewsAPI free plan supports:
-   - country=us  (top-headlines)
-   - everything  (keyword/source search)
-   Nigeria via sources + keyword queries
 ========================= */
 const NEWS_FEEDS = [
   {
@@ -53,47 +62,55 @@ async function fetchNewsAndSave() {
     now - lastFetchTime < 15 * 60 * 1000
   ) {
     console.log("Using cached articles");
-    return cachedArticles.map(a => a.slug);
+    return [];
   }
 
   isFetching = true;
 
   try {
     if (!process.env.NEWS_API_KEY) {
-      throw new Error("NEWS_API_KEY is missing in .env");
+      throw new Error("NEWS_API_KEY missing in .env");
     }
 
-    const key = process.env.NEWS_API_KEY;
+    const apiKey = process.env.NEWS_API_KEY;
 
-    // Fetch all feeds in parallel
     const feedResults = await Promise.allSettled(
-      NEWS_FEEDS.map(feed =>
-        axios
-          .get(feed.url(key), { timeout: 15000 })
-          .then(res => {
-            const articles = res.data?.articles || [];
-            console.log(`${feed.label}: ${articles.length} articles found`);
-            return articles;
-          })
-          .catch(err => {
-            console.error(`${feed.label} FAILED:`, err.response?.data?.message || err.message);
-            return [];
-          })
-      )
+      NEWS_FEEDS.map(async (feed) => {
+        try {
+          const res = await axios.get(feed.url(apiKey), {
+            timeout: 15000
+          });
+
+          const articles = res.data?.articles || [];
+
+          console.log(`${feed.label}: ${articles.length} articles found`);
+
+          return articles;
+        } catch (err) {
+          console.log(
+            `${feed.label} FAILED:`,
+            err.response?.data?.message || err.message
+          );
+          return [];
+        }
+      })
     );
 
-    // Merge and deduplicate by URL
+    /* =========================
+       MERGE ARTICLES
+    ========================= */
     const seen = new Set();
     const allArticles = [];
 
     for (const result of feedResults) {
-      if (result.status === "fulfilled") {
-        for (const article of result.value) {
-          if (article.url && !seen.has(article.url)) {
-            seen.add(article.url);
-            allArticles.push(article);
-          }
-        }
+      if (result.status !== "fulfilled") continue;
+
+      for (const article of result.value) {
+        if (!article?.url) continue;
+        if (seen.has(article.url)) continue;
+
+        seen.add(article.url);
+        allArticles.push(article);
       }
     }
 
@@ -101,29 +118,67 @@ async function fetchNewsAndSave() {
 
     const savedSlugs = [];
 
+    /* =========================
+       PROCESS ARTICLES (CLEAN VERSION)
+    ========================= */
     for (const article of allArticles) {
       try {
-        if (!article.title) continue;
+        if (!article.title || !article.url) continue;
 
-        let slug = article.title
+        const slug = article.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)/g, "");
 
         if (!slug) continue;
 
-        const exists = await Post.findOne({ slug });
+        const domain = extractDomain(article.url);
 
-        if (exists) {
-          console.log(`Already exists: ${article.title}`);
-          savedSlugs.push(slug);
+        /* =========================
+           CHECK DELETED POSTS
+        ========================= */
+        const wasDeleted = await DeletedPost.findOne({
+          $or: [
+            { slug },
+            { sourceUrl: article.url },
+            { domain }
+          ]
+        });
+
+        if (wasDeleted) {
+          console.log("Blocked deleted:", article.title);
           continue;
         }
 
+        /* =========================
+           CHECK DUPLICATES
+        ========================= */
+        const exists = await Post.findOne({
+          $or: [
+            { slug },
+            { sourceUrl: article.url }
+          ]
+        });
+
+        if (exists) {
+          console.log("Already exists:", article.title);
+          continue;
+        }
+
+        /* =========================
+           CLEAN CONTENT
+        ========================= */
         let cleanContent =
-          article.content || article.description || "";
+          article.content ||
+          article.description ||
+          "";
 
         cleanContent = cleanContent.replace(/\[\+\d+\schars\]/g, "");
+
+        if (article.title.length < 20 || cleanContent.length < 30) {
+          console.log("Skipped low quality:", article.title);
+          continue;
+        }
 
         const rawText = `
 ${article.title}
@@ -135,39 +190,45 @@ ${cleanContent}
 
         const category = detectCategory(rawText);
 
+        /* =========================
+           AI GENERATION (SAFE)
+        ========================= */
         let ai = null;
 
         try {
           ai = await generateNewsPackage(rawText);
         } catch (err) {
-          if (err.status === 429 || err.message?.includes("429")) {
-            console.log("AI quota hit, skipping AI");
-          } else {
-            console.log("AI ERROR:", err.message);
-          }
+          console.log("AI skipped:", err.message);
           ai = null;
         }
 
-        const postData = {
-          title:     ai?.title || article.title,
+        /* =========================
+           SAVE POST
+        ========================= */
+        await Post.create({
+          title: ai?.title || article.title,
           slug,
-          content:   ai?.article || cleanContent || article.description || "No content available",
+          content: ai?.article || cleanContent || "No content available",
           category,
           thumbnail: article.urlToImage || "/images/default-thumb.jpg",
           mainImage: article.urlToImage || "/images/default-main.jpg",
-          author:    article.author || "VOXARIA AI",
-          sourceUrl: article.url || "",
-          views:     0,
+          author: article.author || "VOXARIA AI",
+          source: "newsapi",
+          sourceUrl: article.url,
+          aiSummary: ai?.summary || "",
+          seoDescription: ai?.seoDescription || "",
+          imagePrompt: ai?.imagePrompt || "",
+          aiProcessed: !!ai,
+          views: 0,
           isBreaking: false,
           createdAt: new Date()
-        };
+        });
 
-        await Post.create(postData);
         savedSlugs.push(slug);
-        console.log(`Saved: ${article.title}`);
+        console.log("Saved:", article.title);
 
-      } catch (articleError) {
-        console.error("Article error:", articleError.message);
+      } catch (err) {
+        console.log("Article error:", err.message);
       }
     }
 
@@ -178,7 +239,7 @@ ${cleanContent}
     return savedSlugs;
 
   } catch (err) {
-    console.error("Fetcher error:", err.response?.data || err.message);
+    console.log("Fetcher error:", err.response?.data || err.message);
     return [];
 
   } finally {
@@ -186,4 +247,6 @@ ${cleanContent}
   }
 }
 
-module.exports = { fetchNewsAndSave };
+module.exports = {
+  fetchNewsAndSave
+};

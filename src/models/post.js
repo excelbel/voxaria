@@ -53,6 +53,11 @@ const postSchema = new mongoose.Schema({
   ========================= */
   source: { type: String, default: "admin" },
 
+  sourceUrl: {
+  type: String,
+  unique: true,
+  sparse: true
+},
   /* =========================
      AI / SYSTEM FLAGS
   ========================= */
