@@ -125,6 +125,12 @@ router.post(
 ========================= */
 router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
   try {
+    const mongoose = require("mongoose");
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.redirect("/admin"); // silently skip bad IDs
+    }
+
     const post = await Post.findById(req.params.id).lean();
     if (!post) return res.status(404).send("Post not found");
     res.render("edit", { post });
@@ -133,58 +139,15 @@ router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
-
-/* =========================
-   UPDATE POST (POST)
-========================= */
-router.post(
-  "/admin/edit/:id",
-  requireAdmin,
-  upload.fields([
-    { name: "thumbnailFile", maxCount: 1 },
-    { name: "mainImageFile", maxCount: 1 }
-  ]),
-  async (req, res) => {
-    try {
-      const post = await Post.findById(req.params.id);
-      if (!post) return res.status(404).send("Post not found");
-
-      const slug = (req.body.title || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-
-      post.title      = req.body.title;
-      post.slug       = slug;
-      post.author     = req.body.author;
-      post.category   = req.body.category;
-      post.content    = req.body.content;
-      post.isBreaking = req.body.isBreaking === "on";
-
-      post.thumbnail = req.files?.thumbnailFile
-        ? "/uploads/" + req.files.thumbnailFile[0].filename
-        : req.body.thumbnail || post.thumbnail;
-
-      post.mainImage = req.files?.mainImageFile
-        ? "/uploads/" + req.files.mainImageFile[0].filename
-        : req.body.mainImage || post.mainImage;
-
-      await post.save();
-      res.redirect("/admin");
-    } catch (err) {
-      console.error("UPDATE ERROR:", err.message);
-      res.status(500).send("Error updating post");
-    }
-  }
-);
-
 /* =========================
    PUBLISH POST
    Makes a draft live on public site
 ========================= */
 router.post("/admin/publish/:id", requireAdmin, async (req, res) => {
   try {
+    const mongoose = require("mongoose");
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.redirect("/admin");
     await Post.findByIdAndUpdate(req.params.id, { published: true });
     res.redirect("/admin");
   } catch (err) {
@@ -199,6 +162,9 @@ router.post("/admin/publish/:id", requireAdmin, async (req, res) => {
 ========================= */
 router.post("/admin/unpublish/:id", requireAdmin, async (req, res) => {
   try {
+    const mongoose = require("mongoose");
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.redirect("/admin");
     await Post.findByIdAndUpdate(req.params.id, { published: false });
     res.redirect("/admin");
   } catch (err) {
@@ -206,12 +172,14 @@ router.post("/admin/unpublish/:id", requireAdmin, async (req, res) => {
     res.status(500).send("Error unpublishing post");
   }
 });
-
 /* =========================
    DELETE POST
 ========================= */
 router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
   try {
+    const mongoose = require("mongoose");
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.redirect("/admin");
     await Post.findByIdAndDelete(req.params.id);
     res.redirect("/admin");
   } catch (err) {
