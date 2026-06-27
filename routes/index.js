@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 
 const homeController = require("../src/controllers/homeController");
@@ -13,6 +14,13 @@ function requireAdmin(req, res, next) {
     return next();
   }
   return res.redirect("/login");
+}
+
+/* =========================
+   VALID OBJECT ID CHECK
+========================= */
+function isValidId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
 }
 
 /* =========================
@@ -58,7 +66,6 @@ router.get("/news/:slug", homeController.singlePost);
 
 /* =========================
    ADMIN DASHBOARD
-   Shows ALL posts (published + drafts)
 ========================= */
 router.get("/admin", requireAdmin, async (req, res) => {
   try {
@@ -72,7 +79,6 @@ router.get("/admin", requireAdmin, async (req, res) => {
 
 /* =========================
    CREATE POST
-   Saved as draft by default
 ========================= */
 router.post(
   "/admin/create",
@@ -103,13 +109,13 @@ router.post(
       await Post.create({
         title,
         slug,
-        content:    req.body.content    || "",
-        category:   req.body.category   || "News",
-        author:     req.body.author     || "Admin",
+        content:    req.body.content  || "",
+        category:   req.body.category || "News",
+        author:     req.body.author   || "Admin",
         thumbnail,
         mainImage,
         isBreaking: req.body.isBreaking === "on",
-        published:  false  // always start as draft
+        published:  false
       });
 
       res.redirect("/admin");
@@ -125,30 +131,81 @@ router.post(
 ========================= */
 router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
   try {
-    const mongoose = require("mongoose");
-
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.redirect("/admin"); // silently skip bad IDs
+    if (!isValidId(req.params.id)) {
+      console.log("Invalid ID for edit:", req.params.id);
+      return res.redirect("/admin");
     }
-
     const post = await Post.findById(req.params.id).lean();
-    if (!post) return res.status(404).send("Post not found");
+    if (!post) return res.redirect("/admin");
     res.render("edit", { post });
   } catch (err) {
     console.error("EDIT GET ERROR:", err.message);
     res.status(500).send("Server Error");
   }
 });
+
+/* =========================
+   UPDATE POST (POST)
+========================= */
+router.post(
+  "/admin/edit/:id",
+  requireAdmin,
+  upload.fields([
+    { name: "thumbnailFile", maxCount: 1 },
+    { name: "mainImageFile", maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      if (!isValidId(req.params.id)) return res.redirect("/admin");
+
+      const post = await Post.findById(req.params.id);
+      if (!post) return res.redirect("/admin");
+
+      const slug = (req.body.title || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      post.title      = req.body.title;
+      post.slug       = slug;
+      post.author     = req.body.author;
+      post.category   = req.body.category;
+      post.content    = req.body.content;
+      post.isBreaking = req.body.isBreaking === "on";
+
+      post.thumbnail = req.files?.thumbnailFile
+        ? "/uploads/" + req.files.thumbnailFile[0].filename
+        : req.body.thumbnail || post.thumbnail;
+
+      post.mainImage = req.files?.mainImageFile
+        ? "/uploads/" + req.files.mainImageFile[0].filename
+        : req.body.mainImage || post.mainImage;
+
+      await post.save();
+      res.redirect("/admin");
+    } catch (err) {
+      console.error("UPDATE ERROR:", err.message);
+      res.status(500).send("Error updating post");
+    }
+  }
+);
+
 /* =========================
    PUBLISH POST
-   Makes a draft live on public site
 ========================= */
 router.post("/admin/publish/:id", requireAdmin, async (req, res) => {
   try {
-    const mongoose = require("mongoose");
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    if (!isValidId(req.params.id)) return res.redirect("/admin");
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { published: true },
+      { new: true }
+    );
+    if (!post) {
+      console.error("PUBLISH: post not found", req.params.id);
       return res.redirect("/admin");
-    await Post.findByIdAndUpdate(req.params.id, { published: true });
+    }
     res.redirect("/admin");
   } catch (err) {
     console.error("PUBLISH ERROR:", err.message);
@@ -158,28 +215,32 @@ router.post("/admin/publish/:id", requireAdmin, async (req, res) => {
 
 /* =========================
    UNPUBLISH POST
-   Pulls a post back to draft
 ========================= */
 router.post("/admin/unpublish/:id", requireAdmin, async (req, res) => {
   try {
-    const mongoose = require("mongoose");
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    if (!isValidId(req.params.id)) return res.redirect("/admin");
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { published: false },
+      { new: true }
+    );
+    if (!post) {
+      console.error("UNPUBLISH: post not found", req.params.id);
       return res.redirect("/admin");
-    await Post.findByIdAndUpdate(req.params.id, { published: false });
+    }
     res.redirect("/admin");
   } catch (err) {
     console.error("UNPUBLISH ERROR:", err.message);
     res.status(500).send("Error unpublishing post");
   }
 });
+
 /* =========================
    DELETE POST
 ========================= */
 router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
   try {
-    const mongoose = require("mongoose");
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
-      return res.redirect("/admin");
+    if (!isValidId(req.params.id)) return res.redirect("/admin");
     await Post.findByIdAndDelete(req.params.id);
     res.redirect("/admin");
   } catch (err) {
@@ -190,7 +251,6 @@ router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
 
 /* =========================
    LIVE POSTS API
-   Only published posts
 ========================= */
 router.get("/api/posts/latest", async (req, res) => {
   try {
