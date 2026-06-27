@@ -28,6 +28,100 @@ function slugify(text = "") {
 }
 
 /* =========================
+   SIMILARITY CHECK
+   Prevents near-duplicate titles
+   from different sources
+========================= */
+function getKeywords(title = "") {
+  const stopWords = new Set([
+    "a", "an", "the", "in", "on", "at", "to", "for",
+    "of", "and", "or", "but", "is", "are", "was", "were",
+    "it", "its", "as", "by", "with", "from", "that", "this",
+    "after", "over", "into", "about", "says", "said"
+  ]);
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !stopWords.has(w));
+}
+
+function isTooSimilar(titleA, titleB) {
+  const wordsA = new Set(getKeywords(titleA));
+  const wordsB = new Set(getKeywords(titleB));
+  if (wordsA.size === 0 || wordsB.size === 0) return false;
+
+  let matches = 0;
+  for (const word of wordsA) {
+    if (wordsB.has(word)) matches++;
+  }
+
+  const similarity = matches / Math.min(wordsA.size, wordsB.size);
+  return similarity >= 0.6; // 60% keyword overlap = duplicate
+}
+
+/* =========================
+   RELEVANCE CHECK
+   Only save articles that clearly
+   belong to one of our categories
+========================= */
+const RELEVANCE_KEYWORDS = [
+  // Nigeria specific
+  "nigeria", "nigerian", "lagos", "abuja", "abuja", "naira",
+  "buhari", "tinubu", "obi", "inec", "nass", "efcc",
+  "aso rock", "senate", "house of reps",
+
+  // Politics
+  "president", "government", "election", "minister", "governor",
+  "parliament", "congress", "trump", "biden", "politics", "policy",
+  "vote", "campaign", "party", "democrat", "republican",
+
+  // Sports
+  "football", "soccer", "nba", "nfl", "fifa", "tennis",
+  "cricket", "basketball", "match", "league", "tournament",
+  "championship", "world cup", "premier league", "transfer",
+  "goal", "score", "player", "coach", "club",
+
+  // Entertainment
+  "movie", "music", "actor", "actress", "celebrity", "hollywood",
+  "netflix", "film", "concert", "award", "grammy", "oscar",
+
+  // Security
+  "attack", "crime", "police", "military", "terrorist",
+  "shooting", "war", "killed", "bomb", "conflict", "troops",
+  "bandits", "kidnap", "armed robbery",
+
+  // International
+  "united nations", "global", "international", "world",
+  "china", "russia", "ukraine", "israel", "iran", "uk",
+  "europe", "africa", "middle east",
+
+  // Tech / Article
+  "iphone", "android", "google", "apple", "microsoft",
+  "ai", "chatgpt", "technology", "startup", "elon musk",
+
+  // Science / Journals
+  "research", "study", "scientist", "nasa", "space",
+  "health", "disease", "cancer", "vaccine", "climate"
+];
+
+function isRelevant(text = "") {
+  const t = text.toLowerCase();
+  return RELEVANCE_KEYWORDS.some(keyword => t.includes(keyword));
+}
+
+/* =========================
+   DEFAULT IMAGES
+========================= */
+const DEFAULT_THUMB = "https://placehold.co/400x300?text=No+Image";
+const DEFAULT_MAIN  = "https://placehold.co/800x400?text=No+Image";
+
+/* =========================
+   MAX ARTICLES PER FETCH
+========================= */
+const MAX_NEW_ARTICLES = 30;
+
+/* =========================
    CACHE + LOCK
 ========================= */
 let cachedArticles = [];
@@ -39,19 +133,19 @@ let isFetching = false;
 ========================= */
 const RSS_FEEDS = [
   // ── NIGERIA ──
-  { label: "Punch Nigeria",       url: "https://punchng.com/feed/" },
-  { label: "Vanguard Nigeria",    url: "https://www.vanguardngr.com/feed/" },
-  { label: "Channels TV",         url: "https://www.channelstv.com/feed/" },
-  { label: "ThisDay Nigeria",     url: "https://www.thisdaylive.com/index.php/feed/" },
-  { label: "Premium Times",       url: "https://www.premiumtimesng.com/feed" },  // replaces Guardian Nigeria
-  { label: "Daily Trust",         url: "https://dailytrust.com/feed/" },          // replaces AP News
+  { label: "Punch Nigeria",    url: "https://punchng.com/feed/" },
+  { label: "Vanguard Nigeria", url: "https://www.vanguardngr.com/feed/" },
+  { label: "Channels TV",      url: "https://www.channelstv.com/feed/" },
+  { label: "ThisDay Nigeria",  url: "https://www.thisdaylive.com/index.php/feed/" },
+  { label: "Premium Times",    url: "https://www.premiumtimesng.com/feed" },
+  { label: "Daily Trust",      url: "https://dailytrust.com/feed/" },
 
   // ── US / INTERNATIONAL ──
-  { label: "BBC News",            url: "https://feeds.bbci.co.uk/news/rss.xml" },
-  { label: "Al Jazeera",          url: "https://www.aljazeera.com/xml/rss/all.xml" },
-  { label: "CNN",                 url: "http://rss.cnn.com/rss/edition.rss" },
-  { label: "NPR News",            url: "https://feeds.npr.org/1001/rss.xml" },         // replaces Reuters
-  { label: "Sky News",            url: "https://feeds.skynews.com/feeds/rss/world.xml" }
+  { label: "BBC News",         url: "https://feeds.bbci.co.uk/news/rss.xml" },
+  { label: "Al Jazeera",       url: "https://www.aljazeera.com/xml/rss/all.xml" },
+  { label: "CNN",              url: "http://rss.cnn.com/rss/edition.rss" },
+  { label: "NPR News",         url: "https://feeds.npr.org/1001/rss.xml" },
+  { label: "Sky News",         url: "https://feeds.skynews.com/feeds/rss/world.xml" }
 ];
 
 /* =========================
@@ -78,19 +172,18 @@ async function fetchNewsAndSave() {
   isFetching = true;
 
   try {
-    // Fetch all RSS feeds in parallel
     const feedResults = await Promise.allSettled(
       RSS_FEEDS.map(async (feed) => {
         try {
           const parsed = await parser.parseURL(feed.url);
           const articles = (parsed.items || []).map(item => ({
-            title:       item.title            || "",
-            description: item.contentSnippet   || item.summary || "",
-            content:     item.content          || item.contentSnippet || "",
-            url:         item.link             || "",
-            urlToImage:  item.enclosure?.url   || "",
-            author:      item.creator          || parsed.title || feed.label,
-            publishedAt: item.pubDate          || item.isoDate || new Date().toISOString()
+            title:       item.title          || "",
+            description: item.contentSnippet || item.summary || "",
+            content:     item.content        || item.contentSnippet || "",
+            url:         item.link           || "",
+            urlToImage:  item.enclosure?.url || "",
+            author:      item.creator        || parsed.title || feed.label,
+            publishedAt: item.pubDate        || item.isoDate || new Date().toISOString()
           }));
           console.log(`${feed.label}: ${articles.length} articles found`);
           return articles;
@@ -101,7 +194,7 @@ async function fetchNewsAndSave() {
       })
     );
 
-    // Merge and deduplicate by URL
+    // Merge and deduplicate by exact URL
     const seen = new Set();
     const allArticles = [];
 
@@ -117,9 +210,34 @@ async function fetchNewsAndSave() {
 
     console.log(`Total unique articles: ${allArticles.length}`);
 
-    const savedSlugs = [];
+    // Filter by relevance
+    const relevantArticles = allArticles.filter(a =>
+      isRelevant(`${a.title} ${a.description}`)
+    );
 
-    for (const article of allArticles) {
+    console.log(`Relevant articles: ${relevantArticles.length}`);
+
+    // Remove near-duplicate titles across sources
+    const dedupedArticles = [];
+    for (const article of relevantArticles) {
+      const isDupe = dedupedArticles.some(saved =>
+        isTooSimilar(saved.title, article.title)
+      );
+      if (!isDupe) dedupedArticles.push(article);
+    }
+
+    console.log(`After deduplication: ${dedupedArticles.length}`);
+
+    const savedSlugs = [];
+    let savedCount = 0;
+
+    for (const article of dedupedArticles) {
+      // Stop after max articles
+      if (savedCount >= MAX_NEW_ARTICLES) {
+        console.log(`Reached max of ${MAX_NEW_ARTICLES} new articles`);
+        break;
+      }
+
       try {
         if (!article.title || !article.url) continue;
 
@@ -137,7 +255,7 @@ async function fetchNewsAndSave() {
           continue;
         }
 
-        // Check duplicates
+        // Check duplicates in DB
         const exists = await Post.findOne({
           $or: [{ slug }, { sourceUrl: article.url }]
         });
@@ -168,7 +286,7 @@ ${cleanContent}
 
         const category = detectCategory(rawText);
 
-        // AI enhancement (safe — skip if quota hit)
+        // AI enhancement
         let ai = null;
         try {
           ai = await generateNewsPackage(rawText);
@@ -182,8 +300,8 @@ ${cleanContent}
           slug,
           content:        ai?.article || cleanContent || "No content available",
           category,
-          thumbnail:      article.urlToImage || "/images/default-thumb.jpg",
-          mainImage:      article.urlToImage || "/images/default-main.jpg",
+          thumbnail:      article.urlToImage || DEFAULT_THUMB,
+          mainImage:      article.urlToImage || DEFAULT_MAIN,
           author:         article.author || "VOXARIA",
           source:         "rss",
           sourceUrl:      article.url,
@@ -197,7 +315,8 @@ ${cleanContent}
         });
 
         savedSlugs.push(slug);
-        console.log("Saved:", article.title);
+        savedCount++;
+        console.log(`Saved (${savedCount}/${MAX_NEW_ARTICLES}):`, article.title);
 
       } catch (err) {
         console.log("Article error:", err.message);
@@ -207,7 +326,7 @@ ${cleanContent}
     cachedArticles = allArticles;
     lastFetchTime = now;
 
-    console.log("News engine completed");
+    console.log(`News engine completed — ${savedCount} new articles saved`);
     return savedSlugs;
 
   } catch (err) {
