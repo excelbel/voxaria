@@ -7,19 +7,19 @@ const postSchema = new mongoose.Schema({
   content: { type: String, default: "" },
 
   category: {
-  type: String,
-  enum: [
-    "News",
-    "Article",
-    "Entertainment",
-    "International",
-    "Journals",
-    "Politics",
-    "Security",
-    "Sports"
-  ],
-  default: "News"
-},
+    type: String,
+    enum: [
+      "News",
+      "Article",
+      "Entertainment",
+      "International",
+      "Journals",
+      "Politics",
+      "Security",
+      "Sports"
+    ],
+    default: "News"
+  },
 
   thumbnail: String,
   mainImage: String,
@@ -31,18 +31,24 @@ const postSchema = new mongoose.Schema({
   isBreaking: { type: Boolean, default: false },
 
   /* =========================
-     AI GENERATED CONTENT
+     PUBLISH STATUS
+     false = draft (admin only)
+     true  = live on public site
   ========================= */
-  aiSummary: { type: String, default: "" },
-  seoDescription: { type: String, default: "" },
-  imagePrompt: { type: String, default: "" },
+  published: { type: Boolean, default: false },
 
   /* =========================
-     ENGAGEMENT (future-proof)
+     AI GENERATED CONTENT
+  ========================= */
+  aiSummary:      { type: String, default: "" },
+  seoDescription: { type: String, default: "" },
+  imagePrompt:    { type: String, default: "" },
+
+  /* =========================
+     ENGAGEMENT
   ========================= */
   likes: { type: Number, default: 0 },
 
-  /* optional structured analytics */
   analytics: {
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 }
@@ -51,13 +57,9 @@ const postSchema = new mongoose.Schema({
   /* =========================
      SOURCE INFO
   ========================= */
-  source: { type: String, default: "admin" },
+  source:    { type: String, default: "admin" },
+  sourceUrl: { type: String, unique: true, sparse: true },
 
-  sourceUrl: {
-  type: String,
-  unique: true,
-  sparse: true
-},
   /* =========================
      AI / SYSTEM FLAGS
   ========================= */

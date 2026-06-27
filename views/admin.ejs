@@ -1,484 +1,238 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VOXARIA Admin Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOXARIA Admin Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .logout { text-decoration: none; background: #dc3545; color: #fff; padding: 10px 15px; border-radius: 5px; }
+    .logout:hover { background: #b02a37; }
+    .card { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.08); text-align: center; }
+    input, textarea, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+    textarea { min-height: 220px; resize: vertical; }
+    button { background: #007bff; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .post-list { list-style: none; padding: 0; }
+    .post-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; }
+    .post-item img { width: 90px; height: 65px; object-fit: cover; border-radius: 6px; }
+    .post-info { flex: 1; }
+    .post-title { font-weight: bold; margin-bottom: 5px; }
+    .category { font-size: 12px; color: #666; }
+    .badge { display: inline-block; padding: 3px 8px; background: #dc3545; color: #fff; border-radius: 20px; font-size: 11px; }
+    .badge-draft { background: #ffc107; color: #333; }
+    .badge-published { background: #28a745; color: #fff; }
+    .post-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .post-actions a { text-decoration: none; font-weight: bold; }
+    .edit { color: #007bff; }
+    .delete { color: #dc3545; }
+    .search-box { margin-bottom: 20px; }
 
-<style>
-body{
-  font-family:Arial,sans-serif;
-  background:#f4f6f9;
-  margin:0;
-  padding:20px;
-}
+    /* Publish / Unpublish buttons */
+    .btn-publish { background: #28a745; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+    .btn-publish:hover { background: #1e7e34; }
+    .btn-unpublish { background: #ffc107; color: #333; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+    .btn-unpublish:hover { background: #e0a800; }
 
-.container{
-  max-width:1200px;
-  margin:auto;
-}
+    /* Tab filter */
+    .tab-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+    .tab-bar button { padding: 8px 18px; border-radius: 5px; border: 1px solid #ddd; background: #f4f6f9; color: #333; cursor: pointer; font-size: 13px; }
+    .tab-bar button.active { background: #007bff; color: #fff; border-color: #007bff; }
 
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  margin-bottom:20px;
-}
+    /* Upload styles */
+    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+    .upload-group label.group-label { display: block; font-size: 13px; font-weight: bold; color: #444; margin-bottom: 6px; }
+    .upload-box { position: relative; border: 2px dashed #ccc; border-radius: 6px; padding: 18px 12px; text-align: center; cursor: pointer; background: #fafafa; transition: border-color .2s; margin-bottom: 8px; }
+    .upload-box:hover { border-color: #007bff; }
+    .upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; margin: 0; padding: 0; }
+    .upload-box .upload-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+    .upload-box .upload-text { font-size: 13px; color: #555; }
+    .upload-box .upload-sub { font-size: 11px; color: #999; margin-top: 3px; }
+    .file-name { font-size: 12px; color: #007bff; margin-top: 4px; min-height: 16px; word-break: break-all; }
+    .or-divider { display: flex; align-items: center; gap: 8px; margin: 6px 0 8px; }
+    .or-divider span { font-size: 12px; color: #999; white-space: nowrap; }
+    .or-divider hr { flex: 1; border: none; border-top: 1px solid #e0e0e0; }
 
-.logout{
-  text-decoration:none;
-  background:#dc3545;
-  color:#fff;
-  padding:10px 15px;
-  border-radius:5px;
-}
-
-.logout:hover{
-  background:#b02a37;
-}
-
-.card{
-  background:#fff;
-  padding:20px;
-  border-radius:8px;
-  margin-bottom:25px;
-  box-shadow:0 2px 10px rgba(0,0,0,.08);
-}
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-  margin-bottom:20px;
-}
-
-.stat-box{
-  background:#fff;
-  padding:20px;
-  border-radius:8px;
-  box-shadow:0 2px 10px rgba(0,0,0,.08);
-  text-align:center;
-}
-
-input,
-textarea,
-select{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border:1px solid #ddd;
-  border-radius:6px;
-  box-sizing:border-box;
-}
-
-textarea{
-  min-height:220px;
-  resize:vertical;
-}
-
-button{
-  background:#007bff;
-  color:#fff;
-  border:none;
-  padding:12px 20px;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-button:hover{
-  background:#0056b3;
-}
-
-.post-list{
-  list-style:none;
-  padding:0;
-}
-
-.post-item{
-  display:flex;
-  align-items:center;
-  gap:15px;
-  padding:15px 0;
-  border-bottom:1px solid #eee;
-}
-
-.post-item img{
-  width:90px;
-  height:65px;
-  object-fit:cover;
-  border-radius:6px;
-}
-
-.post-info{
-  flex:1;
-}
-
-.post-title{
-  font-weight:bold;
-  margin-bottom:5px;
-}
-
-.category{
-  font-size:12px;
-  color:#666;
-}
-
-.badge{
-  display:inline-block;
-  padding:3px 8px;
-  background:#dc3545;
-  color:#fff;
-  border-radius:20px;
-  font-size:11px;
-}
-
-.post-actions a{
-  margin-left:10px;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-.edit{
-  color:#007bff;
-}
-
-.delete{
-  color:#dc3545;
-}
-
-.search-box{
-  margin-bottom:20px;
-}
-
-/* ── Upload styles ── */
-.upload-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  margin-bottom:12px;
-}
-
-.upload-group label.group-label{
-  display:block;
-  font-size:13px;
-  font-weight:bold;
-  color:#444;
-  margin-bottom:6px;
-}
-
-.upload-box{
-  position:relative;
-  border:2px dashed #ccc;
-  border-radius:6px;
-  padding:18px 12px;
-  text-align:center;
-  cursor:pointer;
-  background:#fafafa;
-  transition:border-color .2s;
-  margin-bottom:8px;
-}
-
-.upload-box:hover{
-  border-color:#007bff;
-}
-
-.upload-box input[type="file"]{
-  position:absolute;
-  inset:0;
-  opacity:0;
-  cursor:pointer;
-  width:100%;
-  height:100%;
-  margin:0;
-  padding:0;
-}
-
-.upload-box .upload-icon{
-  font-size:26px;
-  display:block;
-  margin-bottom:6px;
-}
-
-.upload-box .upload-text{
-  font-size:13px;
-  color:#555;
-}
-
-.upload-box .upload-sub{
-  font-size:11px;
-  color:#999;
-  margin-top:3px;
-}
-
-.file-name{
-  font-size:12px;
-  color:#007bff;
-  margin-top:4px;
-  min-height:16px;
-  word-break:break-all;
-}
-
-.or-divider{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin:6px 0 8px;
-}
-
-.or-divider span{
-  font-size:12px;
-  color:#999;
-  white-space:nowrap;
-}
-
-.or-divider hr{
-  flex:1;
-  border:none;
-  border-top:1px solid #e0e0e0;
-}
-
-@media(max-width:700px){
-  .post-item{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .upload-grid{
-    grid-template-columns:1fr;
-  }
-}
-</style>
-
+    @media(max-width: 700px) {
+      .post-item { flex-direction: column; align-items: flex-start; }
+      .upload-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
-
 <div class="container">
 
-<div class="header">
-  <h1>VOXARIA Admin Dashboard</h1>
-  <a href="/logout" class="logout">Logout</a>
-</div>
-
-<div class="stats">
-  <div class="stat-box">
-    <h2><%= posts ? posts.length : 0 %></h2>
-    <p>Total Posts</p>
+  <div class="header">
+    <h1>VOXARIA Admin Dashboard</h1>
+    <a href="/logout" class="logout">Logout</a>
   </div>
 
-  <div class="stat-box">
-    <h2><%= posts ? posts.filter(p => p.isBreaking).length : 0 %></h2>
-    <p>Breaking News</p>
-  </div>
-
-  <div class="stat-box">
-    <h2><%= posts ? posts.filter(p => p.category === 'Politics').length : 0 %></h2>
-    <p>Politics</p>
-  </div>
-</div>
-
-<div class="card">
-
-<h2>Create New Story</h2>
-
-<!-- IMPORTANT: enctype="multipart/form-data" is required for file uploads -->
-<form action="/admin/create" method="POST" enctype="multipart/form-data">
-
-<input
-  type="text"
-  name="title"
-  placeholder="Story Title"
-  required>
-
-<input
-  type="text"
-  name="author"
-  value="Admin"
-  placeholder="Author">
-
-<select name="category">
-  <option value="News">News</option>
-  <option value="Article">Article</option>
-  <option value="Entertainment">Entertainment</option>
-  <option value="International">International</option>
-  <option value="Journals">Journals</option>
-  <option value="Politics">Politics</option>
-  <option value="Security">Security</option>
-  <option value="Sports">Sports</option>
-</select>
-
-<!-- Thumbnail + Main Image side by side -->
-<div class="upload-grid">
-
-  <!-- THUMBNAIL -->
-  <div class="upload-group">
-    <label class="group-label">Thumbnail</label>
-
-    <div class="upload-box">
-      <input
-        type="file"
-        name="thumbnailFile"
-        accept="image/*"
-        onchange="showFileName(this, 'thumbName')">
-      <span class="upload-icon">🖼️</span>
-      <div class="upload-text">Click to upload image</div>
-      <div class="upload-sub">PNG, JPG, WEBP</div>
+  <div class="stats">
+    <div class="stat-box">
+      <h2><%= posts ? posts.length : 0 %></h2>
+      <p>Total Posts</p>
     </div>
-    <div class="file-name" id="thumbName"></div>
-
-    <div class="or-divider">
-      <hr><span>or paste URL</span><hr>
+    <div class="stat-box">
+      <h2><%= posts ? posts.filter(p => p.published).length : 0 %></h2>
+      <p>Published</p>
     </div>
-
-    <input
-      type="text"
-      name="thumbnail"
-      placeholder="Thumbnail URL">
+    <div class="stat-box">
+      <h2><%= posts ? posts.filter(p => !p.published).length : 0 %></h2>
+      <p>Drafts</p>
+    </div>
+    <div class="stat-box">
+      <h2><%= posts ? posts.filter(p => p.isBreaking).length : 0 %></h2>
+      <p>Breaking News</p>
+    </div>
   </div>
 
-  <!-- MAIN IMAGE / VIDEO -->
-  <div class="upload-group">
-    <label class="group-label">Main Image / Video</label>
+  <!-- CREATE FORM -->
+  <div class="card">
+    <h2>Create New Story</h2>
+    <form action="/admin/create" method="POST" enctype="multipart/form-data">
+      <input type="text" name="title" placeholder="Story Title" required>
+      <input type="text" name="author" value="Admin" placeholder="Author">
+      <select name="category">
+        <option value="News">News</option>
+        <option value="Article">Article</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="International">International</option>
+        <option value="Journals">Journals</option>
+        <option value="Politics">Politics</option>
+        <option value="Security">Security</option>
+        <option value="Sports">Sports</option>
+      </select>
 
-    <div class="upload-box">
-      <input
-        type="file"
-        name="mainImageFile"
-        accept="image/*,video/*"
-        onchange="showFileName(this, 'mainName')">
-      <span class="upload-icon">📷</span>
-      <div class="upload-text">Click to upload image or video</div>
-      <div class="upload-sub">PNG, JPG, MP4, MOV, WEBM</div>
-    </div>
-    <div class="file-name" id="mainName"></div>
+      <div class="upload-grid">
+        <div class="upload-group">
+          <label class="group-label">Thumbnail</label>
+          <div class="upload-box">
+            <input type="file" name="thumbnailFile" accept="image/*" onchange="showFileName(this,'thumbName')">
+            <span class="upload-icon">🖼️</span>
+            <div class="upload-text">Click to upload image</div>
+            <div class="upload-sub">PNG, JPG, WEBP</div>
+          </div>
+          <div class="file-name" id="thumbName"></div>
+          <div class="or-divider"><hr><span>or paste URL</span><hr></div>
+          <input type="text" name="thumbnail" placeholder="Thumbnail URL">
+        </div>
+        <div class="upload-group">
+          <label class="group-label">Main Image / Video</label>
+          <div class="upload-box">
+            <input type="file" name="mainImageFile" accept="image/*,video/*" onchange="showFileName(this,'mainName')">
+            <span class="upload-icon">📷</span>
+            <div class="upload-text">Click to upload image or video</div>
+            <div class="upload-sub">PNG, JPG, MP4, MOV, WEBM</div>
+          </div>
+          <div class="file-name" id="mainName"></div>
+          <div class="or-divider"><hr><span>or paste URL</span><hr></div>
+          <input type="text" name="mainImage" placeholder="Main Image URL">
+        </div>
+      </div>
 
-    <div class="or-divider">
-      <hr><span>or paste URL</span><hr>
+      <textarea name="content" placeholder="Write story..." required></textarea>
+      <label>
+        <input type="checkbox" name="isBreaking"> Mark as Breaking News
+      </label>
+      <br><br>
+      <button type="submit">Save as Draft</button>
+    </form>
+  </div>
+
+  <!-- POST LIST -->
+  <div class="card">
+    <h2>All Stories</h2>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="Search stories...">
+
+    <!-- Tab filter -->
+    <div class="tab-bar">
+      <button class="active" onclick="filterPosts('all', this)">All</button>
+      <button onclick="filterPosts('draft', this)">Drafts</button>
+      <button onclick="filterPosts('published', this)">Published</button>
     </div>
 
-    <input
-      type="text"
-      name="mainImage"
-      placeholder="Main Image URL">
-  </div>
+    <ul class="post-list" id="postList">
+      <% if(posts && posts.length > 0){ %>
+        <% posts.forEach(post => { %>
+          <li class="post-item" data-status="<%= post.published ? 'published' : 'draft' %>">
 
-</div>
-<!-- end upload-grid -->
+            <img
+              src="<%= post.thumbnail || 'https://placehold.co/400x300?text=No+Image' %>"
+              onerror="this.src='https://placehold.co/400x300?text=No+Image'">
 
-<textarea
-  name="content"
-  placeholder="Write story..."
-  required></textarea>
+            <div class="post-info">
+              <div class="post-title">
+                <%= post.title %>
+                <% if(post.isBreaking){ %><span class="badge">Breaking</span><% } %>
+                <% if(post.published){ %>
+                  <span class="badge badge-published">Published</span>
+                <% } else { %>
+                  <span class="badge badge-draft">Draft</span>
+                <% } %>
+              </div>
+              <div class="category"><%= post.category || 'News' %></div>
+            </div>
 
-<label>
-  <input type="checkbox" name="isBreaking">
-  Mark as Breaking News
-</label>
+            <div class="post-actions">
+              <a class="edit" href="/admin/edit/<%= post._id %>">Edit</a>
 
-<br><br>
+              <% if(post.published){ %>
+                <form action="/admin/unpublish/<%= post._id %>" method="POST" style="display:inline">
+                  <button class="btn-unpublish" type="submit">Unpublish</button>
+                </form>
+              <% } else { %>
+                <form action="/admin/publish/<%= post._id %>" method="POST" style="display:inline">
+                  <button class="btn-publish" type="submit">Publish</button>
+                </form>
+              <% } %>
 
-<button type="submit">
-  Publish Story
-</button>
+              <a class="delete" href="/admin/delete/<%= post._id %>"
+                onclick="return confirm('Delete this story?')">Delete</a>
+            </div>
 
-</form>
-
-</div>
-
-<div class="card">
-
-<h2>Published Stories</h2>
-
-<input
-  type="text"
-  id="searchInput"
-  class="search-box"
-  placeholder="Search stories...">
-
-<ul class="post-list" id="postList">
-
-<% if(posts && posts.length > 0){ %>
-
-<% posts.forEach(post => { %>
-
-<li class="post-item">
-
-  <img
-    src="<%= post.thumbnail || '/images/default-thumb.jpg' %>"
-   onerror="this.src='https://placehold.co/400x300?text=No+Image'"
-
-  <div class="post-info">
-
-    <div class="post-title">
-      <%= post.title %>
-      <% if(post.isBreaking){ %> <span class="badge">Breaking</span>
+          </li>
+        <% }) %>
+      <% } else { %>
+        <p>No stories available.</p>
       <% } %>
-    </div>
-
-    <div class="category">
-      <%= post.category || 'News' %>
-    </div>
-
+    </ul>
   </div>
-
-  <div class="post-actions">
-
-    <a
-      class="edit"
-      href="/admin/edit/<%= post._id %>">
-      Edit
-    </a>
-
-    <a
-      class="delete"
-      href="/admin/delete/<%= post._id %>"
-      onclick="return confirm('Delete this story?')">
-      Delete
-    </a>
-
-  </div>
-
-</li>
-
-<% }) %>
-
-<% } else { %>
-
-<p>No stories available.</p>
-
-<% } %>
-
-</ul>
-
-</div>
 
 </div>
 
 <script>
-/* Search filter */
-const searchInput = document.getElementById("searchInput");
-
-searchInput.addEventListener("keyup", function(){
+/* Search */
+document.getElementById("searchInput").addEventListener("keyup", function() {
   const filter = this.value.toLowerCase();
-
-  document.querySelectorAll(".post-item")
-    .forEach(item => {
-      const title = item.innerText.toLowerCase();
-      item.style.display =
-        title.includes(filter) ? "flex" : "none";
-    });
+  document.querySelectorAll(".post-item").forEach(item => {
+    item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
+  });
 });
 
-/* Show selected file name under the upload box */
-function showFileName(input, targetId){
+/* Tab filter */
+function filterPosts(status, btn) {
+  document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  document.querySelectorAll(".post-item").forEach(item => {
+    if (status === "all") {
+      item.style.display = "flex";
+    } else {
+      item.style.display = item.dataset.status === status ? "flex" : "none";
+    }
+  });
+}
+
+/* File name display */
+function showFileName(input, targetId) {
   const el = document.getElementById(targetId);
-  el.textContent = input.files && input.files[0]
-    ? input.files[0].name
-    : '';
+  el.textContent = input.files && input.files[0] ? input.files[0].name : '';
 }
 </script>
-
 </body>
 </html>

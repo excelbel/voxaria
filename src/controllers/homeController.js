@@ -4,13 +4,14 @@ const { getBreakingNews } = require("../modules/ai/ai.service");
 
 /* =========================
    HOME PAGE CONTROLLER
+   Only shows published posts
 ========================= */
 exports.home = async (req, res) => {
   try {
     let posts = await getCache("home_posts");
 
     if (!posts) {
-      posts = await Post.find()
+      posts = await Post.find({ published: true })
         .sort({ createdAt: -1 })
         .limit(20)
         .lean();
@@ -20,9 +21,9 @@ exports.home = async (req, res) => {
 
     const safePosts = Array.isArray(posts) ? posts : [];
 
-    const safeFeaturedPost = safePosts[0] || null;
-    const safeFeaturedGrid = safePosts.slice(1, 5);
-    const recentPosts = safePosts.slice(0, 10);
+    const safeFeaturedPost  = safePosts[0] || null;
+    const safeFeaturedGrid  = safePosts.slice(1, 5);
+    const recentPosts       = safePosts.slice(0, 10);
 
     const trendingPosts = [...safePosts]
       .sort((a, b) => (b.views || 0) - (a.views || 0))
@@ -48,27 +49,28 @@ exports.home = async (req, res) => {
 
   } catch (err) {
     console.error("HOME ERROR:", err.message);
-
     res.render("index", {
       posts: [],
-      safeFeaturedPost: null,
-      safeFeaturedGrid: [],
-      recentPosts: [],
-      trendingPosts: [],
-      breakingNews: [],
-      safeRandomPost: null,
-      currentPage: "Home"
+      safeFeaturedPost:  null,
+      safeFeaturedGrid:  [],
+      recentPosts:       [],
+      trendingPosts:     [],
+      breakingNews:      [],
+      safeRandomPost:    null,
+      currentPage:       "Home"
     });
   }
 };
 
 /* =========================
    SINGLE POST PAGE
+   Only show published posts
 ========================= */
 exports.singlePost = async (req, res) => {
   try {
     const post = await Post.findOne({
-      slug: req.params.slug
+      slug: req.params.slug,
+      published: true
     }).lean();
 
     if (!post) {
@@ -82,7 +84,8 @@ exports.singlePost = async (req, res) => {
 
     const relatedPosts = await Post.find({
       _id: { $ne: post._id },
-      category: post.category
+      category: post.category,
+      published: true
     })
       .sort({ createdAt: -1 })
       .limit(6)
@@ -102,13 +105,15 @@ exports.singlePost = async (req, res) => {
 
 /* =========================
    CATEGORY PAGE
+   Only show published posts
 ========================= */
 exports.categoryPosts = async (req, res) => {
   try {
     const category = req.params.category;
 
     const posts = await Post.find({
-      category: { $regex: new RegExp("^" + category + "$", "i") }
+      category:  { $regex: new RegExp("^" + category + "$", "i") },
+      published: true
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -116,12 +121,12 @@ exports.categoryPosts = async (req, res) => {
     console.log("CATEGORY REQUEST:", category);
     console.log("POSTS FOUND:", posts.length);
 
-    const recentPosts = await Post.find()
+    const recentPosts = await Post.find({ published: true })
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
 
-    const trendingPosts = await Post.find()
+    const trendingPosts = await Post.find({ published: true })
       .sort({ views: -1 })
       .limit(5)
       .lean();
@@ -137,8 +142,8 @@ exports.categoryPosts = async (req, res) => {
       recentPosts,
       trendingPosts,
       safeRandomPost,
-      page: 1,
-      totalPages: 1,
+      page:        1,
+      totalPages:  1,
       currentPage: category
     });
 
