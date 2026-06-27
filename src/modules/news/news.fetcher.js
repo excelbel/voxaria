@@ -1,4 +1,6 @@
 const Parser = require("rss-parser");
+const axios = require("axios");
+const cheerio = require("cheerio");
 const Post = require("../../models/post");
 const DeletedPost = require("../../models/deletedPost");
 const { generateNewsPackage } = require("../ai/ai.service");
@@ -28,9 +30,38 @@ function slugify(text = "") {
 }
 
 /* =========================
+   SCRAPE OG:IMAGE
+   Fetches the article page and
+   extracts the og:image meta tag
+========================= */
+async function scrapeImage(url) {
+  try {
+    const res = await axios.get(url, {
+      timeout: 8000,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; VoxariaBot/1.0)"
+      }
+    });
+
+    const $ = cheerio.load(res.data);
+
+    const ogImage =
+      $('meta[property="og:image"]').attr("content") ||
+      $('meta[name="twitter:image"]').attr("content") ||
+      $('meta[property="og:image:url"]').attr("content");
+
+    if (ogImage && ogImage.startsWith("http")) {
+      return ogImage;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/* =========================
    SIMILARITY CHECK
-   Prevents near-duplicate titles
-   from different sources
 ========================= */
 function getKeywords(title = "") {
   const stopWords = new Set([
@@ -57,50 +88,32 @@ function isTooSimilar(titleA, titleB) {
   }
 
   const similarity = matches / Math.min(wordsA.size, wordsB.size);
-  return similarity >= 0.6; // 60% keyword overlap = duplicate
+  return similarity >= 0.6;
 }
 
 /* =========================
    RELEVANCE CHECK
-   Only save articles that clearly
-   belong to one of our categories
 ========================= */
 const RELEVANCE_KEYWORDS = [
-  // Nigeria specific
-  "nigeria", "nigerian", "lagos", "abuja", "abuja", "naira",
-  "buhari", "tinubu", "obi", "inec", "nass", "efcc",
-  "aso rock", "senate", "house of reps",
-
-  // Politics
+  "nigeria", "nigerian", "lagos", "abuja", "naira",
+  "tinubu", "obi", "inec", "efcc", "aso rock",
   "president", "government", "election", "minister", "governor",
   "parliament", "congress", "trump", "biden", "politics", "policy",
   "vote", "campaign", "party", "democrat", "republican",
-
-  // Sports
   "football", "soccer", "nba", "nfl", "fifa", "tennis",
   "cricket", "basketball", "match", "league", "tournament",
   "championship", "world cup", "premier league", "transfer",
   "goal", "score", "player", "coach", "club",
-
-  // Entertainment
   "movie", "music", "actor", "actress", "celebrity", "hollywood",
   "netflix", "film", "concert", "award", "grammy", "oscar",
-
-  // Security
   "attack", "crime", "police", "military", "terrorist",
   "shooting", "war", "killed", "bomb", "conflict", "troops",
   "bandits", "kidnap", "armed robbery",
-
-  // International
   "united nations", "global", "international", "world",
   "china", "russia", "ukraine", "israel", "iran", "uk",
   "europe", "africa", "middle east",
-
-  // Tech / Article
   "iphone", "android", "google", "apple", "microsoft",
   "ai", "chatgpt", "technology", "startup", "elon musk",
-
-  // Science / Journals
   "research", "study", "scientist", "nasa", "space",
   "health", "disease", "cancer", "vaccine", "climate"
 ];
@@ -111,14 +124,10 @@ function isRelevant(text = "") {
 }
 
 /* =========================
-   DEFAULT IMAGES
+   DEFAULTS + LIMITS
 ========================= */
-const DEFAULT_THUMB = "https://placehold.co/400x300?text=No+Image";
-const DEFAULT_MAIN  = "https://placehold.co/800x400?text=No+Image";
-
-/* =========================
-   MAX ARTICLES PER FETCH
-========================= */
+const DEFAULT_THUMB   = "https://placehold.co/400x300?text=No+Image";
+const DEFAULT_MAIN    = "https://placehold.co/800x400?text=No+Image";
 const MAX_NEW_ARTICLES = 30;
 
 /* =========================
@@ -217,7 +226,7 @@ async function fetchNewsAndSave() {
 
     console.log(`Relevant articles: ${relevantArticles.length}`);
 
-    // Remove near-duplicate titles across sources
+    // Remove near-duplicate titles
     const dedupedArticles = [];
     for (const article of relevantArticles) {
       const isDupe = dedupedArticles.some(saved =>
@@ -232,7 +241,6 @@ async function fetchNewsAndSave() {
     let savedCount = 0;
 
     for (const article of dedupedArticles) {
-      // Stop after max articles
       if (savedCount >= MAX_NEW_ARTICLES) {
         console.log(`Reached max of ${MAX_NEW_ARTICLES} new articles`);
         break;
@@ -246,7 +254,6 @@ async function fetchNewsAndSave() {
 
         const domain = extractDomain(article.url);
 
-        // Check deleted posts
         const wasDeleted = await DeletedPost.findOne({
           $or: [{ slug }, { sourceUrl: article.url }, { domain }]
         });
@@ -255,7 +262,6 @@ async function fetchNewsAndSave() {
           continue;
         }
 
-        // Check duplicates in DB
         const exists = await Post.findOne({
           $or: [{ slug }, { sourceUrl: article.url }]
         });
@@ -264,7 +270,6 @@ async function fetchNewsAndSave() {
           continue;
         }
 
-        // Clean content
         let cleanContent = article.content || article.description || "";
         cleanContent = cleanContent
           .replace(/\[\+\d+\schars\]/g, "")
@@ -286,6 +291,17 @@ ${cleanContent}
 
         const category = detectCategory(rawText);
 
+        // ── IMAGE: RSS first, then scrape, then placeholder ──
+        let imageUrl = article.urlToImage || "";
+
+        if (!imageUrl) {
+          console.log(`Scraping image for: ${article.title}`);
+          imageUrl = await scrapeImage(article.url) || "";
+        }
+
+        const thumbnail = imageUrl || DEFAULT_THUMB;
+        const mainImage = imageUrl || DEFAULT_MAIN;
+
         // AI enhancement
         let ai = null;
         try {
@@ -300,8 +316,8 @@ ${cleanContent}
           slug,
           content:        ai?.article || cleanContent || "No content available",
           category,
-          thumbnail:      article.urlToImage || DEFAULT_THUMB,
-          mainImage:      article.urlToImage || DEFAULT_MAIN,
+          thumbnail,
+          mainImage,
           author:         article.author || "VOXARIA",
           source:         "rss",
           sourceUrl:      article.url,
