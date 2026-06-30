@@ -5,6 +5,8 @@ const router = express.Router();
 const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
 const upload = require("../src/config/upload");
+const EmailSubscriber = require("../src/models/emailSubscriber");
+const { sendWelcomeEmail, sendNewsletter } = require("../src/modules/mailer/mailer");
 
 /* =========================
    ADMIN MIDDLEWARE
@@ -65,12 +67,73 @@ router.get("/category/:category", homeController.categoryPosts);
 router.get("/news/:slug", homeController.singlePost);
 
 /* =========================
+   SUBSCRIBE
+========================= */
+router.post("/subscribe", async (req, res) => {
+  try {
+    const { email, name } = req.body;
+
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
+
+    const existing = await EmailSubscriber.findOne({
+      email: email.toLowerCase()
+    });
+
+    if (existing) {
+      return res.status(200).json({ message: "You are already subscribed!" });
+    }
+
+    await EmailSubscriber.create({
+      email: email.toLowerCase(),
+      name: name || ""
+    });
+
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(email, name).catch(err =>
+      console.error("Welcome email failed:", err.message)
+    );
+
+    res.status(200).json({ message: "Successfully subscribed! Check your email." });
+
+  } catch (err) {
+    console.error("SUBSCRIBE ERROR:", err.message);
+    res.status(500).json({ error: "Subscription failed. Please try again." });
+  }
+});
+
+/* =========================
+   UNSUBSCRIBE
+========================= */
+router.get("/unsubscribe", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.send("Invalid unsubscribe link.");
+
+    await EmailSubscriber.findOneAndDelete({ email: email.toLowerCase() });
+
+    res.send(`
+      <div style="font-family:Arial,sans-serif;text-align:center;padding:60px;">
+        <h2>You have been unsubscribed.</h2>
+        <p>You will no longer receive emails from VOXARIA.</p>
+        <a href="/" style="color:#007bff;">Return to VOXARIA</a>
+      </div>
+    `);
+  } catch (err) {
+    console.error("UNSUBSCRIBE ERROR:", err.message);
+    res.status(500).send("Error processing unsubscribe.");
+  }
+});
+
+/* =========================
    ADMIN DASHBOARD
 ========================= */
 router.get("/admin", requireAdmin, async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 }).lean();
-    res.render("admin", { posts, currentPage: "Admin" });
+    const subscriberCount = await EmailSubscriber.countDocuments();
+    res.render("admin", { posts, subscriberCount, currentPage: "Admin" });
   } catch (err) {
     console.error("ADMIN ERROR:", err.message);
     res.status(500).send("Server Error");
@@ -246,6 +309,56 @@ router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     console.error("DELETE ERROR:", err.message);
     res.status(500).send("Error deleting post");
+  }
+});
+
+/* =========================
+   SEND NEWSLETTER
+   Sends a published post to all subscribers
+========================= */
+router.post("/admin/newsletter/:id", requireAdmin, async (req, res) => {
+  try {
+    if (!isValidId(req.params.id)) return res.redirect("/admin");
+
+    const post = await Post.findById(req.params.id).lean();
+    if (!post) return res.status(404).send("Post not found");
+
+    const subscribers = await EmailSubscriber.find().lean();
+    if (subscribers.length === 0) {
+      return res.send(`
+        <div style="font-family:Arial;text-align:center;padding:60px;">
+          <h2>No subscribers yet.</h2>
+          <a href="/admin" style="color:#007bff;">Back to Admin</a>
+        </div>
+      `);
+    }
+
+    // Send in background — don't wait
+    sendNewsletter(subscribers, post).catch(err =>
+      console.error("Newsletter error:", err.message)
+    );
+
+    console.log(`Newsletter sending to ${subscribers.length} subscribers for: ${post.title}`);
+    res.redirect("/admin");
+
+  } catch (err) {
+    console.error("NEWSLETTER ERROR:", err.message);
+    res.status(500).send("Error sending newsletter");
+  }
+});
+
+/* =========================
+   ADMIN — VIEW SUBSCRIBERS
+========================= */
+router.get("/admin/subscribers", requireAdmin, async (req, res) => {
+  try {
+    const subscribers = await EmailSubscriber.find()
+      .sort({ createdAt: -1 })
+      .lean();
+    res.render("subscribers", { subscribers });
+  } catch (err) {
+    console.error("SUBSCRIBERS ERROR:", err.message);
+    res.status(500).send("Server Error");
   }
 });
 

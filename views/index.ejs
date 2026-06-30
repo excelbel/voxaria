@@ -6,17 +6,103 @@
   <link rel="stylesheet" href="/style.css">
 
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LL7FKPRF2W');
+  </script>
 
-  gtag('config', 'G-LL7FKPRF2W');
-</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275"
+       crossorigin="anonymous"></script>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275"
-     crossorigin="anonymous"></script>
+  <style>
+    /* Newsletter widget */
+    .newsletter-widget {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: #fff;
+      border-radius: 10px;
+      padding: 24px 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .newsletter-widget h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+    .newsletter-widget p {
+      margin: 0 0 16px;
+      font-size: 13px;
+      opacity: .85;
+    }
+    .newsletter-widget input[type="text"],
+    .newsletter-widget input[type="email"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .newsletter-widget button {
+      width: 100%;
+      padding: 11px;
+      background: #fff;
+      color: #007bff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .newsletter-widget button:hover {
+      background: #f0f0f0;
+    }
+    .newsletter-msg {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    /* Newsletter banner (inline in feed) */
+    .newsletter-banner {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: #fff;
+      border-radius: 10px;
+      padding: 30px 24px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .newsletter-banner h2 { margin: 0 0 8px; font-size: 22px; }
+    .newsletter-banner p  { margin: 0 0 18px; opacity: .85; }
+    .newsletter-banner .banner-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .newsletter-banner input {
+      flex: 1;
+      min-width: 200px;
+      padding: 11px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .newsletter-banner button {
+      padding: 11px 24px;
+      background: #fff;
+      color: #007bff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .newsletter-banner button:hover { background: #f0f0f0; }
+  </style>
 </head>
 <body>
 
@@ -25,13 +111,13 @@
 <%
 const safeArray = (v) => Array.isArray(v) ? v : [];
 
-const safePosts = safeArray(posts);
-const safeBreakingNews = safeArray(breakingNews);
-const safeFeaturedGrid = safeArray(featuredGrid);
-const safeRecentPosts = safeArray(recentPosts);
-const safeTrendingPosts = safeArray(trendingPosts);
+const safePosts          = safeArray(posts);
+const safeBreakingNews   = safeArray(breakingNews);
+const safeFeaturedGrid   = safeArray(featuredGrid);
+const safeRecentPosts    = safeArray(recentPosts);
+const safeTrendingPosts  = safeArray(trendingPosts);
 
-const safeRandomPost = typeof randomPost !== "undefined" ? randomPost : null;
+const safeRandomPost   = typeof randomPost   !== "undefined" ? randomPost   : null;
 const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : null;
 %>
 
@@ -39,13 +125,10 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 <% if (safeBreakingNews.length > 0) { %>
 <div class="breaking-news">
   <span class="breaking-label">BREAKING</span>
-
   <div class="ticker-wrapper">
     <div class="ticker-track">
       <% safeBreakingNews.forEach(bn => { %>
-        <a href="/news/<%= bn.slug || bn._id %>">
-          <%= bn.title %>
-        </a>
+        <a href="/news/<%= bn.slug || bn._id %>"><%= bn.title %></a>
       <% }) %>
     </div>
   </div>
@@ -54,14 +137,12 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 
 <!-- HERO SECTION -->
 <div class="hero-featured">
-
   <% if (safeFeaturedPost) { %>
   <div class="hero-card">
     <a href="/news/<%= safeFeaturedPost.slug || safeFeaturedPost._id %>">
-      <img src="<%= safeFeaturedPost.mainImage || '/images/default-main.jpg' %>" alt="<%= safeFeaturedPost.title %>">
-      <div class="overlay">
-        <h2><%= safeFeaturedPost.title %></h2>
-      </div>
+      <img src="<%= safeFeaturedPost.mainImage || 'https://placehold.co/800x400?text=No+Image' %>"
+           alt="<%= safeFeaturedPost.title %>">
+      <div class="overlay"><h2><%= safeFeaturedPost.title %></h2></div>
     </a>
   </div>
   <% } %>
@@ -69,14 +150,12 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
   <% safeFeaturedGrid.forEach(fg => { %>
   <div class="featured-card">
     <a href="/news/<%= fg.slug || fg._id %>">
-      <img src="<%= fg.mainImage || '/images/default-main.jpg' %>" alt="<%= fg.title %>">
-      <div class="overlay">
-        <h3><%= fg.title %></h3>
-      </div>
+      <img src="<%= fg.mainImage || 'https://placehold.co/800x400?text=No+Image' %>"
+           alt="<%= fg.title %>">
+      <div class="overlay"><h3><%= fg.title %></h3></div>
     </a>
   </div>
   <% }) %>
-
 </div>
 
 <!-- MAIN CONTENT -->
@@ -84,31 +163,38 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 
   <section class="latest-posts">
 
-    <% if (safePosts.length > 0) { %>
+    <% safePosts.forEach((post, index) => { %>
 
-      <% safePosts.forEach(post => { %>
-        <div class="card">
+      <div class="card">
+        <img
+          src="<%= post.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
+          alt="<%= post.title %>"
+          onerror="this.src='https://placehold.co/400x200?text=No+Image'"
+          style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
+        <h3>
+          <a href="/news/<%= post.slug %>"><%= post.title %></a>
+        </h3>
+        <p><strong>Date:</strong> <%= new Date(post.createdAt || post.date).toDateString() %></p>
+        <p><strong>Author:</strong> <%= post.author || 'Admin' %></p>
+        <p><strong>Views:</strong> <%= post.views || 0 %></p>
+      </div>
 
-          <img 
-            src="<%= post.mainImage || '/images/default-thumb.jpg' %>" 
-            alt="<%= post.title %>"
-            style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;"
-          >
-
-          <h3>
-            <a href="/news/<%= post.slug %>">
-              <%= post.title %>
-            </a>
-          </h3>
-
-          <p><strong>Date:</strong> <%= new Date(post.createdAt || post.date).toDateString() %></p>
-          <p><strong>Author:</strong> <%= post.author || 'Admin' %></p>
-          <p><strong>Views:</strong> <%= post.views || 0 %></p>
-
+      <!-- Newsletter banner after 5th post -->
+      <% if (index === 4) { %>
+      <div class="newsletter-banner">
+        <h2>📬 Stay Informed</h2>
+        <p>Get the latest Nigerian and world news delivered straight to your inbox.</p>
+        <div class="banner-row">
+          <input type="email" id="bannerEmail" placeholder="Enter your email address">
+          <button onclick="subscribeBanner()">Subscribe Free</button>
         </div>
-      <% }) %>
+        <div id="bannerMsg" class="newsletter-msg"></div>
+      </div>
+      <% } %>
 
-    <% } else { %>
+    <% }) %>
+
+    <% if (safePosts.length === 0) { %>
       <p>No posts available.</p>
     <% } %>
 
@@ -117,15 +203,21 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
   <!-- SIDEBAR -->
   <aside class="sidebar">
 
+    <!-- Newsletter widget in sidebar -->
+    <div class="newsletter-widget">
+      <h3>📬 Newsletter</h3>
+      <p>Get top stories delivered to your inbox daily.</p>
+      <input type="text" id="subName" placeholder="Your name (optional)">
+      <input type="email" id="subEmail" placeholder="Your email address">
+      <button onclick="subscribeWidget()">Subscribe Free</button>
+      <div id="widgetMsg" class="newsletter-msg"></div>
+    </div>
+
     <div class="widget">
       <h3>Recent Posts</h3>
       <ul>
         <% safeRecentPosts.forEach(rp => { %>
-          <li>
-            <a href="/news/<%= rp.slug || rp._id %>">
-              <%= rp.title %>
-            </a>
-          </li>
+          <li><a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a></li>
         <% }) %>
       </ul>
     </div>
@@ -134,11 +226,7 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
       <h3>Trending</h3>
       <ul>
         <% safeTrendingPosts.forEach(tp => { %>
-          <li>
-            <a href="/news/<%= tp.slug || tp._id %>">
-              <%= tp.title %>
-            </a>
-          </li>
+          <li><a href="/news/<%= tp.slug || tp._id %>"><%= tp.title %></a></li>
         <% }) %>
       </ul>
     </div>
@@ -147,10 +235,10 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
     <div class="widget">
       <h3>Featured</h3>
       <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
-        <img 
-          src="<%= safeRandomPost.mainImage || '/images/default-thumb.jpg' %>" 
-          style="width:100%; border-radius:5px;"
-        >
+        <img
+          src="<%= safeRandomPost.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
+          onerror="this.src='https://placehold.co/400x200?text=No+Image'"
+          style="width:100%; border-radius:5px;">
         <p><%= safeRandomPost.title %></p>
       </a>
     </div>
@@ -162,7 +250,6 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 
 <footer class="bottom-links">
   <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
-
   <div class="socials">
     <h3>Contact</h3>
     <p>Anambra State, Nigeria</p>
@@ -174,6 +261,47 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 
 <script>
 setInterval(() => location.reload(), 60000);
+
+async function subscribe(email, name, msgId) {
+  const msgEl = document.getElementById(msgId);
+  if (!email || !email.includes("@")) {
+    msgEl.style.color = "#ffcccc";
+    msgEl.textContent = "Please enter a valid email.";
+    return;
+  }
+  msgEl.style.color = "#fff";
+  msgEl.textContent = "Subscribing...";
+
+  try {
+    const res = await fetch("/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      msgEl.style.color = "#ccffcc";
+      msgEl.textContent = "✅ " + (data.message || "Subscribed successfully!");
+    } else {
+      msgEl.style.color = "#ffcccc";
+      msgEl.textContent = "❌ " + (data.error || "Something went wrong.");
+    }
+  } catch {
+    msgEl.style.color = "#ffcccc";
+    msgEl.textContent = "❌ Network error. Please try again.";
+  }
+}
+
+function subscribeWidget() {
+  const email = document.getElementById("subEmail").value.trim();
+  const name  = document.getElementById("subName").value.trim();
+  subscribe(email, name, "widgetMsg");
+}
+
+function subscribeBanner() {
+  const email = document.getElementById("bannerEmail").value.trim();
+  subscribe(email, "", "bannerMsg");
+}
 </script>
 
 </body>
