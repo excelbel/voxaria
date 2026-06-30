@@ -1,11 +1,20 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+
+// Force IPv4 lookups — fixes ENETUNREACH errors on Render
+// where IPv6 routes to Gmail SMTP are unreachable
+dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS
-  }
+  },
+  // Force IPv4 family for the connection itself
+  family: 4
 });
 
 /* =========================
