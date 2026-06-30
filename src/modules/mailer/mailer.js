@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 /* =========================
    SEND WELCOME EMAIL
-   Sent when someone subscribes
+   Sent to the new subscriber
 ========================= */
 async function sendWelcomeEmail(email, name = "") {
   await transporter.sendMail({
@@ -34,6 +34,41 @@ async function sendWelcomeEmail(email, name = "") {
       </div>
     `
   });
+}
+
+/* =========================
+   NOTIFY ADMIN
+   Sent to YOU when someone new subscribes
+========================= */
+async function notifyAdminNewSubscriber(email, name = "") {
+  try {
+    const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.GMAIL_USER;
+
+    await transporter.sendMail({
+      from: `"VOXARIA System" <${process.env.GMAIL_USER}>`,
+      to: adminEmail,
+      subject: `🔔 New Subscriber: ${email}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;">
+          <div style="background:#28a745;padding:18px;text-align:center;">
+            <h2 style="color:#fff;margin:0;">New Newsletter Subscriber</h2>
+          </div>
+          <div style="padding:24px;background:#fff;">
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Name:</strong> ${name || "Not provided"}</p>
+            <p><strong>Time:</strong> ${new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}</p>
+            <a href="${process.env.BASE_URL}/admin/subscribers"
+              style="display:inline-block;margin-top:14px;background:#007bff;color:#fff;
+                     padding:10px 20px;border-radius:6px;text-decoration:none;">
+              View All Subscribers
+            </a>
+          </div>
+        </div>
+      `
+    });
+  } catch (err) {
+    console.error("Admin notification failed:", err.message);
+  }
 }
 
 /* =========================
@@ -85,4 +120,8 @@ async function sendNewsletter(subscribers, post) {
   }
 }
 
-module.exports = { sendWelcomeEmail, sendNewsletter };
+module.exports = {
+  sendWelcomeEmail,
+  notifyAdminNewSubscriber,
+  sendNewsletter
+};

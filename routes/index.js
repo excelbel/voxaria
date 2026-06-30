@@ -6,7 +6,11 @@ const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
 const upload = require("../src/config/upload");
 const EmailSubscriber = require("../src/models/emailSubscriber");
-const { sendWelcomeEmail, sendNewsletter } = require("../src/modules/mailer/mailer");
+const {
+  sendWelcomeEmail,
+  notifyAdminNewSubscriber,
+  sendNewsletter
+} = require("../src/modules/mailer/mailer");
 
 /* =========================
    ADMIN MIDDLEWARE
@@ -90,9 +94,14 @@ router.post("/subscribe", async (req, res) => {
       name: name || ""
     });
 
-    // Send welcome email (non-blocking)
+    // Send welcome email to subscriber (non-blocking)
     sendWelcomeEmail(email, name).catch(err =>
       console.error("Welcome email failed:", err.message)
+    );
+
+    // Notify admin of new subscriber (non-blocking)
+    notifyAdminNewSubscriber(email, name).catch(err =>
+      console.error("Admin notification failed:", err.message)
     );
 
     res.status(200).json({ message: "Successfully subscribed! Check your email." });
@@ -314,7 +323,6 @@ router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
 
 /* =========================
    SEND NEWSLETTER
-   Sends a published post to all subscribers
 ========================= */
 router.post("/admin/newsletter/:id", requireAdmin, async (req, res) => {
   try {

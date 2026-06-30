@@ -5,6 +5,72 @@
   <meta charset="UTF-8">
   <title><%= category %> | Voxaria</title>
   <link rel="stylesheet" href="/style.css">
+  <button id="installAppBtn" onclick="installVoxariaApp()" style="display:none; background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
+  📲 Install App
+</button>
+
+<!-- ============================
+     PWA META TAGS
+     Add inside <head> of EVERY page
+     (index.ejs, post.ejs, category.ejs)
+============================ -->
+
+<!-- Web App Manifest -->
+<link rel="manifest" href="/manifest.json">
+
+<!-- Theme color (browser UI / status bar) -->
+<meta name="theme-color" content="#007bff">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+
+<!-- iOS support -->
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VOXARIA">
+
+<!-- Android / Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- Viewport (if not already present) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<!-- ============================
+     SERVICE WORKER REGISTRATION
+     Add this script before </body>
+     on EVERY page
+============================ -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service worker registered:', reg.scope))
+        .catch(err => console.error('Service worker registration failed:', err));
+    });
+  }
+
+  // Optional: "Install App" prompt handling
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) installBtn.style.display = 'inline-block';
+  });
+
+  function installVoxariaApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      const installBtn = document.getElementById('installAppBtn');
+      if (installBtn) installBtn.style.display = 'none';
+    });
+  }
+</script>
+
 </head>
 
 <body>
