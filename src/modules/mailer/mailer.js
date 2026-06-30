@@ -31,7 +31,14 @@ const transporter = nodemailer.createTransport({
   greetingTimeout: 15000,
   socketTimeout: 15000
 });
-
+transporter.verify((err, success) => {
+  if (err) {
+    console.error("SMTP VERIFY ERROR:");
+    console.error(err);
+  } else {
+    console.log("SMTP READY");
+  }
+});
 /* =========================
    SEND WELCOME EMAIL
    Sent to the new subscriber

@@ -95,14 +95,24 @@ router.post("/subscribe", async (req, res) => {
     });
 
     // Send welcome email to subscriber (non-blocking)
-    sendWelcomeEmail(email, name).catch(err =>
-      console.error("Welcome email failed:", err.message)
-    );
+    try {
+  console.log("Attempting to send welcome email...");
+  await sendWelcomeEmail(email, name);
+  console.log("Welcome email sent successfully.");
+} catch (err) {
+  console.error("FULL WELCOME EMAIL ERROR:");
+  console.error(err);
+}
 
     // Notify admin of new subscriber (non-blocking)
-    notifyAdminNewSubscriber(email, name).catch(err =>
-      console.error("Admin notification failed:", err.message)
-    );
+   try {
+  console.log("Attempting to send admin notification...");
+  await notifyAdminNewSubscriber(email, name);
+  console.log("Admin notification sent successfully.");
+} catch (err) {
+  console.error("FULL ADMIN NOTIFICATION ERROR:");
+  console.error(err);
+}
 
     res.status(200).json({ message: "Successfully subscribed! Check your email." });
 
