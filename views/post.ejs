@@ -2,94 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title><%= post?.title || 'Voxaria' %> | Voxaria</title>
 
-  <meta
-    name="description"
-    content="<%= ((post?.aiSummary || post?.content || '').replace(/<[^>]*>/g, '')).substring(0,160) %>"
-  >
+  <%
+    const baseUrl = process.env.BASE_URL || 'https://www.voxaria.org';
+    const safePost = post || {};
+    const slug = safePost.slug || safePost._id || '';
+    const shareUrl = baseUrl + '/news/' + slug;
 
-  <meta property="og:title" content="<%= post?.title || 'Voxaria' %>">
+    // Clean description — strip HTML tags, limit to 160 chars
+    const rawDesc = (safePost.seoDescription || safePost.aiSummary || safePost.content || '');
+    const cleanDesc = rawDesc.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().substring(0, 160);
 
-  <meta
-    property="og:description"
-    content="<%= ((post?.aiSummary || post?.content || '').replace(/<[^>]*>/g, '')).substring(0,150) %>"
-  >
+    // Ensure image is absolute URL
+    const ogImage = safePost.mainImage
+      ? (safePost.mainImage.startsWith('http') ? safePost.mainImage : baseUrl + safePost.mainImage)
+      : baseUrl + '/icons/icon-512x512.png';
+  %>
 
-  <meta
-    property="og:image"
-    content="<%= post?.mainImage || '/images/default-main.jpg' %>"
-  >
+  <!-- SEO -->
+  <meta name="description" content="<%= cleanDesc %>">
+  <meta name="author" content="<%= safePost.author || 'VOXARIA' %>">
+  <meta name="keywords" content="<%= safePost.category || 'News' %>, Nigeria news, Voxaria">
+
+  <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+  <meta property="og:type"        content="article">
+  <meta property="og:site_name"   content="VOXARIA">
+  <meta property="og:url"         content="<%= shareUrl %>">
+  <meta property="og:title"       content="<%= safePost.title || 'VOXARIA' %>">
+  <meta property="og:description" content="<%= cleanDesc %>">
+  <meta property="og:image"       content="<%= ogImage %>">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"      content="en_NG">
+
+  <!-- Article specific OG -->
+  <meta property="article:published_time" content="<%= safePost.createdAt ? new Date(safePost.createdAt).toISOString() : '' %>">
+  <meta property="article:section"        content="<%= safePost.category || 'News' %>">
+  <meta property="article:author"         content="<%= safePost.author || 'VOXARIA' %>">
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:site"        content="@voxaria">
+  <meta name="twitter:title"       content="<%= safePost.title || 'VOXARIA' %>">
+  <meta name="twitter:description" content="<%= cleanDesc %>">
+  <meta name="twitter:image"       content="<%= ogImage %>">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VOXARIA">
+  <meta name="mobile-web-app-capable" content="yes">
 
   <link rel="stylesheet" href="/style.css">
-
-  <button id="installAppBtn" onclick="installVoxariaApp()" style="display:none; background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
-  📲 Install App
-</button>
-
-<!-- ============================
-     PWA META TAGS
-     Add inside <head> of EVERY page
-     (index.ejs, post.ejs, category.ejs)
-============================ -->
-
-<!-- Web App Manifest -->
-<link rel="manifest" href="/manifest.json">
-
-<!-- Theme color (browser UI / status bar) -->
-<meta name="theme-color" content="#007bff">
-
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-
-<!-- iOS support -->
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VOXARIA">
-
-<!-- Android / Chrome -->
-<meta name="mobile-web-app-capable" content="yes">
-
-<!-- Viewport (if not already present) -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-<!-- ============================
-     SERVICE WORKER REGISTRATION
-     Add this script before </body>
-     on EVERY page
-============================ -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service worker registered:', reg.scope))
-        .catch(err => console.error('Service worker registration failed:', err));
-    });
-  }
-
-  // Optional: "Install App" prompt handling
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const installBtn = document.getElementById('installAppBtn');
-    if (installBtn) installBtn.style.display = 'inline-block';
-  });
-
-  function installVoxariaApp() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      const installBtn = document.getElementById('installAppBtn');
-      if (installBtn) installBtn.style.display = 'none';
-    });
-  }
-</script>
-
 </head>
 
 <body>
@@ -97,11 +68,7 @@
 <%- include('partials/header', { currentPage: currentPage || 'post' }) %>
 
 <%
-const safePost = post || {};
 const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : [];
-
-const slug = safePost.slug || safePost._id || '';
-const shareUrl = (baseUrl || '') + '/news/' + slug;
 %>
 
 <main class="article-layout">
@@ -113,29 +80,16 @@ const shareUrl = (baseUrl || '') + '/news/' + slug;
     </h1>
 
     <div class="article-meta">
-
-      <span>
-        <strong>Date:</strong>
-        <%= safePost.createdAt ? new Date(safePost.createdAt).toDateString() : '' %>
-      </span>
-
-      <span>
-        <strong>Category:</strong>
-        <%= safePost.category || 'General' %>
-      </span>
-
-      <span>
-        <strong>Views:</strong>
-        <%= safePost.views || 0 %>
-      </span>
-
+      <span><strong>Date:</strong> <%= safePost.createdAt ? new Date(safePost.createdAt).toDateString() : '' %></span>
+      <span><strong>Category:</strong> <%= safePost.category || 'General' %></span>
+      <span><strong>Views:</strong> <%= safePost.views || 0 %></span>
     </div>
 
     <img
-      src="<%= safePost.mainImage || '/images/default-main.jpg' %>"
+      src="<%= ogImage %>"
       alt="<%= safePost.title || 'Post Image' %>"
       class="article-image"
-    >
+      onerror="this.src='https://placehold.co/800x400?text=No+Image'">
 
     <% if (safePost.aiSummary) { %>
       <div class="ai-summary">
@@ -150,89 +104,89 @@ const shareUrl = (baseUrl || '') + '/news/' + slug;
 
     <!-- SHARE BUTTONS -->
     <div class="share-buttons">
-
       <h3>Share this article</h3>
 
-      <a
-        class="share-btn whatsapp"
-        target="_blank"
-        href="https://wa.me/?text=<%= encodeURIComponent((safePost.title || '') + ' ' + shareUrl) %>">
+      <a class="share-btn whatsapp" target="_blank"
+        href="https://wa.me/?text=<%= encodeURIComponent((safePost.title || '') + '\n\n' + cleanDesc + '\n\n' + shareUrl) %>">
         WhatsApp
       </a>
 
-      <a
-        class="share-btn facebook"
-        target="_blank"
+      <a class="share-btn facebook" target="_blank"
         href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(shareUrl) %>">
         Facebook
       </a>
 
-      <a
-        class="share-btn twitter"
-        target="_blank"
+      <a class="share-btn twitter" target="_blank"
         href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(safePost.title || '') %>&url=<%= encodeURIComponent(shareUrl) %>">
         X (Twitter)
       </a>
 
-      <a
-        class="share-btn linkedin"
-        target="_blank"
+      <a class="share-btn linkedin" target="_blank"
         href="https://www.linkedin.com/sharing/share-offsite/?url=<%= encodeURIComponent(shareUrl) %>">
         LinkedIn
       </a>
 
-      <button class="share-btn copy" onclick="copyLink()">
-        Copy Link
-      </button>
-
+      <button class="share-btn copy" onclick="copyLink()">Copy Link</button>
     </div>
-
-    <script>
-      function copyLink() {
-        const url = "<%= shareUrl %>";
-
-        navigator.clipboard.writeText(url)
-          .then(() => alert("Link copied successfully"))
-          .catch(() => alert("Unable to copy link"));
-      }
-    </script>
 
   </article>
 
   <% if (safeRelatedPosts.length > 0) { %>
-
     <section class="related-posts">
-
       <h2>Related Articles</h2>
-
       <div class="related-grid">
-
         <% safeRelatedPosts.forEach(rp => { %>
-
           <div class="related-card">
-
             <img
-              src="<%= rp.mainImage || '/images/default-thumb.jpg' %>"
+              src="<%= rp.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
               alt="<%= rp.title %>"
-            >
-
+              onerror="this.src='https://placehold.co/400x200?text=No+Image'">
             <h3>
-              <a href="/news/<%= rp.slug || rp._id %>">
-                <%= rp.title %>
-              </a>
+              <a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a>
             </h3>
-
           </div>
-
         <% }) %>
-
       </div>
-
     </section>
-
   <% } %>
 
 </main>
+
+<script>
+function copyLink() {
+  const url = "<%= shareUrl %>";
+  navigator.clipboard.writeText(url)
+    .then(() => alert("Link copied successfully"))
+    .catch(() => alert("Unable to copy link"));
+}
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('Service worker registered:', reg.scope))
+      .catch(err => console.error('Service worker registration failed:', err));
+  });
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const installBtn = document.getElementById('installAppBtn');
+  if (installBtn) installBtn.style.display = 'inline-block';
+});
+
+function installVoxariaApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) installBtn.style.display = 'none';
+  });
+}
+</script>
 
 </body>
 </html>
