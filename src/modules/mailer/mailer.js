@@ -1,15 +1,13 @@
-const SibApiV3Sdk = require("@getbrevo/brevo");
+const Brevo = require("@getbrevo/brevo");
 
 /* =========================
    BREVO CLIENT SETUP
-   Uses HTTPS API instead of raw SMTP sockets
-   — avoids Render's IPv6/IPv4 networking issue
 ========================= */
-const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-apiInstance.setApiKey(
-  SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
-  process.env.BREVO_API_KEY
-);
+const defaultClient = Brevo.ApiClient.instance;
+const apiKey = defaultClient.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
 const SENDER = {
   email: process.env.BREVO_SENDER_EMAIL,
@@ -18,32 +16,30 @@ const SENDER = {
 
 /* =========================
    SEND WELCOME EMAIL
-   Sent to the new subscriber
 ========================= */
 async function sendWelcomeEmail(email, name = "") {
-  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-
-  sendSmtpEmail.sender = SENDER;
-  sendSmtpEmail.to = [{ email, name: name || undefined }];
-  sendSmtpEmail.subject = "Welcome to VOXARIA Newsletter!";
-  sendSmtpEmail.htmlContent = `
-    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
-      <div style="background:#007bff;padding:20px;text-align:center;">
-        <h1 style="color:#fff;margin:0;">VOXARIA</h1>
-      </div>
-      <div style="padding:30px;background:#fff;">
-        <h2>Welcome${name ? ", " + name : ""}! 🎉</h2>
-        <p>Thank you for subscribing to <strong>VOXARIA Newsletter</strong>.</p>
-        <p>You'll now receive the latest news from Nigeria and around the world directly in your inbox.</p>
-        <p style="margin-top:30px;">Stay informed,<br><strong>The VOXARIA Team</strong></p>
-      </div>
-      <div style="background:#f4f6f9;padding:15px;text-align:center;font-size:12px;color:#666;">
-        © 2026 VOXARIA Blog · Anambra State, Nigeria
-      </div>
-    </div>
-  `;
-
   try {
+    const sendSmtpEmail = new Brevo.SendSmtpEmail();
+    sendSmtpEmail.sender = SENDER;
+    sendSmtpEmail.to = [{ email, name: name || email }];
+    sendSmtpEmail.subject = "Welcome to VOXARIA Newsletter!";
+    sendSmtpEmail.htmlContent = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
+        <div style="background:#007bff;padding:20px;text-align:center;">
+          <h1 style="color:#fff;margin:0;">VOXARIA</h1>
+        </div>
+        <div style="padding:30px;background:#fff;">
+          <h2>Welcome${name ? ", " + name : ""}! 🎉</h2>
+          <p>Thank you for subscribing to <strong>VOXARIA Newsletter</strong>.</p>
+          <p>You'll now receive the latest news from Nigeria and around the world directly in your inbox.</p>
+          <p style="margin-top:30px;">Stay informed,<br><strong>The VOXARIA Team</strong></p>
+        </div>
+        <div style="background:#f4f6f9;padding:15px;text-align:center;font-size:12px;color:#666;">
+          © 2026 VOXARIA Blog · Anambra State, Nigeria
+        </div>
+      </div>
+    `;
+
     await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log("Welcome email sent to:", email);
   } catch (err) {
@@ -54,35 +50,33 @@ async function sendWelcomeEmail(email, name = "") {
 
 /* =========================
    NOTIFY ADMIN
-   Sent to YOU when someone new subscribes
 ========================= */
 async function notifyAdminNewSubscriber(email, name = "") {
-  const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.BREVO_SENDER_EMAIL;
-
-  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-
-  sendSmtpEmail.sender = { email: process.env.BREVO_SENDER_EMAIL, name: "VOXARIA System" };
-  sendSmtpEmail.to = [{ email: adminEmail }];
-  sendSmtpEmail.subject = `🔔 New Subscriber: ${email}`;
-  sendSmtpEmail.htmlContent = `
-    <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;">
-      <div style="background:#28a745;padding:18px;text-align:center;">
-        <h2 style="color:#fff;margin:0;">New Newsletter Subscriber</h2>
-      </div>
-      <div style="padding:24px;background:#fff;">
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Name:</strong> ${name || "Not provided"}</p>
-        <p><strong>Time:</strong> ${new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}</p>
-        <a href="${process.env.BASE_URL}/admin/subscribers"
-          style="display:inline-block;margin-top:14px;background:#007bff;color:#fff;
-                 padding:10px 20px;border-radius:6px;text-decoration:none;">
-          View All Subscribers
-        </a>
-      </div>
-    </div>
-  `;
-
   try {
+    const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.BREVO_SENDER_EMAIL;
+
+    const sendSmtpEmail = new Brevo.SendSmtpEmail();
+    sendSmtpEmail.sender = { email: process.env.BREVO_SENDER_EMAIL, name: "VOXARIA System" };
+    sendSmtpEmail.to = [{ email: adminEmail }];
+    sendSmtpEmail.subject = `🔔 New Subscriber: ${email}`;
+    sendSmtpEmail.htmlContent = `
+      <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;">
+        <div style="background:#28a745;padding:18px;text-align:center;">
+          <h2 style="color:#fff;margin:0;">New Newsletter Subscriber</h2>
+        </div>
+        <div style="padding:24px;background:#fff;">
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Name:</strong> ${name || "Not provided"}</p>
+          <p><strong>Time:</strong> ${new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}</p>
+          <a href="${process.env.BASE_URL}/admin/subscribers"
+            style="display:inline-block;margin-top:14px;background:#007bff;color:#fff;
+                   padding:10px 20px;border-radius:6px;text-decoration:none;">
+            View All Subscribers
+          </a>
+        </div>
+      </div>
+    `;
+
     await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log("Admin notification sent for:", email);
   } catch (err) {
@@ -92,17 +86,15 @@ async function notifyAdminNewSubscriber(email, name = "") {
 
 /* =========================
    SEND NEWSLETTER
-   Sends a post to all subscribers
 ========================= */
 async function sendNewsletter(subscribers, post) {
   const postUrl = `${process.env.BASE_URL}/news/${post.slug}`;
 
   for (const subscriber of subscribers) {
     try {
-      const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-
+      const sendSmtpEmail = new Brevo.SendSmtpEmail();
       sendSmtpEmail.sender = SENDER;
-      sendSmtpEmail.to = [{ email: subscriber.email, name: subscriber.name || undefined }];
+      sendSmtpEmail.to = [{ email: subscriber.email, name: subscriber.name || subscriber.email }];
       sendSmtpEmail.subject = post.title;
       sendSmtpEmail.htmlContent = `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
