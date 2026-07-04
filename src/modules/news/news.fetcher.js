@@ -30,11 +30,11 @@ function slugify(text = "") {
 }
 
 /* =========================
-   SCRAPE OG:IMAGE
-   Fetches the article page and
-   extracts the og:image meta tag
+   SCRAPE PAGE META
+   Fetches article page and extracts
+   og:image and og:description
 ========================= */
-async function scrapeImage(url) {
+async function scrapeMeta(url) {
   try {
     const res = await axios.get(url, {
       timeout: 8000,
@@ -45,19 +45,42 @@ async function scrapeImage(url) {
 
     const $ = cheerio.load(res.data);
 
-    const ogImage =
-      $('meta[property="og:image"]').attr("content") ||
-      $('meta[name="twitter:image"]').attr("content") ||
-      $('meta[property="og:image:url"]').attr("content");
+    // ── IMAGE ──
+    const imageCandidates = [
+      $('meta[property="og:image"]').attr("content"),
+      $('meta[property="og:image:url"]').attr("content"),
+      $('meta[name="twitter:image"]').attr("content"),
+      $('meta[name="twitter:image:src"]').attr("content")
+    ].filter(Boolean);
 
-    if (ogImage && ogImage.startsWith("http")) {
-      return ogImage;
-    }
+    const isCompatibleImage = (src) =>
+      src &&
+      src.startsWith("http") &&
+      !src.toLowerCase().includes(".webp") &&
+      !src.toLowerCase().includes("webp");
 
-    return null;
+    const image =
+      imageCandidates.find(isCompatibleImage) ||
+      imageCandidates.find(src => src && src.startsWith("http")) ||
+      null;
+
+    // ── DESCRIPTION ──
+    const description =
+      $('meta[property="og:description"]').attr("content") ||
+      $('meta[name="twitter:description"]').attr("content") ||
+      $('meta[name="description"]').attr("content") ||
+      "";
+
+    return { image, description: description.trim() };
   } catch {
-    return null;
+    return { image: null, description: "" };
   }
+}
+
+// Keep backward compatible wrapper
+async function scrapeImage(url) {
+  const { image } = await scrapeMeta(url);
+  return image;
 }
 
 /* =========================
@@ -291,16 +314,24 @@ ${cleanContent}
 
         const category = detectCategory(rawText);
 
-        // ── IMAGE: RSS first, then scrape, then placeholder ──
+        // ── IMAGE + DESCRIPTION: RSS first, then scrape page ──
         let imageUrl = article.urlToImage || "";
+        let scrapedDescription = "";
 
-        if (!imageUrl) {
-          console.log(`Scraping image for: ${article.title}`);
-          imageUrl = await scrapeImage(article.url) || "";
+        if (!imageUrl || cleanContent.length < 100) {
+          console.log(`Scraping meta for: ${article.title}`);
+          const meta = await scrapeMeta(article.url);
+          if (!imageUrl && meta.image) imageUrl = meta.image;
+          if (meta.description) scrapedDescription = meta.description;
         }
 
         const thumbnail = imageUrl || DEFAULT_THUMB;
         const mainImage = imageUrl || DEFAULT_MAIN;
+
+        // Use scraped description as seoDescription if content is thin
+        const seoDesc = scrapedDescription ||
+          cleanContent.substring(0, 150) ||
+          article.description?.substring(0, 150) || "";
 
         // AI enhancement
         let ai = null;
@@ -321,8 +352,8 @@ ${cleanContent}
           author:         article.author || "VOXARIA",
           source:         "rss",
           sourceUrl:      article.url,
-          aiSummary:      ai?.summary || "",
-          seoDescription: ai?.seoDescription || "",
+          aiSummary:      ai?.summary || scrapedDescription || "",
+          seoDescription: ai?.seoDescription || seoDesc || "",
           imagePrompt:    ai?.imagePrompt || "",
           aiProcessed:    !!ai,
           views:          0,
