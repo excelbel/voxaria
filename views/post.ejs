@@ -89,7 +89,7 @@ const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : [];
       src="<%= ogImage %>"
       alt="<%= safePost.title || 'Post Image' %>"
       class="article-image"
-      onerror="this.src='https://placehold.co/800x400?text=No+Image'">
+      onerror="this.onerror=null;this.src='/voxaria-logo.png'"
 
     <% if (safePost.aiSummary) { %>
       <div class="ai-summary">
@@ -140,7 +140,7 @@ const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : [];
             <img
               src="<%= rp.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
               alt="<%= rp.title %>"
-              onerror="this.src='https://placehold.co/400x200?text=No+Image'">
+              onerror="this.onerror=null;this.src='/voxaria-logo.png'"
             <h3>
               <a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a>
             </h3>
