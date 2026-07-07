@@ -1,336 +1,233 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>VOXARIA Blog</title>
-  <link rel="stylesheet" href="/style.css">
-<button id="installAppBtn" onclick="installVoxariaApp()" style="display:none; background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
-  📲 Install App
-</button>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-LL7FKPRF2W');
-  </script>
+<header class="site-header">
+  <div class="top-bar">
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275"
-        crossorigin="anonymous"></script>
+    <!-- LOGO -->
+    <a href="/" class="logo-text">
+      <img src="/voxaria-logo.png" alt="VOXARIA" style="height:45px;vertical-align:middle;margin-right:8px;"
+        onerror="this.onerror=null;this.style.display='none'">
+      VOXARIA
+    </a>
 
-  <style>
-    /* Newsletter widget */
-    .newsletter-widget {
-      background: linear-gradient(135deg, #007bff, #0056b3);
-      color: #fff;
-      border-radius: 10px;
-      padding: 24px 20px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-    .newsletter-widget h3 {
-      margin: 0 0 6px;
-      font-size: 18px;
-    }
-    .newsletter-widget p {
-      margin: 0 0 16px;
-      font-size: 13px;
-      opacity: .85;
-    }
-    .newsletter-widget input[type="text"],
-    .newsletter-widget input[type="email"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: none;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    .newsletter-widget button {
-      width: 100%;
-      padding: 11px;
-      background: #fff;
-      color: #007bff;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .newsletter-widget button:hover {
-      background: #f0f0f0;
-    }
-    .newsletter-msg {
-      margin-top: 10px;
-      font-size: 13px;
-      font-weight: bold;
-    }
+    <!-- SEARCH -->
+    <form action="/search" method="GET" class="search-form">
+      <input type="text" name="q" placeholder="Search articles..." required>
+      <button type="submit">🔍</button>
+    </form>
 
-    /* Newsletter banner (inline in feed) */
-    .newsletter-banner {
-      background: linear-gradient(135deg, #007bff, #0056b3);
-      color: #fff;
-      border-radius: 10px;
-      padding: 30px 24px;
-      margin: 20px 0;
-      text-align: center;
-    }
-    .newsletter-banner h2 { margin: 0 0 8px; font-size: 22px; }
-    .newsletter-banner p  { margin: 0 0 18px; opacity: .85; }
-    .newsletter-banner .banner-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .newsletter-banner input {
-      flex: 1;
-      min-width: 200px;
-      padding: 11px 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    .newsletter-banner button {
-      padding: 11px 24px;
-      background: #fff;
-      color: #007bff;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .newsletter-banner button:hover { background: #f0f0f0; }
-  </style>
+    <!-- HAMBURGER -->
+    <div class="hamburger-menu" onclick="toggleNav()" aria-label="Toggle menu">☰</div>
 
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#007bff">
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="VOXARIA">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </div>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service worker registered:', reg.scope))
-        .catch(err => console.error('Service worker registration failed:', err));
-    });
+  <!-- NAVIGATION -->
+  <nav class="main-nav" id="mainNav">
+    <ul>
+      <li class="<%= currentPage === 'Home' ? 'active' : '' %>"><a href="/">Home</a></li>
+      <li class="<%= currentPage === 'News' ? 'active' : '' %>"><a href="/category/News">News</a></li>
+      <li class="<%= currentPage === 'Articles' ? 'active' : '' %>"><a href="/category/Article">Articles</a></li>
+      <li class="<%= currentPage === 'Entertainment' ? 'active' : '' %>"><a href="/category/Entertainment">Entertainment</a></li>
+      <li class="<%= currentPage === 'International' ? 'active' : '' %>"><a href="/category/International">International</a></li>
+      <li class="<%= currentPage === 'Politics' ? 'active' : '' %>"><a href="/category/Politics">Politics</a></li>
+      <li class="<%= currentPage === 'Security' ? 'active' : '' %>"><a href="/category/Security">Security</a></li>
+      <li class="<%= currentPage === 'Sports' ? 'active' : '' %>"><a href="/category/Sports">Sports</a></li>
+      <li class="<%= currentPage === 'Journals' ? 'active' : '' %>"><a href="/category/Journals">Journals</a></li>
+      <li class="<%= currentPage === 'About' ? 'active' : '' %>"><a href="/about">About</a></li>
+      <li class="<%= currentPage === 'Contact' ? 'active' : '' %>"><a href="/contact">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+/* ── Header ── */
+.site-header {
+  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 40px;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.logo-text {
+  font-size: 1.6rem;
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* ── Search ── */
+.search-form {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  max-width: 320px;
+}
+
+.search-form input {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  width: auto;
+  margin-bottom: 0;
+}
+
+.search-form input::placeholder { color: rgba(255,255,255,0.6); }
+
+.search-form input:focus {
+  background: rgba(255,255,255,0.25);
+}
+
+.search-form button {
+  background: #ffd700;
+  color: #111;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: none;
+  transition: background 0.2s;
+}
+
+.search-form button:hover { background: #ffb347; }
+
+/* ── Nav ── */
+.main-nav {
+  background: rgba(0,0,0,0.35);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.main-nav ul {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  padding: 0 30px;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.main-nav ul::-webkit-scrollbar { display: none; }
+
+.main-nav li {
+  flex-shrink: 0;
+}
+
+.main-nav li a {
+  display: block;
+  padding: 12px 16px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+.main-nav li a:hover {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+}
+
+.main-nav li.active a {
+  color: #ffd700;
+  font-weight: bold;
+  border-bottom-color: #ffd700;
+}
+
+/* ── Hamburger ── */
+.hamburger-menu {
+  display: none;
+  cursor: pointer;
+  font-size: 26px;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.hamburger-menu:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 12px 16px;
   }
 
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const installBtn = document.getElementById('installAppBtn');
-    if (installBtn) installBtn.style.display = 'inline-block';
+  .hamburger-menu {
+    display: block;
+  }
+
+  .search-form {
+    max-width: 160px;
+  }
+
+  .main-nav {
+    display: none;
+  }
+
+  .main-nav.open {
+    display: block;
+  }
+
+  .main-nav ul {
+    flex-direction: column;
+    padding: 10px 0;
+    overflow-x: unset;
+  }
+
+  .main-nav li a {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.95rem;
+  }
+
+  .main-nav li a:hover {
+    background: rgba(255,255,255,0.08);
+    border-bottom-color: transparent;
+  }
+
+  .main-nav li.active a {
+    background: rgba(255,215,0,0.1);
+    border-bottom-color: transparent;
+  }
+}
+</style>
+
+<script>
+function toggleNav() {
+  const nav = document.getElementById('mainNav');
+  nav.classList.toggle('open');
+}
+
+// Close nav when a link is clicked on mobile
+document.querySelectorAll('.main-nav a').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      document.getElementById('mainNav').classList.remove('open');
+    }
   });
-
-  function installVoxariaApp() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      const installBtn = document.getElementById('installAppBtn');
-      if (installBtn) installBtn.style.display = 'none';
-    });
-  }
+});
 </script>
-
-</head>
-<body>
-
-<%- include('partials/header', { currentPage: currentPage }) %>
-
-<%
-const safeArray = (v) => Array.isArray(v) ? v : [];
-const safePosts          = safeArray(posts);
-const safeBreakingNews   = safeArray(breakingNews);
-const safeFeaturedGrid   = safeArray(featuredGrid);
-const safeRecentPosts    = safeArray(recentPosts);
-const safeTrendingPosts  = safeArray(trendingPosts);
-const safeRandomPost   = typeof randomPost   !== "undefined" ? randomPost   : null;
-const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : null;
-%>
-
-<% if (safeBreakingNews.length > 0) { %>
-<div class="breaking-news">
-  <span class="breaking-label">BREAKING</span>
-  <div class="ticker-wrapper">
-    <div class="ticker-track">
-      <% safeBreakingNews.forEach(bn => { %>
-        <a href="/news/<%= bn.slug || bn._id %>"><%= bn.title %></a>
-      <% }) %>
-    </div>
-  </div>
-</div>
-<% } %>
-
-<div class="hero-featured">
-  <% if (safeFeaturedPost) { %>
-  <div class="hero-card">
-    <a href="/news/<%= safeFeaturedPost.slug || safeFeaturedPost._id %>">
-      <img src="<%= safeFeaturedPost.mainImage || 'https://placehold.co/800x400?text=No+Image' %>"
-           alt="<%= safeFeaturedPost.title %>">
-      <div class="overlay"><h2><%= safeFeaturedPost.title %></h2></div>
-    </a>
-  </div>
-  <% } %>
-
-  <% safeFeaturedGrid.forEach(fg => { %>
-  <div class="featured-card">
-    <a href="/news/<%= fg.slug || fg._id %>">
-      <img src="<%= fg.mainImage || 'https://placehold.co/800x400?text=No+Image' %>"
-           alt="<%= fg.title %>">
-      <div class="overlay"><h3><%= fg.title %></h3></div>
-    </a>
-  </div>
-  <% }) %>
-</div>
-
-<main class="container-main">
-
-  <section class="latest-posts">
-    <% safePosts.forEach((post, index) => { %>
-      <div class="card">
-        <img src="<%= post.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
-             alt="<%= post.title %>"
-             onerror="this.onerror=null;this.src='/voxaria-logo.png'"
-             style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
-        <h3>
-          <a href="/news/<%= post.slug %>"><%= post.title %></a>
-        </h3>
-        <p><strong>Date:</strong> <%= new Date(post.createdAt || post.date).toDateString() %></p>
-        <p><strong>Author:</strong> <%= post.author || 'Admin' %></p>
-        <p><strong>Views:</strong> <%= post.views || 0 %></p>
-      </div>
-
-      <% if (index === 4) { %>
-      <div class="newsletter-banner">
-        <h2>📬 Stay Informed</h2>
-        <p>Get the latest Nigerian and world news delivered straight to your inbox.</p>
-        <div class="banner-row">
-          <input type="email" id="bannerEmail" placeholder="Enter your email address">
-          <button onclick="subscribeBanner()">Subscribe Free</button>
-        </div>
-        <div id="bannerMsg" class="newsletter-msg"></div>
-      </div>
-      <% } %>
-    <% }) %>
-
-    <% if (safePosts.length === 0) { %>
-      <p>No posts available.</p>
-    <% } %>
-  </section>
-
-  <aside class="sidebar">
-    <div class="newsletter-widget">
-      <h3>📬 Newsletter</h3>
-      <p>Get top stories delivered to your inbox daily.</p>
-      <input type="text" id="subName" placeholder="Your name (optional)">
-      <input type="email" id="subEmail" placeholder="Your email address">
-      <button onclick="subscribeWidget()">Subscribe Free</button>
-      <div id="widgetMsg" class="newsletter-msg"></div>
-    </div>
-
-    <div class="widget">
-      <h3>Recent Posts</h3>
-      <ul>
-        <% safeRecentPosts.forEach(rp => { %>
-          <li><a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a></li>
-        <% }) %>
-      </ul>
-    </div>
-
-    <div class="widget">
-      <h3>Trending</h3>
-      <ul>
-        <% safeTrendingPosts.forEach(tp => { %>
-          <li><a href="/news/<%= tp.slug || tp._id %>"><%= tp.title %></a></li>
-        <% }) %>
-      </ul>
-    </div>
-
-    <% if (safeRandomPost) { %>
-    <div class="widget">
-      <h3>Featured</h3>
-      <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
-        <img src="<%= safeRandomPost.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
-             onerror="this.onerror=null;this.src='/voxaria-logo.png'"
-             style="width:100%; border-radius:5px;">
-        <p><%= safeRandomPost.title %></p>
-      </a>
-    </div>
-    <% } %>
-  </aside>
-</main>
-
-<footer class="bottom-links">
-  <div class="footer-nav" style="margin-bottom: 15px;">
-    <a href="/about">About</a> | 
-    <a href="/contact">Contact</a> | 
-    <a href="/privacy-policy">Privacy Policy</a>
-  </div>
-  <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
-  <div class="socials">
-    <h3>Contact</h3>
-    <p>Anambra State, Nigeria</p>
-    <p>Email: info@voxaria.org</p>
-    <p><a href="https://wa.me/2349012567912">WhatsApp</a></p>
-    <p><a href="https://web.facebook.com/voxaria">Facebook</a></p>
-  </div>
-</footer>
-
-<script>
-setInterval(() => location.reload(), 60000);
-
-async function subscribe(email, name, msgId) {
-  const msgEl = document.getElementById(msgId);
-  if (!email || !email.includes("@")) {
-    msgEl.style.color = "#ffcccc";
-    msgEl.textContent = "Please enter a valid email.";
-    return;
-  }
-  msgEl.style.color = "#fff";
-  msgEl.textContent = "Subscribing...";
-
-  try {
-    const res = await fetch("/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      msgEl.style.color = "#ccffcc";
-      msgEl.textContent = "✅ " + (data.message || "Subscribed successfully!");
-    } else {
-      msgEl.style.color = "#ffcccc";
-      msgEl.textContent = "❌ " + (data.error || "Something went wrong.");
-    }
-  } catch {
-    msgEl.style.color = "#ffcccc";
-    msgEl.textContent = "❌ Network error. Please try again.";
-  }
-}
-
-function subscribeWidget() {
-  const email = document.getElementById("subEmail").value.trim();
-  const name  = document.getElementById("subName").value.trim();
-  subscribe(email, name, "widgetMsg");
-}
-
-function subscribeBanner() {
-  const email = document.getElementById("bannerEmail").value.trim();
-  subscribe(email, "", "bannerMsg");
-}
-</script>
-
-</body>
-</html>

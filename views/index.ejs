@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>VOXARIA Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOXARIA - Latest News</title>
   <link rel="stylesheet" href="/style.css">
-<button id="installAppBtn" onclick="installVoxariaApp()" style="display:none; background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
-  📲 Install App
-</button>
+
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -15,8 +15,19 @@
     gtag('config', 'G-LL7FKPRF2W');
   </script>
 
+  <!-- AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275"
-        crossorigin="anonymous"></script>
+     crossorigin="anonymous"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VOXARIA">
+  <meta name="mobile-web-app-capable" content="yes">
 
   <style>
     /* Newsletter widget */
@@ -28,120 +39,49 @@
       margin-bottom: 24px;
       text-align: center;
     }
-    .newsletter-widget h3 {
-      margin: 0 0 6px;
-      font-size: 18px;
-    }
-    .newsletter-widget p {
-      margin: 0 0 16px;
-      font-size: 13px;
-      opacity: .85;
-    }
+    .newsletter-widget h3 { margin: 0 0 6px; font-size: 18px; }
+    .newsletter-widget p { margin: 0 0 16px; font-size: 13px; opacity: .85; }
     .newsletter-widget input[type="text"],
     .newsletter-widget input[type="email"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: none;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      box-sizing: border-box;
+      width: 100%; padding: 10px 12px; border: none; border-radius: 6px;
+      margin-bottom: 10px; font-size: 14px; box-sizing: border-box;
     }
     .newsletter-widget button {
-      width: 100%;
-      padding: 11px;
-      background: #fff;
-      color: #007bff;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
+      width: 100%; padding: 11px; background: #fff; color: #007bff;
+      border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer;
     }
-    .newsletter-widget button:hover {
-      background: #f0f0f0;
-    }
-    .newsletter-msg {
-      margin-top: 10px;
-      font-size: 13px;
-      font-weight: bold;
-    }
+    .newsletter-widget button:hover { background: #f0f0f0; }
+    .newsletter-msg { margin-top: 10px; font-size: 13px; font-weight: bold; }
 
-    /* Newsletter banner (inline in feed) */
+    /* Newsletter banner inline in feed */
     .newsletter-banner {
       background: linear-gradient(135deg, #007bff, #0056b3);
-      color: #fff;
-      border-radius: 10px;
-      padding: 30px 24px;
-      margin: 20px 0;
-      text-align: center;
+      color: #fff; border-radius: 10px; padding: 30px 24px;
+      margin: 20px 0; text-align: center;
     }
     .newsletter-banner h2 { margin: 0 0 8px; font-size: 22px; }
     .newsletter-banner p  { margin: 0 0 18px; opacity: .85; }
     .newsletter-banner .banner-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
     }
     .newsletter-banner input {
-      flex: 1;
-      min-width: 200px;
-      padding: 11px 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      flex: 1; min-width: 200px; padding: 11px 14px;
+      border: none; border-radius: 6px; font-size: 14px;
     }
     .newsletter-banner button {
-      padding: 11px 24px;
-      background: #fff;
-      color: #007bff;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
+      padding: 11px 24px; background: #fff; color: #007bff;
+      border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer;
     }
     .newsletter-banner button:hover { background: #f0f0f0; }
+    .banner-msg { margin-top: 10px; font-size: 13px; font-weight: bold; color: #fff; }
+
+    /* Install App button */
+    #installAppBtn {
+      display: none;
+      background: #007bff; color: #fff; border: none;
+      padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
+    }
   </style>
-
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#007bff">
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="VOXARIA">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(reg => console.log('Service worker registered:', reg.scope))
-          .catch(err => console.error('Service worker registration failed:', err));
-      });
-    }
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBtn = document.getElementById('installAppBtn');
-      if (installBtn) installBtn.style.display = 'inline-block';
-    });
-
-    function installVoxariaApp() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        const installBtn = document.getElementById('installAppBtn');
-        if (installBtn) installBtn.style.display = 'none';
-      });
-    }
-  </script>
 </head>
 <body>
 
@@ -149,15 +89,20 @@
 
 <%
 const safeArray = (v) => Array.isArray(v) ? v : [];
-const safePosts          = safeArray(posts);
-const safeBreakingNews   = safeArray(breakingNews);
-const safeFeaturedGrid   = safeArray(featuredGrid);
-const safeRecentPosts    = safeArray(recentPosts);
-const safeTrendingPosts  = safeArray(trendingPosts);
+
+const safePosts         = safeArray(posts);
+const safeBreakingNews  = safeArray(breakingNews);
+const safeFeaturedGrid  = safeArray(featuredGrid);
+const safeRecentPosts   = safeArray(recentPosts);
+const safeTrendingPosts = safeArray(trendingPosts);
+
 const safeRandomPost   = typeof randomPost   !== "undefined" ? randomPost   : null;
 const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : null;
+
+const LOGO = '/voxaria-logo.png';
 %>
 
+<!-- BREAKING NEWS -->
 <% if (safeBreakingNews.length > 0) { %>
 <div class="breaking-news">
   <span class="breaking-label">BREAKING</span>
@@ -171,12 +116,16 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 </div>
 <% } %>
 
+<!-- HERO SECTION -->
 <div class="hero-featured">
+
   <% if (safeFeaturedPost) { %>
   <div class="hero-card">
     <a href="/news/<%= safeFeaturedPost.slug || safeFeaturedPost._id %>">
-      <img src="<%= safeFeaturedPost.mainImage || 'https://placehold.co/800x400?text=No+Image' %>"
-           alt="<%= safeFeaturedPost.title %>">
+      <img
+        src="<%= safeFeaturedPost.mainImage || LOGO %>"
+        alt="<%= safeFeaturedPost.title %>"
+        onerror="this.onerror=null;this.src='<%= LOGO %>'">
       <div class="overlay"><h2><%= safeFeaturedPost.title %></h2></div>
     </a>
   </div>
@@ -185,22 +134,29 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
   <% safeFeaturedGrid.forEach(fg => { %>
   <div class="featured-card">
     <a href="/news/<%= fg.slug || fg._id %>">
-      <img src="<%= fg.mainImage || 'https://placehold.co/800x400?text=No+Image' %>"
-           alt="<%= fg.title %>">
+      <img
+        src="<%= fg.mainImage || LOGO %>"
+        alt="<%= fg.title %>"
+        onerror="this.onerror=null;this.src='<%= LOGO %>'">
       <div class="overlay"><h3><%= fg.title %></h3></div>
     </a>
   </div>
   <% }) %>
+
 </div>
 
+<!-- MAIN CONTENT -->
 <main class="container-main">
+
   <section class="latest-posts">
+
     <% safePosts.forEach((post, index) => { %>
+
       <div class="card">
-        <img src="<%= post.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
-             alt="<%= post.title %>"
-             onerror="this.onerror=null;this.src='/voxaria-logo.png'"
-             style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
+        <img
+          src="<%= post.mainImage || LOGO %>"
+          alt="<%= post.title %>"
+          onerror="this.onerror=null;this.src='<%= LOGO %>'">
         <h3>
           <a href="/news/<%= post.slug %>"><%= post.title %></a>
         </h3>
@@ -209,6 +165,7 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
         <p><strong>Views:</strong> <%= post.views || 0 %></p>
       </div>
 
+      <!-- Newsletter banner after 5th post -->
       <% if (index === 4) { %>
       <div class="newsletter-banner">
         <h2>📬 Stay Informed</h2>
@@ -217,17 +174,27 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
           <input type="email" id="bannerEmail" placeholder="Enter your email address">
           <button onclick="subscribeBanner()">Subscribe Free</button>
         </div>
-        <div id="bannerMsg" class="newsletter-msg"></div>
+        <div id="bannerMsg" class="banner-msg"></div>
       </div>
       <% } %>
+
     <% }) %>
 
     <% if (safePosts.length === 0) { %>
       <p>No posts available.</p>
     <% } %>
+
   </section>
 
+  <!-- SIDEBAR -->
   <aside class="sidebar">
+
+    <!-- Install App button -->
+    <div style="margin-bottom:16px;text-align:center;">
+      <button id="installAppBtn" onclick="installVoxariaApp()">📲 Install App</button>
+    </div>
+
+    <!-- Newsletter widget -->
     <div class="newsletter-widget">
       <h3>📬 Newsletter</h3>
       <p>Get top stories delivered to your inbox daily.</p>
@@ -259,22 +226,21 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
     <div class="widget">
       <h3>Featured</h3>
       <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
-        <img src="<%= safeRandomPost.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
-             onerror="this.onerror=null;this.src='/voxaria-logo.png'"
-             style="width:100%; border-radius:5px;">
+        <img
+          src="<%= safeRandomPost.mainImage || LOGO %>"
+          alt="<%= safeRandomPost.title %>"
+          onerror="this.onerror=null;this.src='<%= LOGO %>'"
+          style="width:100%;border-radius:5px;object-fit:cover;height:150px;">
         <p><%= safeRandomPost.title %></p>
       </a>
     </div>
     <% } %>
+
   </aside>
+
 </main>
 
 <footer class="bottom-links">
-  <div style="margin-bottom: 10px;">
-    <a href="/about">About</a> | 
-    <a href="/contact">Contact</a> | 
-    <a href="/privacy-policy">Privacy Policy</a>
-  </div>
   <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
   <div class="socials">
     <h3>Contact</h3>
@@ -286,8 +252,10 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 </footer>
 
 <script>
+/* Auto reload every 60 seconds */
 setInterval(() => location.reload(), 60000);
 
+/* Newsletter subscribe */
 async function subscribe(email, name, msgId) {
   const msgEl = document.getElementById(msgId);
   if (!email || !email.includes("@")) {
@@ -295,9 +263,7 @@ async function subscribe(email, name, msgId) {
     msgEl.textContent = "Please enter a valid email.";
     return;
   }
-  msgEl.style.color = "#fff";
   msgEl.textContent = "Subscribing...";
-
   try {
     const res = await fetch("/subscribe", {
       method: "POST",
@@ -319,14 +285,40 @@ async function subscribe(email, name, msgId) {
 }
 
 function subscribeWidget() {
-  const email = document.getElementById("subEmail").value.trim();
-  const name  = document.getElementById("subName").value.trim();
-  subscribe(email, name, "widgetMsg");
+  subscribe(
+    document.getElementById("subEmail").value.trim(),
+    document.getElementById("subName").value.trim(),
+    "widgetMsg"
+  );
 }
 
 function subscribeBanner() {
-  const email = document.getElementById("bannerEmail").value.trim();
-  subscribe(email, "", "bannerMsg");
+  subscribe(document.getElementById("bannerEmail").value.trim(), "", "bannerMsg");
+}
+
+/* PWA Service Worker */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('Service worker registered:', reg.scope))
+      .catch(err => console.error('SW registration failed:', err));
+  });
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installAppBtn').style.display = 'inline-block';
+});
+
+function installVoxariaApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('installAppBtn').style.display = 'none';
+  });
 }
 </script>
 

@@ -595,3 +595,46 @@ body.dark-mode textarea {
     height: 180px;
   }
 }
+
+
+/* ===================================
+   LINKS INSIDE ARTICLE CONTENT
+=================================== */
+
+.post-content a {
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.post-content a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Links inside Quill editor (edit/create forms) */
+.ql-editor a {
+  color: #007bff !important;
+  text-decoration: underline !important;
+}
+
+.ql-editor a:hover {
+  color: #0056b3 !important;
+}
+
+/* Links inside AI summary box */
+.ai-summary a {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+/* Links inside sidebar widgets */
+.widget ul li a {
+  color: #222;
+  transition: color 0.2s;
+}
+
+.widget ul li a:hover {
+  color: #007bff;
+}
