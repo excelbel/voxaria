@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | VOXARIA</title>
+  <meta name="description" content="Contact VOXARIA Media — send us news tips, feedback, corrections, or partnership inquiries.">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .page-layout { max-width: 860px; margin: 50px auto; padding: 0 20px; }
+    .page-card { background: #fff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 30px; }
+    .page-card h1 { font-size: 2rem; color: #111; margin-bottom: 10px; }
+    .page-card p { font-size: 1.05rem; line-height: 1.8; color: #444; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+    .contact-box { background: #f0f7ff; border-left: 4px solid #007bff; border-radius: 8px; padding: 20px; }
+    .contact-box h3 { margin: 0 0 8px; color: #007bff; font-size: 1rem; }
+    .contact-box p { margin: 0; font-size: 0.95rem; color: #444; }
+    .contact-box a { color: #007bff; font-weight: bold; }
+    .contact-form label { display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 5px; margin-top: 16px; }
+    .contact-form input,
+    .contact-form textarea,
+    .contact-form select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; font-family: inherit; }
+    .contact-form textarea { min-height: 150px; resize: vertical; }
+    .contact-form button { margin-top: 20px; background: #007bff; color: #fff; border: none; padding: 12px 28px; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
+    .contact-form button:hover { background: #0056b3; }
+    .success-msg { display: none; background: #d4edda; color: #155724; padding: 14px; border-radius: 6px; margin-top: 16px; font-weight: bold; }
+    .error-msg { display: none; background: #f8d7da; color: #721c24; padding: 14px; border-radius: 6px; margin-top: 16px; }
+    @media(max-width: 600px) { .contact-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<%- include('partials/header', { currentPage: 'Contact' }) %>
+
+<div class="page-layout">
+
+  <!-- Header -->
+  <div class="page-card">
+    <h1>Contact VOXARIA</h1>
+    <p>
+      We'd love to hear from you. Whether you have a news tip, a correction, a partnership
+      inquiry, or just want to say hello — reach out to us using any of the channels below
+      or fill in the contact form.
+    </p>
+
+    <!-- Contact Info Grid -->
+    <div class="contact-grid">
+      <div class="contact-box">
+        <h3>📧 Email</h3>
+        <p><a href="mailto:info@voxaria.org">info@voxaria.org</a></p>
+      </div>
+      <div class="contact-box">
+        <h3>📱 WhatsApp</h3>
+        <p><a href="https://wa.me/2349012567912">+234 901 256 7912</a></p>
+      </div>
+      <div class="contact-box">
+        <h3>📍 Location</h3>
+        <p>Anambra State, Nigeria</p>
+      </div>
+      <div class="contact-box">
+        <h3>📘 Facebook</h3>
+        <p><a href="https://web.facebook.com/voxaria" target="_blank">facebook.com/voxaria</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Form -->
+  <div class="page-card">
+    <h2 style="margin-top:0;color:#111;">Send Us a Message</h2>
+    <p>Fill in the form below and we'll get back to you within 24 hours.</p>
+
+    <div class="contact-form">
+      <label>Full Name *</label>
+      <input type="text" id="contactName" placeholder="Your full name" required>
+
+      <label>Email Address *</label>
+      <input type="email" id="contactEmail" placeholder="your@email.com" required>
+
+      <label>Subject *</label>
+      <select id="contactSubject">
+        <option value="">-- Select a subject --</option>
+        <option value="News Tip">📰 News Tip</option>
+        <option value="Correction">✏️ Correction / Error Report</option>
+        <option value="Partnership">🤝 Partnership / Advertising</option>
+        <option value="Feedback">💬 General Feedback</option>
+        <option value="Other">📌 Other</option>
+      </select>
+
+      <label>Message *</label>
+      <textarea id="contactMessage" placeholder="Write your message here..."></textarea>
+
+      <button onclick="submitContact()">Send Message →</button>
+
+      <div class="success-msg" id="successMsg">
+        ✅ Thank you! Your message has been sent. We'll get back to you within 24 hours.
+      </div>
+      <div class="error-msg" id="errorMsg">
+        ❌ Please fill in all required fields before sending.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="bottom-links">
+  <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
+</footer>
+
+<script>
+async function submitContact() {
+  const name    = document.getElementById('contactName').value.trim();
+  const email   = document.getElementById('contactEmail').value.trim();
+  const subject = document.getElementById('contactSubject').value;
+  const message = document.getElementById('contactMessage').value.trim();
+
+  const successMsg = document.getElementById('successMsg');
+  const errorMsg   = document.getElementById('errorMsg');
+
+  successMsg.style.display = 'none';
+  errorMsg.style.display   = 'none';
+
+  if (!name || !email || !subject || !message) {
+    errorMsg.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch('/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, subject, message })
+    });
+
+    if (res.ok) {
+      successMsg.style.display = 'block';
+      document.getElementById('contactName').value    = '';
+      document.getElementById('contactEmail').value   = '';
+      document.getElementById('contactSubject').value = '';
+      document.getElementById('contactMessage').value = '';
+    } else {
+      errorMsg.textContent = '❌ Something went wrong. Please email us directly at info@voxaria.org';
+      errorMsg.style.display = 'block';
+    }
+  } catch {
+    errorMsg.textContent = '❌ Network error. Please email us at info@voxaria.org';
+    errorMsg.style.display = 'block';
+  }
+}
+</script>
+
+</body>
+</html>

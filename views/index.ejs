@@ -7,7 +7,6 @@
 <button id="installAppBtn" onclick="installVoxariaApp()" style="display:none; background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
   📲 Install App
 </button>
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -17,7 +16,7 @@
   </script>
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275"
-       crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
 
   <style>
     /* Newsletter widget */
@@ -106,68 +105,43 @@
     .newsletter-banner button:hover { background: #f0f0f0; }
   </style>
 
-  <!-- ============================
-     PWA META TAGS
-     Add inside <head> of EVERY page
-     (index.ejs, post.ejs, category.ejs)
-============================ -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VOXARIA">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Web App Manifest -->
-<link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service worker registered:', reg.scope))
+          .catch(err => console.error('Service worker registration failed:', err));
+      });
+    }
 
-<!-- Theme color (browser UI / status bar) -->
-<meta name="theme-color" content="#007bff">
-
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-
-<!-- iOS support -->
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VOXARIA">
-
-<!-- Android / Chrome -->
-<meta name="mobile-web-app-capable" content="yes">
-
-<!-- Viewport (if not already present) -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-<!-- ============================
-     SERVICE WORKER REGISTRATION
-     Add this script before </body>
-     on EVERY page
-============================ -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service worker registered:', reg.scope))
-        .catch(err => console.error('Service worker registration failed:', err));
-    });
-  }
-
-  // Optional: "Install App" prompt handling
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const installBtn = document.getElementById('installAppBtn');
-    if (installBtn) installBtn.style.display = 'inline-block';
-  });
-
-  function installVoxariaApp() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
       const installBtn = document.getElementById('installAppBtn');
-      if (installBtn) installBtn.style.display = 'none';
+      if (installBtn) installBtn.style.display = 'inline-block';
     });
-  }
-</script>
 
+    function installVoxariaApp() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        const installBtn = document.getElementById('installAppBtn');
+        if (installBtn) installBtn.style.display = 'none';
+      });
+    }
+  </script>
 </head>
 <body>
 
@@ -175,18 +149,15 @@
 
 <%
 const safeArray = (v) => Array.isArray(v) ? v : [];
-
 const safePosts          = safeArray(posts);
 const safeBreakingNews   = safeArray(breakingNews);
 const safeFeaturedGrid   = safeArray(featuredGrid);
 const safeRecentPosts    = safeArray(recentPosts);
 const safeTrendingPosts  = safeArray(trendingPosts);
-
 const safeRandomPost   = typeof randomPost   !== "undefined" ? randomPost   : null;
 const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : null;
 %>
 
-<!-- BREAKING NEWS -->
 <% if (safeBreakingNews.length > 0) { %>
 <div class="breaking-news">
   <span class="breaking-label">BREAKING</span>
@@ -200,7 +171,6 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
 </div>
 <% } %>
 
-<!-- HERO SECTION -->
 <div class="hero-featured">
   <% if (safeFeaturedPost) { %>
   <div class="hero-card">
@@ -223,19 +193,14 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
   <% }) %>
 </div>
 
-<!-- MAIN CONTENT -->
 <main class="container-main">
-
   <section class="latest-posts">
-
     <% safePosts.forEach((post, index) => { %>
-
       <div class="card">
-        <img
-          src="<%= post.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
-          alt="<%= post.title %>"
-         onerror="this.onerror=null;this.src='/voxaria-logo.png'"
-          style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
+        <img src="<%= post.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
+             alt="<%= post.title %>"
+             onerror="this.onerror=null;this.src='/voxaria-logo.png'"
+             style="width:100%; max-height:200px; object-fit:cover; border-radius:5px;">
         <h3>
           <a href="/news/<%= post.slug %>"><%= post.title %></a>
         </h3>
@@ -244,7 +209,6 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
         <p><strong>Views:</strong> <%= post.views || 0 %></p>
       </div>
 
-      <!-- Newsletter banner after 5th post -->
       <% if (index === 4) { %>
       <div class="newsletter-banner">
         <h2>📬 Stay Informed</h2>
@@ -256,19 +220,14 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
         <div id="bannerMsg" class="newsletter-msg"></div>
       </div>
       <% } %>
-
     <% }) %>
 
     <% if (safePosts.length === 0) { %>
       <p>No posts available.</p>
     <% } %>
-
   </section>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-
-    <!-- Newsletter widget in sidebar -->
     <div class="newsletter-widget">
       <h3>📬 Newsletter</h3>
       <p>Get top stories delivered to your inbox daily.</p>
@@ -300,20 +259,22 @@ const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : nu
     <div class="widget">
       <h3>Featured</h3>
       <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
-        <img
-          src="<%= safeRandomPost.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
-          onerror="this.onerror=null;this.src='/voxaria-logo.png'"
-          style="width:100%; border-radius:5px;">
+        <img src="<%= safeRandomPost.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
+             onerror="this.onerror=null;this.src='/voxaria-logo.png'"
+             style="width:100%; border-radius:5px;">
         <p><%= safeRandomPost.title %></p>
       </a>
     </div>
     <% } %>
-
   </aside>
-
 </main>
 
 <footer class="bottom-links">
+  <div style="margin-bottom: 10px;">
+    <a href="/about">About</a> | 
+    <a href="/contact">Contact</a> | 
+    <a href="/privacy-policy">Privacy Policy</a>
+  </div>
   <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
   <div class="socials">
     <h3>Contact</h3>

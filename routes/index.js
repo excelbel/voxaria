@@ -1,7 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
+ router.get("/about", (req, res) => {
+  res.render("about");
+});
 
+router.get("/privacy-policy", (req, res) => {
+  res.render("privacy-policy");
+});
 const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
 const upload = require("../src/config/upload");
@@ -406,6 +412,17 @@ router.get("/debug/categories", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+router.get("/about", (req, res) => res.render("about"));
+router.get("/privacy-policy", (req, res) => res.render("privacy-policy"));
+
+router.get("/contact", (req, res) => res.render("contact"));
+router.post("/contact", async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  console.log(`Contact form: ${name} (${email}) — ${subject}`);
+  // Optionally send email notification here
+  res.status(200).json({ ok: true });
 });
 
 module.exports = router;
