@@ -1,20 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
- router.get("/about", (req, res) => {
-  res.render("about");
-});
 
-router.get("/privacy-policy", (req, res) => {
-  res.render("privacy-policy");
-});
 const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
 const upload = require("../src/config/upload");
 const EmailSubscriber = require("../src/models/emailSubscriber");
+const ContactMessage = require("../src/models/contactMessage");
 const {
   sendWelcomeEmail,
   notifyAdminNewSubscriber,
+  notifyAdminNewMessage,
   sendNewsletter
 } = require("../src/modules/mailer/mailer");
 
@@ -22,9 +18,7 @@ const {
    ADMIN MIDDLEWARE
 ========================= */
 function requireAdmin(req, res, next) {
-  if (req.session && req.session.isAdmin) {
-    return next();
-  }
+  if (req.session && req.session.isAdmin) return next();
   return res.redirect("/login");
 }
 
@@ -36,11 +30,9 @@ function isValidId(id) {
 }
 
 /* =========================
-   LOGIN PAGE
+   LOGIN
 ========================= */
-router.get("/login", (req, res) => {
-  res.render("login", { error: null });
-});
+router.get("/login", (req, res) => res.render("login", { error: null }));
 
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -62,19 +54,38 @@ router.get("/logout", (req, res) => {
 });
 
 /* =========================
-   HOME
+   PUBLIC PAGES
 ========================= */
 router.get("/", homeController.home);
-
-/* =========================
-   CATEGORY PAGE
-========================= */
 router.get("/category/:category", homeController.categoryPosts);
+router.get("/news/:slug", homeController.singlePost);
+router.get("/about", (req, res) => res.render("about", { currentPage: "About" }));
+router.get("/privacy-policy", (req, res) => res.render("privacy-policy", { currentPage: "Privacy Policy" }));
+router.get("/contact", (req, res) => res.render("contact", { currentPage: "Contact" }));
 
 /* =========================
-   SINGLE POST
+   CONTACT FORM
 ========================= */
-router.get("/news/:slug", homeController.singlePost);
+router.post("/contact", async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    await ContactMessage.create({ name, email, subject: subject || "", message });
+
+    notifyAdminNewMessage(name, email, subject, message).catch(err =>
+      console.error("Contact notification failed:", err.message)
+    );
+
+    res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error("CONTACT ERROR:", err.message);
+    res.status(500).json({ error: "Failed to send message" });
+  }
+});
 
 /* =========================
    SUBSCRIBE
@@ -87,38 +98,20 @@ router.post("/subscribe", async (req, res) => {
       return res.status(400).json({ error: "Invalid email address" });
     }
 
-    const existing = await EmailSubscriber.findOne({
-      email: email.toLowerCase()
-    });
-
+    const existing = await EmailSubscriber.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(200).json({ message: "You are already subscribed!" });
     }
 
-    await EmailSubscriber.create({
-      email: email.toLowerCase(),
-      name: name || ""
-    });
+    await EmailSubscriber.create({ email: email.toLowerCase(), name: name || "" });
 
-    // Send welcome email to subscriber (non-blocking)
-    try {
-  console.log("Attempting to send welcome email...");
-  await sendWelcomeEmail(email, name);
-  console.log("Welcome email sent successfully.");
-} catch (err) {
-  console.error("FULL WELCOME EMAIL ERROR:");
-  console.error(err);
-}
+    sendWelcomeEmail(email, name).catch(err =>
+      console.error("Welcome email failed:", err.message)
+    );
 
-    // Notify admin of new subscriber (non-blocking)
-   try {
-  console.log("Attempting to send admin notification...");
-  await notifyAdminNewSubscriber(email, name);
-  console.log("Admin notification sent successfully.");
-} catch (err) {
-  console.error("FULL ADMIN NOTIFICATION ERROR:");
-  console.error(err);
-}
+    notifyAdminNewSubscriber(email, name).catch(err =>
+      console.error("Admin notification failed:", err.message)
+    );
 
     res.status(200).json({ message: "Successfully subscribed! Check your email." });
 
@@ -135,9 +128,7 @@ router.get("/unsubscribe", async (req, res) => {
   try {
     const { email } = req.query;
     if (!email) return res.send("Invalid unsubscribe link.");
-
     await EmailSubscriber.findOneAndDelete({ email: email.toLowerCase() });
-
     res.send(`
       <div style="font-family:Arial,sans-serif;text-align:center;padding:60px;">
         <h2>You have been unsubscribed.</h2>
@@ -158,7 +149,8 @@ router.get("/admin", requireAdmin, async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 }).lean();
     const subscriberCount = await EmailSubscriber.countDocuments();
-    res.render("admin", { posts, subscriberCount, currentPage: "Admin" });
+    const unreadMessages = await ContactMessage.countDocuments({ read: false });
+    res.render("admin", { posts, subscriberCount, unreadMessages, currentPage: "Admin" });
   } catch (err) {
     console.error("ADMIN ERROR:", err.message);
     res.status(500).send("Server Error");
@@ -180,11 +172,8 @@ router.post(
       const title = req.body?.title;
       if (!title) return res.status(400).send("Title is required");
 
-      const slug = title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
+      const slug = title.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
       const thumbnail = req.files?.thumbnailFile
         ? "/uploads/" + req.files.thumbnailFile[0].filename
@@ -195,13 +184,11 @@ router.post(
         : req.body.mainImage || "";
 
       await Post.create({
-        title,
-        slug,
+        title, slug,
         content:    req.body.content  || "",
         category:   req.body.category || "News",
         author:     req.body.author   || "Admin",
-        thumbnail,
-        mainImage,
+        thumbnail, mainImage,
         isBreaking: req.body.isBreaking === "on",
         published:  false
       });
@@ -219,10 +206,7 @@ router.post(
 ========================= */
 router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
   try {
-    if (!isValidId(req.params.id)) {
-      console.log("Invalid ID for edit:", req.params.id);
-      return res.redirect("/admin");
-    }
+    if (!isValidId(req.params.id)) return res.redirect("/admin");
     const post = await Post.findById(req.params.id).lean();
     if (!post) return res.redirect("/admin");
     res.render("edit", { post });
@@ -233,7 +217,7 @@ router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
 });
 
 /* =========================
-   UPDATE POST (POST)
+   UPDATE POST
 ========================= */
 router.post(
   "/admin/edit/:id",
@@ -245,15 +229,11 @@ router.post(
   async (req, res) => {
     try {
       if (!isValidId(req.params.id)) return res.redirect("/admin");
-
       const post = await Post.findById(req.params.id);
       if (!post) return res.redirect("/admin");
 
-      const slug = (req.body.title || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
+      const slug = (req.body.title || "").toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
       post.title      = req.body.title;
       post.slug       = slug;
@@ -280,20 +260,12 @@ router.post(
 );
 
 /* =========================
-   PUBLISH POST
+   PUBLISH / UNPUBLISH
 ========================= */
 router.post("/admin/publish/:id", requireAdmin, async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.redirect("/admin");
-    const post = await Post.findByIdAndUpdate(
-      req.params.id,
-      { published: true },
-      { new: true }
-    );
-    if (!post) {
-      console.error("PUBLISH: post not found", req.params.id);
-      return res.redirect("/admin");
-    }
+    await Post.findByIdAndUpdate(req.params.id, { published: true }, { new: true });
     res.redirect("/admin");
   } catch (err) {
     console.error("PUBLISH ERROR:", err.message);
@@ -301,21 +273,10 @@ router.post("/admin/publish/:id", requireAdmin, async (req, res) => {
   }
 });
 
-/* =========================
-   UNPUBLISH POST
-========================= */
 router.post("/admin/unpublish/:id", requireAdmin, async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.redirect("/admin");
-    const post = await Post.findByIdAndUpdate(
-      req.params.id,
-      { published: false },
-      { new: true }
-    );
-    if (!post) {
-      console.error("UNPUBLISH: post not found", req.params.id);
-      return res.redirect("/admin");
-    }
+    await Post.findByIdAndUpdate(req.params.id, { published: false }, { new: true });
     res.redirect("/admin");
   } catch (err) {
     console.error("UNPUBLISH ERROR:", err.message);
@@ -338,12 +299,11 @@ router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
 });
 
 /* =========================
-   SEND NEWSLETTER
+   NEWSLETTER
 ========================= */
 router.post("/admin/newsletter/:id", requireAdmin, async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.redirect("/admin");
-
     const post = await Post.findById(req.params.id).lean();
     if (!post) return res.status(404).send("Post not found");
 
@@ -357,14 +317,12 @@ router.post("/admin/newsletter/:id", requireAdmin, async (req, res) => {
       `);
     }
 
-    // Send in background — don't wait
     sendNewsletter(subscribers, post).catch(err =>
       console.error("Newsletter error:", err.message)
     );
 
-    console.log(`Newsletter sending to ${subscribers.length} subscribers for: ${post.title}`);
+    console.log(`Newsletter sending to ${subscribers.length} subscribers`);
     res.redirect("/admin");
-
   } catch (err) {
     console.error("NEWSLETTER ERROR:", err.message);
     res.status(500).send("Error sending newsletter");
@@ -372,17 +330,40 @@ router.post("/admin/newsletter/:id", requireAdmin, async (req, res) => {
 });
 
 /* =========================
-   ADMIN — VIEW SUBSCRIBERS
+   ADMIN — SUBSCRIBERS
 ========================= */
 router.get("/admin/subscribers", requireAdmin, async (req, res) => {
   try {
-    const subscribers = await EmailSubscriber.find()
-      .sort({ createdAt: -1 })
-      .lean();
+    const subscribers = await EmailSubscriber.find().sort({ createdAt: -1 }).lean();
     res.render("subscribers", { subscribers });
   } catch (err) {
     console.error("SUBSCRIBERS ERROR:", err.message);
     res.status(500).send("Server Error");
+  }
+});
+
+/* =========================
+   ADMIN — MESSAGES
+========================= */
+router.get("/admin/messages", requireAdmin, async (req, res) => {
+  try {
+    const messages = await ContactMessage.find().sort({ createdAt: -1 }).lean();
+    await ContactMessage.updateMany({ read: false }, { read: true });
+    res.render("messages", { messages });
+  } catch (err) {
+    console.error("MESSAGES ERROR:", err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+router.get("/admin/messages/delete/:id", requireAdmin, async (req, res) => {
+  try {
+    if (!isValidId(req.params.id)) return res.redirect("/admin/messages");
+    await ContactMessage.findByIdAndDelete(req.params.id);
+    res.redirect("/admin/messages");
+  } catch (err) {
+    console.error("DELETE MESSAGE ERROR:", err.message);
+    res.status(500).send("Error deleting message");
   }
 });
 
@@ -392,9 +373,7 @@ router.get("/admin/subscribers", requireAdmin, async (req, res) => {
 router.get("/api/posts/latest", async (req, res) => {
   try {
     const posts = await Post.find({ published: true })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
+      .sort({ createdAt: -1 }).limit(20).lean();
     res.json(posts);
   } catch (err) {
     console.error("LIVE POSTS ERROR:", err.message);
@@ -412,17 +391,6 @@ router.get("/debug/categories", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-
-router.get("/about", (req, res) => res.render("about"));
-router.get("/privacy-policy", (req, res) => res.render("privacy-policy"));
-
-router.get("/contact", (req, res) => res.render("contact"));
-router.post("/contact", async (req, res) => {
-  const { name, email, subject, message } = req.body;
-  console.log(`Contact form: ${name} (${email}) — ${subject}`);
-  // Optionally send email notification here
-  res.status(200).json({ ok: true });
 });
 
 module.exports = router;

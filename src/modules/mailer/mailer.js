@@ -130,7 +130,49 @@ async function sendNewsletter(subscribers, post) {
 }
 
 module.exports = {
+  notifyAdminNewMessage,
   sendWelcomeEmail,
   notifyAdminNewSubscriber,
   sendNewsletter
 };
+
+
+/* =========================
+   NOTIFY ADMIN — NEW CONTACT MESSAGE
+========================= */
+async function notifyAdminNewMessage(name, email, subject, message) {
+  try {
+    const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.BREVO_SENDER_EMAIL;
+
+    await brevo.transactionalEmails.sendTransacEmail({
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "VOXARIA System" },
+      to: [{ email: adminEmail }],
+      subject: `📩 New Contact Message: ${subject || "No subject"}`,
+      htmlContent: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;">
+          <div style="background:#0f2027;padding:18px;text-align:center;">
+            <h2 style="color:#ffd700;margin:0;">📩 New Contact Message</h2>
+          </div>
+          <div style="padding:24px;background:#fff;">
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Subject:</strong> ${subject || "Not specified"}</p>
+            <p><strong>Message:</strong></p>
+            <p style="background:#f5f5f5;padding:14px;border-radius:6px;white-space:pre-wrap;">${message}</p>
+            <a href="${process.env.BASE_URL}/admin/messages"
+              style="display:inline-block;margin-top:14px;background:#007bff;color:#fff;
+                     padding:10px 20px;border-radius:6px;text-decoration:none;">
+              View All Messages
+            </a>
+          </div>
+          <div style="background:#f4f6f9;padding:12px;text-align:center;font-size:12px;color:#666;">
+            © 2026 VOXARIA Blog · Anambra State, Nigeria
+          </div>
+        </div>
+      `
+    });
+    console.log("Contact notification sent for:", email);
+  } catch (err) {
+    console.error("Contact notification failed:", err.response?.body || err.message);
+  }
+}

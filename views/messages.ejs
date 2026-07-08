@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Messages | VOXARIA Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    .container { max-width: 960px; margin: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+    .header h1 { margin: 0; font-size: 1.6rem; }
+    .back { text-decoration: none; background: #007bff; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 14px; }
+    .back:hover { background: #0056b3; }
+    .stats { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stat { background: #fff; padding: 16px 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; min-width: 120px; }
+    .stat h2 { margin: 0 0 4px; font-size: 28px; color: #007bff; }
+    .stat p { margin: 0; font-size: 13px; color: #666; }
+    .empty { background: #fff; padding: 40px; border-radius: 10px; text-align: center; color: #666; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .msg-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-left: 4px solid #007bff;
+      transition: box-shadow 0.2s;
+    }
+    .msg-card.unread { border-left-color: #dc3545; background: #fff8f8; }
+    .msg-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .msg-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .msg-sender { font-weight: bold; font-size: 1rem; color: #111; }
+    .msg-email { font-size: 13px; color: #007bff; }
+    .msg-date { font-size: 12px; color: #999; white-space: nowrap; }
+    .msg-subject { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+    .msg-body { font-size: 0.98rem; line-height: 1.7; color: #444; background: #f9f9f9; padding: 14px; border-radius: 6px; white-space: pre-wrap; }
+    .msg-actions { margin-top: 12px; display: flex; gap: 10px; }
+    .btn-reply { text-decoration: none; background: #28a745; color: #fff; padding: 7px 14px; border-radius: 5px; font-size: 13px; }
+    .btn-reply:hover { background: #1e7e34; }
+    .btn-delete { text-decoration: none; background: #dc3545; color: #fff; padding: 7px 14px; border-radius: 5px; font-size: 13px; }
+    .btn-delete:hover { background: #b02a37; }
+    .new-badge { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 20px; font-size: 11px; margin-left: 6px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>📩 Contact Messages</h1>
+    <a href="/admin" class="back">← Back to Admin</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <h2><%= messages.length %></h2>
+      <p>Total Messages</p>
+    </div>
+    <div class="stat">
+      <h2><%= messages.filter(m => !m.read).length %></h2>
+      <p>Unread</p>
+    </div>
+  </div>
+
+  <% if (messages.length === 0) { %>
+    <div class="empty">
+      <h2>📭 No messages yet</h2>
+      <p>When visitors submit the contact form, their messages will appear here.</p>
+    </div>
+  <% } else { %>
+    <% messages.forEach(msg => { %>
+      <div class="msg-card <%= !msg.read ? 'unread' : '' %>">
+
+        <div class="msg-header">
+          <div>
+            <div class="msg-sender">
+              <%= msg.name %>
+              <% if (!msg.read) { %><span class="new-badge">NEW</span><% } %>
+            </div>
+            <div class="msg-email"><%= msg.email %></div>
+          </div>
+          <div class="msg-date">
+            <%= new Date(msg.createdAt).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' }) %>
+          </div>
+        </div>
+
+        <% if (msg.subject) { %>
+          <div class="msg-subject"><%= msg.subject %></div>
+        <% } %>
+
+        <div class="msg-body"><%= msg.message %></div>
+
+        <div class="msg-actions">
+          <a class="btn-reply" href="mailto:<%= msg.email %>?subject=Re: <%= msg.subject || 'Your message to VOXARIA' %>">
+            ✉️ Reply
+          </a>
+          <a class="btn-delete"
+            href="/admin/messages/delete/<%= msg._id %>"
+            onclick="return confirm('Delete this message?')">
+            🗑️ Delete
+          </a>
+        </div>
+
+      </div>
+    <% }) %>
+  <% } %>
+
+</div>
+</body>
+</html>
