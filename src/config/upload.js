@@ -1,43 +1,37 @@
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
-// Make sure the uploads folder exists
-const uploadDir = "public/uploads";
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+/* =========================
+   CLOUDINARY CONFIG
+========================= */
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9) +
-      path.extname(file.originalname);
-
-    cb(null, uniqueName);
+/* =========================
+   CLOUDINARY STORAGE
+   Files go directly to Cloudinary
+   — survives Render redeploys
+========================= */
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    // Determine if it's a video or image
+    const isVideo = file.mimetype.startsWith("video/");
+    return {
+      folder: "voxaria",
+      resource_type: isVideo ? "video" : "image",
+      allowed_formats: ["jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm"],
+      transformation: isVideo
+        ? []
+        : [{ width: 1200, crop: "limit", fetch_format: "auto", quality: "auto" }]
+    };
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  // Allow images and videos
-  if (
-    file.mimetype.startsWith("image/") ||
-    file.mimetype.startsWith("video/")
-  ) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only images and videos are allowed"), false);
-  }
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 } // 100MB max
-});
+const upload = multer({ storage });
 
 module.exports = upload;
