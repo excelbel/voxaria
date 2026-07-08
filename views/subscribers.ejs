@@ -2,55 +2,144 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Subscribers - VOXARIA Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscribers | VOXARIA Admin</title>
   <style>
+    * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
     .container { max-width: 900px; margin: auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .back { text-decoration: none; background: #007bff; color: #fff; padding: 10px 15px; border-radius: 5px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+    .header h1 { margin: 0; font-size: 1.6rem; color: #111; }
+    .btn-back {
+      display: inline-block;
+      text-decoration: none;
+      background: #007bff;
+      color: #fff !important;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .btn-back:hover { background: #0056b3; }
     .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .count { font-size: 14px; color: #666; margin-bottom: 16px; }
+    .count strong { color: #007bff; font-size: 18px; }
+    .search-box {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
     th { background: #f4f6f9; font-weight: bold; font-size: 13px; color: #555; }
     tr:hover { background: #f9f9f9; }
-    .count { font-size: 14px; color: #666; margin-bottom: 16px; }
+    .email-link { color: #007bff; text-decoration: none; }
+    .email-link:hover { text-decoration: underline; }
+    .empty { text-align: center; padding: 40px; color: #666; }
+    .export-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #28a745;
+      color: #fff !important;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      cursor: pointer;
+      border: none;
+    }
+    .export-btn:hover { background: #1e7e34; }
   </style>
 </head>
 <body>
 <div class="container">
+
   <div class="header">
-    <h1>Newsletter Subscribers</h1>
-    <a href="/admin" class="back">← Back to Admin</a>
+    <h1>📬 Newsletter Subscribers</h1>
+    <a href="/admin" class="btn-back">← Back to Admin</a>
   </div>
 
   <div class="card">
     <p class="count">Total subscribers: <strong><%= subscribers.length %></strong></p>
 
     <% if (subscribers.length > 0) { %>
-    <table>
+
+    <input
+      type="text"
+      class="search-box"
+      id="subSearch"
+      placeholder="Search by name or email...">
+
+    <button class="export-btn" onclick="exportCSV()">⬇️ Export CSV</button>
+
+    <table id="subTable">
       <thead>
         <tr>
           <th>#</th>
           <th>Email</th>
           <th>Name</th>
-          <th>Subscribed</th>
+          <th>Subscribed On</th>
         </tr>
       </thead>
       <tbody>
         <% subscribers.forEach((sub, i) => { %>
         <tr>
           <td><%= i + 1 %></td>
-          <td><%= sub.email %></td>
+          <td>
+            <a class="email-link" href="mailto:<%= sub.email %>"><%= sub.email %></a>
+          </td>
           <td><%= sub.name || "—" %></td>
           <td><%= new Date(sub.createdAt).toDateString() %></td>
         </tr>
         <% }) %>
       </tbody>
     </table>
+
     <% } else { %>
-      <p>No subscribers yet.</p>
+      <div class="empty">
+        <h2>📭 No subscribers yet</h2>
+        <p>When readers subscribe on your site, they'll appear here.</p>
+      </div>
     <% } %>
   </div>
+
 </div>
+
+<script>
+/* Search filter */
+document.getElementById('subSearch')?.addEventListener('keyup', function() {
+  const filter = this.value.toLowerCase();
+  document.querySelectorAll('#subTable tbody tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
+  });
+});
+
+/* Export to CSV */
+function exportCSV() {
+  const rows = [['#', 'Email', 'Name', 'Subscribed On']];
+  document.querySelectorAll('#subTable tbody tr').forEach((row, i) => {
+    const cells = row.querySelectorAll('td');
+    rows.push([
+      i + 1,
+      cells[1]?.innerText.trim(),
+      cells[2]?.innerText.trim(),
+      cells[3]?.innerText.trim()
+    ]);
+  });
+
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'voxaria-subscribers.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>

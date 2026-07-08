@@ -638,3 +638,19 @@ body.dark-mode textarea {
 .widget ul li a:hover {
   color: #007bff;
 }
+
+.btn-back {
+  display: inline-block;
+  text-decoration: none;
+  background: #007bff;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.btn-back:hover {
+  background: #0056b3;
+  color: #fff;
+}
