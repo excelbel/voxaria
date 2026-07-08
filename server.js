@@ -14,9 +14,7 @@ const server = http.createServer(app);
    SOCKET.IO SETUP
 ========================= */
 const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
+  cors: { origin: "*" }
 });
 
 io.on("connection", (socket) => {
@@ -43,22 +41,18 @@ io.on("connection", (socket) => {
 async function startServer() {
   try {
     const mongoUri = process.env.MONGODB_URI;
-
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI is missing in environment variables");
-    }
+    if (!mongoUri) throw new Error("MONGODB_URI is missing");
 
     await mongoose.connect(mongoUri);
-
     console.log("MongoDB Connected");
 
     const { fetchNewsAndSave } = require("./src/modules/news/news.fetcher");
+    const Post = require("./src/models/post");
 
     /* =========================
-       SAFE NEWS SCHEDULER
-       Runs every 6 hours = 4 runs/day
+       NEWS SCHEDULER
+       Runs every 6 hours
        3 feeds x 4 runs = 12 requests/day
-       Well within the 100/day free limit
     ========================= */
     let isFetching = false;
 
@@ -67,20 +61,40 @@ async function startServer() {
         console.log("News fetch already running, skipping...");
         return;
       }
-
       isFetching = true;
-
       try {
         console.log("Running scheduled news fetch...");
         await fetchNewsAndSave();
       } catch (err) {
         console.log("News fetch error:", err.message);
       }
-
       isFetching = false;
     });
 
-    // Run once immediately on startup
+    /* =========================
+       DRAFT CLEANUP SCHEDULER
+       Runs every 6 hours
+       Deletes unpublished drafts
+       older than 48 hours
+    ========================= */
+    cron.schedule("0 */6 * * *", async () => {
+      try {
+        const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+        const result = await Post.deleteMany({
+          published: false,
+          createdAt: { $lt: cutoff }
+        });
+
+        if (result.deletedCount > 0) {
+          console.log(`Draft cleanup: deleted ${result.deletedCount} unpublished posts older than 48 hours`);
+        }
+      } catch (err) {
+        console.error("Draft cleanup error:", err.message);
+      }
+    });
+
+    // Run once on startup
     setTimeout(async () => {
       if (isFetching) return;
       isFetching = true;
