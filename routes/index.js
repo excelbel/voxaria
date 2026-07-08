@@ -175,13 +175,14 @@ router.post(
       const slug = title.toLowerCase().trim()
         .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-      const thumbnail = req.files?.thumbnailFile
-        ? "/uploads/" + req.files.thumbnailFile[0].filename
-        : req.body.thumbnail || "";
+      // CORRECT
+const thumbnail = req.files?.thumbnailFile
+  ? req.files.thumbnailFile[0].path
+  : req.body.thumbnail || "";
 
-      const mainImage = req.files?.mainImageFile
-        ? "/uploads/" + req.files.mainImageFile[0].filename
-        : req.body.mainImage || "";
+const mainImage = req.files?.mainImageFile
+  ? req.files.mainImageFile[0].path
+  : req.body.mainImage || "";
 
       await Post.create({
         title, slug,
@@ -242,14 +243,14 @@ router.post(
       post.content    = req.body.content;
       post.isBreaking = req.body.isBreaking === "on";
 
-      post.thumbnail = req.files?.thumbnailFile
-        ? "/uploads/" + req.files.thumbnailFile[0].filename
-        : req.body.thumbnail || post.thumbnail;
+      // CORRECT — Cloudinary returns full URL in .path
+post.thumbnail = req.files?.thumbnailFile
+  ? req.files.thumbnailFile[0].path
+  : req.body.thumbnail || post.thumbnail;
 
-      post.mainImage = req.files?.mainImageFile
-        ? "/uploads/" + req.files.mainImageFile[0].filename
-        : req.body.mainImage || post.mainImage;
-
+post.mainImage = req.files?.mainImageFile
+  ? req.files.mainImageFile[0].path
+  : req.body.mainImage || post.mainImage;
       await post.save();
       res.redirect("/admin");
     } catch (err) {
