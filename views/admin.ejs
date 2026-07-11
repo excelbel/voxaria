@@ -1,76 +1,68 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VOXARIA Admin Dashboard</title>
-
-  <!-- Quill Rich Text Editor -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
-
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
-    .container { max-width: 1200px; margin: auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px; gap: 10px; }
-    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .logout { text-decoration: none; background: #dc3545; color: #fff; padding: 10px 15px; border-radius: 5px; }
-    .logout:hover { background: #b02a37; }
-    .btn-subscribers { text-decoration: none; background: #28a745; color: #fff; padding: 10px 15px; border-radius: 5px; }
-    .btn-subscribers:hover { background: #1e7e34; }
-    .card { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .stat-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.08); text-align: center; }
-    .stat-box h2 { margin: 0 0 6px; font-size: 28px; }
-    .stat-box p { margin: 0; color: #666; font-size: 13px; }
-    .stat-box.subscribers h2 { color: #28a745; }
-    input, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    button { background: #007bff; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .post-list { list-style: none; padding: 0; }
-    .post-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; }
-    .post-item img { width: 90px; height: 65px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-    .post-info { flex: 1; min-width: 0; }
-    .post-title { font-weight: bold; margin-bottom: 5px; }
-    .category { font-size: 12px; color: #666; }
-    .badge { display: inline-block; padding: 3px 8px; background: #dc3545; color: #fff; border-radius: 20px; font-size: 11px; }
-    .badge-draft { background: #ffc107; color: #333; }
-    .badge-published { background: #28a745; color: #fff; }
-    .post-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
-    .post-actions a { text-decoration: none; font-weight: bold; font-size: 13px; }
-    .edit { color: #007bff; }
-    .delete { color: #dc3545; }
-    .search-box { margin-bottom: 20px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    .btn-publish { background: #28a745; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-    .btn-publish:hover { background: #1e7e34; }
-    .btn-unpublish { background: #ffc107; color: #333; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-    .btn-unpublish:hover { background: #e0a800; }
-    .btn-newsletter { background: #6f42c1; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-    .btn-newsletter:hover { background: #5a32a3; }
-    .tab-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-    .tab-bar button { padding: 8px 18px; border-radius: 5px; border: 1px solid #ddd; background: #f4f6f9; color: #333; cursor: pointer; font-size: 13px; }
-    .tab-bar button.active { background: #007bff; color: #fff; border-color: #007bff; }
-    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
-    .upload-group label.group-label { display: block; font-size: 13px; font-weight: bold; color: #444; margin-bottom: 6px; }
-    .upload-box { position: relative; border: 2px dashed #ccc; border-radius: 6px; padding: 18px 12px; text-align: center; cursor: pointer; background: #fafafa; transition: border-color .2s; margin-bottom: 8px; }
-    .upload-box:hover { border-color: #007bff; }
-    .upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; margin: 0; padding: 0; }
-    .upload-box .upload-icon { font-size: 26px; display: block; margin-bottom: 6px; }
-    .upload-box .upload-text { font-size: 13px; color: #555; }
-    .upload-box .upload-sub { font-size: 11px; color: #999; margin-top: 3px; }
-    .file-name { font-size: 12px; color: #007bff; margin-top: 4px; min-height: 16px; word-break: break-all; }
-    .or-divider { display: flex; align-items: center; gap: 8px; margin: 6px 0 8px; }
-    .or-divider span { font-size: 12px; color: #999; white-space: nowrap; }
-    .or-divider hr { flex: 1; border: none; border-top: 1px solid #e0e0e0; }
-
-    /* Quill editor */
-    .quill-wrapper { margin-bottom: 12px; }
-    .quill-editor { height: 300px; border-radius: 0 0 6px 6px; background: #fff; }
-    .ql-toolbar { border-radius: 6px 6px 0 0; border: 1px solid #ddd !important; }
-    .ql-container { border: 1px solid #ddd !important; border-top: none !important; border-radius: 0 0 6px 6px; font-size: 15px; }
-
-    @media(max-width: 700px) {
-      .post-item { flex-direction: column; align-items: flex-start; }
-      .upload-grid { grid-template-columns: 1fr; }
+    *{box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
+    .container{max-width:1200px;margin:auto;}
+    .header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:20px;gap:10px;}
+    .header h1{margin:0;font-size:1.5rem;color:#111;}
+    .header-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .btn{display:inline-block;text-decoration:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:700;border:none;cursor:pointer;color:#fff !important;}
+    .btn-red{background:#dc3545;}.btn-red:hover{background:#b02a37;}
+    .btn-green{background:#28a745;}.btn-green:hover{background:#1e7e34;}
+    .btn-blue{background:#007bff;}.btn-blue:hover{background:#0056b3;}
+    .btn-purple{background:#6f42c1;}.btn-purple:hover{background:#5a32a3;}
+    .btn-dark{background:#0f2027;color:#ffd700 !important;font-weight:700;}
+    .badge-new{background:#dc3545;color:#fff;padding:2px 7px;border-radius:20px;font-size:11px;margin-left:4px;}
+    .card{background:#fff;padding:20px;border-radius:8px;margin-bottom:25px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;}
+    .stat-box{background:#fff;padding:18px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.08);text-align:center;}
+    .stat-box h2{margin:0 0 4px;font-size:26px;color:#007bff;}
+    .stat-box p{margin:0;color:#666;font-size:13px;}
+    input,select{width:100%;padding:11px;margin-bottom:12px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px;}
+    .quill-wrapper{margin-bottom:12px;}
+    .quill-editor{height:280px;background:#fff;}
+    .ql-toolbar{border-radius:6px 6px 0 0;border:1px solid #ddd !important;}
+    .ql-container{border:1px solid #ddd !important;border-top:none !important;border-radius:0 0 6px 6px;font-size:15px;}
+    .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;}
+    .upload-group label.group-label{display:block;font-size:13px;font-weight:700;color:#444;margin-bottom:6px;}
+    .upload-box{position:relative;border:2px dashed #ccc;border-radius:6px;padding:18px 12px;text-align:center;cursor:pointer;background:#fafafa;transition:border-color .2s;margin-bottom:8px;}
+    .upload-box:hover{border-color:#007bff;}
+    .upload-box input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;margin:0;padding:0;}
+    .upload-icon{font-size:24px;display:block;margin-bottom:4px;}
+    .upload-text{font-size:13px;color:#555;}
+    .upload-sub{font-size:11px;color:#999;margin-top:2px;}
+    .file-name{font-size:12px;color:#007bff;margin-top:4px;min-height:16px;word-break:break-all;}
+    .or-divider{display:flex;align-items:center;gap:8px;margin:6px 0 8px;}
+    .or-divider span{font-size:12px;color:#999;white-space:nowrap;}
+    .or-divider hr{flex:1;border:none;border-top:1px solid #e0e0e0;}
+    .post-list{list-style:none;padding:0;}
+    .post-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eee;}
+    .post-item img{width:80px;height:58px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#e5e7eb;}
+    .post-info{flex:1;min-width:0;}
+    .post-title{font-weight:700;margin-bottom:4px;font-size:14px;line-height:1.4;}
+    .post-category{font-size:12px;color:#666;}
+    .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;color:#fff;}
+    .badge-breaking{background:#dc3545;}
+    .badge-draft{background:#ffc107;color:#333;}
+    .badge-published{background:#28a745;}
+    .post-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;}
+    .post-actions a{text-decoration:none;font-weight:700;font-size:13px;}
+    .edit-link{color:#007bff;}
+    .delete-link{color:#dc3545;}
+    .search-box{margin-bottom:16px;}
+    .tab-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .tab-bar button{padding:7px 16px;border-radius:5px;border:1px solid #ddd;background:#f4f6f9;color:#333;cursor:pointer;font-size:13px;font-weight:600;}
+    .tab-bar button.active{background:#007bff;color:#fff;border-color:#007bff;}
+    @media(max-width:700px){
+      .post-item{flex-direction:column;align-items:flex-start;}
+      .upload-grid{grid-template-columns:1fr;}
     }
   </style>
 </head>
@@ -78,13 +70,14 @@
 <div class="container">
 
   <div class="header">
-    <h1>VOXARIA Admin Dashboard</h1>
+    <h1>⚡ VOXARIA Admin</h1>
     <div class="header-actions">
-      <a href="/admin/subscribers" class="btn-subscribers">📬 Subscribers (<%= subscriberCount || 0 %>)</a>
-      <a href="/admin/messages" style="text-decoration:none;background:#0f2027;color:#ffd700;padding:10px 15px;border-radius:5px;font-weight:bold;">
-        📩 Messages <% if(unreadMessages > 0){ %><span style="background:#dc3545;color:#fff;padding:2px 7px;border-radius:20px;font-size:12px;margin-left:4px;"><%= unreadMessages %></span><% } %>
+      <a href="/admin/messages" class="btn btn-dark">
+        📩 Messages
+        <% if(unreadMessages > 0){ %><span class="badge-new"><%= unreadMessages %></span><% } %>
       </a>
-      <a href="/logout" class="logout">Logout</a>
+      <a href="/admin/subscribers" class="btn btn-green">📬 Subscribers (<%= subscriberCount || 0 %>)</a>
+      <a href="/logout" class="btn btn-red">Logout</a>
     </div>
   </div>
 
@@ -95,38 +88,66 @@
       <p>Total Posts</p>
     </div>
     <div class="stat-box">
-      <h2><%= posts ? posts.filter(p => p.published).length : 0 %></h2>
+      <h2 style="color:#28a745;"><%= posts ? posts.filter(p => p.published).length : 0 %></h2>
       <p>Published</p>
     </div>
     <div class="stat-box">
-      <h2><%= posts ? posts.filter(p => !p.published).length : 0 %></h2>
+      <h2 style="color:#ffc107;"><%= posts ? posts.filter(p => !p.published).length : 0 %></h2>
       <p>Drafts</p>
     </div>
     <div class="stat-box">
-      <h2><%= posts ? posts.filter(p => p.isBreaking).length : 0 %></h2>
-      <p>Breaking News</p>
+      <h2 style="color:#dc3545;"><%= posts ? posts.filter(p => p.isBreaking).length : 0 %></h2>
+      <p>Breaking</p>
     </div>
-    <div class="stat-box subscribers">
-      <h2><%= subscriberCount || 0 %></h2>
-      <p>📬 Subscribers</p>
+    <div class="stat-box">
+      <h2 style="color:#6f42c1;"><%= subscriberCount || 0 %></h2>
+      <p>Subscribers</p>
     </div>
   </div>
 
   <!-- CREATE FORM -->
   <div class="card">
-    <h2>Create New Story</h2>
+    <h2 style="margin:0 0 16px;">✍️ Create New Story</h2>
     <form id="createForm" action="/admin/create" method="POST" enctype="multipart/form-data">
-      <input type="text" name="title" placeholder="Story Title" required>
+
+      <input type="text" name="title" placeholder="Story Title *" required>
       <input type="text" name="author" value="Admin" placeholder="Author">
+
       <select name="category">
-        <option value="News">News</option>
-        <option value="Article">Article</option>
-        <option value="Entertainment">Entertainment</option>
-        <option value="International">International</option>
-        <option value="Journals">Journals</option>
-        <option value="Politics">Politics</option>
-        <option value="Security">Security</option>
-        <option value="Sports">Sports</option>
+        <optgroup label="── News ──">
+          <option value="News">📰 Latest News</option>
+          <option value="Politics">🏛️ Politics</option>
+          <option value="Security">🛡️ Security</option>
+          <option value="International">🌍 International</option>
+          <option value="Article">✍️ Article</option>
+        </optgroup>
+        <optgroup label="── Sports ──">
+          <option value="Sports">⚽ Sports</option>
+          <option value="Football">🥅 Football</option>
+          <option value="Basketball">🏀 Basketball</option>
+          <option value="Athletics">🏃 Athletics</option>
+        </optgroup>
+        <optgroup label="── Entertainment ──">
+          <option value="Entertainment">🎬 Entertainment</option>
+          <option value="Lifestyle">💃 Lifestyle</option>
+          <option value="Music">🎵 Music</option>
+          <option value="Movies">🎥 Movies</option>
+        </optgroup>
+        <optgroup label="── Technology ──">
+          <option value="Technology">💻 Technology</option>
+          <option value="Science">🔬 Science</option>
+          <option value="AI">🤖 AI & Innovation</option>
+        </optgroup>
+        <optgroup label="── Business ──">
+          <option value="Finance">💰 Finance</option>
+          <option value="Economy">📈 Economy</option>
+          <option value="Markets">📊 Markets</option>
+        </optgroup>
+        <optgroup label="── Health ──">
+          <option value="Health">❤️ Health Tips</option>
+          <option value="Wellness">🧘 Wellness</option>
+          <option value="Journals">📖 Journals</option>
+        </optgroup>
       </select>
 
       <div class="upload-grid">
@@ -135,7 +156,7 @@
           <div class="upload-box">
             <input type="file" name="thumbnailFile" accept="image/*" onchange="showFileName(this,'thumbName')">
             <span class="upload-icon">🖼️</span>
-            <div class="upload-text">Click to upload image</div>
+            <div class="upload-text">Click to upload</div>
             <div class="upload-sub">PNG, JPG, WEBP</div>
           </div>
           <div class="file-name" id="thumbName"></div>
@@ -147,8 +168,8 @@
           <div class="upload-box">
             <input type="file" name="mainImageFile" accept="image/*,video/*" onchange="showFileName(this,'mainName')">
             <span class="upload-icon">📷</span>
-            <div class="upload-text">Click to upload image or video</div>
-            <div class="upload-sub">PNG, JPG, MP4, MOV, WEBM</div>
+            <div class="upload-text">Click to upload</div>
+            <div class="upload-sub">PNG, JPG, MP4, MOV</div>
           </div>
           <div class="file-name" id="mainName"></div>
           <div class="or-divider"><hr><span>or paste URL</span><hr></div>
@@ -156,32 +177,33 @@
         </div>
       </div>
 
-      <!-- Rich Text Editor -->
-      <label class="group-label">Story Content</label>
+      <label class="group-label" style="display:block;margin-bottom:6px;">Story Content</label>
       <div class="quill-wrapper">
         <div id="createEditor" class="quill-editor"></div>
       </div>
-      <!-- Hidden textarea to hold Quill HTML output -->
       <textarea name="content" id="createContent" style="display:none;"></textarea>
 
-      <label>
-        <input type="checkbox" name="isBreaking"> Mark as Breaking News
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <input type="checkbox" name="isBreaking" style="width:auto;margin:0;">
+        <span style="font-size:14px;">🔴 Mark as Breaking News</span>
       </label>
-      <br><br>
-      <button type="submit">Save as Draft</button>
+
+      <button type="submit" class="btn btn-blue" style="width:100%;padding:13px;font-size:15px;">
+        💾 Save as Draft
+      </button>
     </form>
   </div>
 
   <!-- POST LIST -->
   <div class="card">
-    <h2>All Stories</h2>
+    <h2 style="margin:0 0 16px;">📋 All Stories</h2>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="Search stories...">
+    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search stories...">
 
     <div class="tab-bar">
-      <button class="active" onclick="filterPosts('all', this)">All</button>
-      <button onclick="filterPosts('draft', this)">Drafts</button>
-      <button onclick="filterPosts('published', this)">Published</button>
+      <button class="active" onclick="filterPosts('all',this)">All</button>
+      <button onclick="filterPosts('draft',this)">Drafts</button>
+      <button onclick="filterPosts('published',this)">Published</button>
     </div>
 
     <ul class="post-list" id="postList">
@@ -196,67 +218,64 @@
             <div class="post-info">
               <div class="post-title">
                 <%= post.title %>
-                <% if(post.isBreaking){ %><span class="badge">Breaking</span><% } %>
+                <% if(post.isBreaking){ %><span class="badge badge-breaking">Breaking</span><% } %>
                 <% if(post.published){ %>
-                  <span class="badge badge-published">Published</span>
+                  <span class="badge badge-published">Live</span>
                 <% } else { %>
                   <span class="badge badge-draft">Draft</span>
                 <% } %>
               </div>
-              <div class="category"><%= post.category || 'News' %></div>
+              <div class="post-category"><%= post.category || 'News' %></div>
             </div>
 
             <div class="post-actions">
-              <a class="edit" href="/admin/edit/<%= post._id %>">Edit</a>
+              <a class="edit-link" href="/admin/edit/<%= post._id %>">Edit</a>
 
               <% if(post.published){ %>
                 <form action="/admin/unpublish/<%= post._id %>" method="POST" style="display:inline">
-                  <button class="btn-unpublish" type="submit">Unpublish</button>
+                  <button class="btn" style="background:#ffc107;color:#333;padding:5px 11px;font-size:12px;" type="submit">Unpublish</button>
                 </form>
               <% } else { %>
                 <form action="/admin/publish/<%= post._id %>" method="POST" style="display:inline">
-                  <button class="btn-publish" type="submit">Publish</button>
+                  <button class="btn btn-green" style="padding:5px 11px;font-size:12px;" type="submit">Publish</button>
                 </form>
               <% } %>
 
               <% if(post.published){ %>
                 <form action="/admin/newsletter/<%= post._id %>" method="POST" style="display:inline"
-                  onsubmit="return confirm('Send this story to all <%= subscriberCount || 0 %> subscribers?')">
-                  <button class="btn-newsletter" type="submit">📧 Newsletter</button>
+                  onsubmit="return confirm('Send to <%= subscriberCount || 0 %> subscribers?')">
+                  <button class="btn btn-purple" style="padding:5px 11px;font-size:12px;" type="submit">📧</button>
                 </form>
               <% } %>
 
-              <a class="delete" href="/admin/delete/<%= post._id %>"
+              <a class="delete-link" href="/admin/delete/<%= post._id %>"
                 onclick="return confirm('Delete this story?')">Delete</a>
             </div>
 
           </li>
         <% }) %>
       <% } else { %>
-        <p>No stories available.</p>
+        <p style="color:#666;text-align:center;padding:30px;">No stories yet. Create your first one above!</p>
       <% } %>
     </ul>
   </div>
 
 </div>
 
-<!-- Quill JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
-
 <script>
-/* ── Quill Rich Text Editor ── */
 const createQuill = new Quill('#createEditor', {
   theme: 'snow',
   placeholder: 'Write your story here...',
   modules: {
     toolbar: [
-      [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
+      [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline', 'strike'],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      [{ header: [1,2,3,4,5,6,false] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ indent: '-1' }, { indent: '+1' }],
       ['blockquote', 'code-block'],
       ['link', 'image'],
       ['clean']
@@ -264,12 +283,10 @@ const createQuill = new Quill('#createEditor', {
   }
 });
 
-/* Copy Quill HTML to hidden textarea before form submits */
 document.getElementById('createForm').addEventListener('submit', function() {
   document.getElementById('createContent').value = createQuill.root.innerHTML;
 });
 
-/* Search */
 document.getElementById("searchInput").addEventListener("keyup", function() {
   const filter = this.value.toLowerCase();
   document.querySelectorAll(".post-item").forEach(item => {
@@ -277,7 +294,6 @@ document.getElementById("searchInput").addEventListener("keyup", function() {
   });
 });
 
-/* Tab filter */
 function filterPosts(status, btn) {
   document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
@@ -286,7 +302,6 @@ function filterPosts(status, btn) {
   });
 }
 
-/* File name display */
 function showFileName(input, targetId) {
   const el = document.getElementById(targetId);
   el.textContent = input.files && input.files[0] ? input.files[0].name : '';
