@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VOXARIA - Latest News</title>
-  <link rel="stylesheet" href="/style.css">
+  <title>VOXARIA — Nigeria's Voice to the World</title>
+  <meta name="description" content="Latest breaking news from Nigeria and around the world — politics, sports, entertainment, technology, health and more.">
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
@@ -16,12 +16,11 @@
   </script>
 
   <!-- AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275"
-     crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275" crossorigin="anonymous"></script>
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#007bff">
+  <meta name="theme-color" content="#0a0f1e">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,59 +28,7 @@
   <meta name="apple-mobile-web-app-title" content="VOXARIA">
   <meta name="mobile-web-app-capable" content="yes">
 
-  <style>
-    /* Newsletter widget */
-    .newsletter-widget {
-      background: linear-gradient(135deg, #007bff, #0056b3);
-      color: #fff;
-      border-radius: 10px;
-      padding: 24px 20px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-    .newsletter-widget h3 { margin: 0 0 6px; font-size: 18px; }
-    .newsletter-widget p { margin: 0 0 16px; font-size: 13px; opacity: .85; }
-    .newsletter-widget input[type="text"],
-    .newsletter-widget input[type="email"] {
-      width: 100%; padding: 10px 12px; border: none; border-radius: 6px;
-      margin-bottom: 10px; font-size: 14px; box-sizing: border-box;
-    }
-    .newsletter-widget button {
-      width: 100%; padding: 11px; background: #fff; color: #007bff;
-      border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer;
-    }
-    .newsletter-widget button:hover { background: #f0f0f0; }
-    .newsletter-msg { margin-top: 10px; font-size: 13px; font-weight: bold; }
-
-    /* Newsletter banner inline in feed */
-    .newsletter-banner {
-      background: linear-gradient(135deg, #007bff, #0056b3);
-      color: #fff; border-radius: 10px; padding: 30px 24px;
-      margin: 20px 0; text-align: center;
-    }
-    .newsletter-banner h2 { margin: 0 0 8px; font-size: 22px; }
-    .newsletter-banner p  { margin: 0 0 18px; opacity: .85; }
-    .newsletter-banner .banner-row {
-      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-    }
-    .newsletter-banner input {
-      flex: 1; min-width: 200px; padding: 11px 14px;
-      border: none; border-radius: 6px; font-size: 14px;
-    }
-    .newsletter-banner button {
-      padding: 11px 24px; background: #fff; color: #007bff;
-      border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer;
-    }
-    .newsletter-banner button:hover { background: #f0f0f0; }
-    .banner-msg { margin-top: 10px; font-size: 13px; font-weight: bold; color: #fff; }
-
-    /* Install App button */
-    #installAppBtn {
-      display: none;
-      background: #007bff; color: #fff; border: none;
-      padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -89,17 +36,22 @@
 
 <%
 const safeArray = (v) => Array.isArray(v) ? v : [];
-
 const safePosts         = safeArray(posts);
 const safeBreakingNews  = safeArray(breakingNews);
 const safeFeaturedGrid  = safeArray(featuredGrid);
 const safeRecentPosts   = safeArray(recentPosts);
 const safeTrendingPosts = safeArray(trendingPosts);
-
-const safeRandomPost   = typeof randomPost   !== "undefined" ? randomPost   : null;
-const safeFeaturedPost = typeof featuredPost !== "undefined" ? featuredPost : null;
-
+const safeRandomPost    = typeof randomPost   !== "undefined" ? randomPost   : null;
+const safeFeaturedPost  = typeof featuredPost !== "undefined" ? featuredPost : null;
 const LOGO = '/voxaria-logo.png';
+
+function timeAgo(date) {
+  const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
 %>
 
 <!-- BREAKING NEWS -->
@@ -109,7 +61,7 @@ const LOGO = '/voxaria-logo.png';
   <div class="ticker-wrapper">
     <div class="ticker-track">
       <% safeBreakingNews.forEach(bn => { %>
-        <a href="/news/<%= bn.slug || bn._id %>"><%= bn.title %></a>
+        <a href="/news/<%= bn.slug || bn._id %>">🔴 <%= bn.title %></a>
       <% }) %>
     </div>
   </div>
@@ -126,7 +78,12 @@ const LOGO = '/voxaria-logo.png';
         src="<%= safeFeaturedPost.mainImage || LOGO %>"
         alt="<%= safeFeaturedPost.title %>"
         onerror="this.onerror=null;this.src='<%= LOGO %>'">
-      <div class="overlay"><h2><%= safeFeaturedPost.title %></h2></div>
+      <div class="overlay">
+        <% if (safeFeaturedPost.category) { %>
+          <span style="display:inline-block;background:#dc2626;color:#fff;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border-radius:3px;margin-bottom:8px;"><%= safeFeaturedPost.category %></span>
+        <% } %>
+        <h2><%= safeFeaturedPost.title %></h2>
+      </div>
     </a>
   </div>
   <% } %>
@@ -138,128 +95,215 @@ const LOGO = '/voxaria-logo.png';
         src="<%= fg.mainImage || LOGO %>"
         alt="<%= fg.title %>"
         onerror="this.onerror=null;this.src='<%= LOGO %>'">
-      <div class="overlay"><h3><%= fg.title %></h3></div>
+      <div class="overlay">
+        <h3><%= fg.title %></h3>
+      </div>
     </a>
   </div>
   <% }) %>
 
 </div>
 
-<!-- MAIN CONTENT -->
-<main class="container-main">
+<!-- ADSENSE TOP -->
+<div style="max-width:1300px;margin:0 auto 20px;padding:0 20px;text-align:center;">
+  <ins class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-3628162691989275"
+    data-ad-slot="auto"
+    data-ad-format="auto"
+    data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
 
+<!-- MAIN CONTENT -->
+<div class="container-main">
+
+  <!-- LATEST POSTS -->
   <section class="latest-posts">
 
-    <% safePosts.forEach((post, index) => { %>
+    <div class="section-header">
+      <h2>Latest Stories</h2>
+    </div>
 
-      <div class="card">
-        <img
-          src="<%= post.mainImage || LOGO %>"
-          alt="<%= post.title %>"
-          onerror="this.onerror=null;this.src='<%= LOGO %>'">
-        <h3>
-          <a href="/news/<%= post.slug %>"><%= post.title %></a>
-        </h3>
-        <p><strong>Date:</strong> <%= new Date(post.createdAt || post.date).toDateString() %></p>
-        <p><strong>Author:</strong> <%= post.author || 'Admin' %></p>
-        <p><strong>Views:</strong> <%= post.views || 0 %></p>
-      </div>
+    <div class="posts-grid">
+      <% safePosts.forEach((post, index) => { %>
 
-      <!-- Newsletter banner after 5th post -->
-      <% if (index === 4) { %>
-      <div class="newsletter-banner">
-        <h2>📬 Stay Informed</h2>
-        <p>Get the latest Nigerian and world news delivered straight to your inbox.</p>
-        <div class="banner-row">
-          <input type="email" id="bannerEmail" placeholder="Enter your email address">
-          <button onclick="subscribeBanner()">Subscribe Free</button>
+        <div class="card">
+          <a href="/news/<%= post.slug %>">
+            <img
+              src="<%= post.mainImage || LOGO %>"
+              alt="<%= post.title %>"
+              onerror="this.onerror=null;this.src='<%= LOGO %>'">
+          </a>
+          <div class="card-body">
+            <span class="card-category"><%= post.category || 'News' %></span>
+            <h3><a href="/news/<%= post.slug %>"><%= post.title %></a></h3>
+            <div class="card-meta">
+              <span>👤 <%= post.author || 'VOXARIA' %></span>
+              <span>🕐 <%= timeAgo(post.createdAt) %></span>
+              <span>👁 <%= post.views || 0 %></span>
+            </div>
+          </div>
         </div>
-        <div id="bannerMsg" class="banner-msg"></div>
-      </div>
+
+        <!-- Newsletter banner after 6th post -->
+        <% if (index === 5) { %>
+        <div class="newsletter-banner" style="grid-column:1/-1;">
+          <h2>📬 Stay Informed</h2>
+          <p>Get breaking news from Nigeria and the world delivered to your inbox.</p>
+          <div class="banner-row">
+            <input type="email" id="bannerEmail" placeholder="Enter your email address">
+            <button onclick="subscribeBanner()">Subscribe Free →</button>
+          </div>
+          <div id="bannerMsg" class="banner-msg"></div>
+        </div>
+        <% } %>
+
+        <!-- AdSense after every 10 posts -->
+        <% if ((index + 1) % 10 === 0) { %>
+        <div style="grid-column:1/-1;text-align:center;">
+          <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-3628162691989275"
+            data-ad-slot="auto"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+        <% } %>
+
+      <% }) %>
+
+      <% if (safePosts.length === 0) { %>
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;">
+          <p>No posts available yet. Check back soon!</p>
+        </div>
       <% } %>
-
-    <% }) %>
-
-    <% if (safePosts.length === 0) { %>
-      <p>No posts available.</p>
-    <% } %>
+    </div>
 
   </section>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
 
-    <!-- Install App button -->
-    <div style="margin-bottom:16px;text-align:center;">
-      <button id="installAppBtn" onclick="installVoxariaApp()">📲 Install App</button>
+    <!-- Install App -->
+    <div style="text-align:center;">
+      <button id="installAppBtn" onclick="installVoxariaApp()"
+        style="display:none;width:100%;background:#0a0f1e;color:#ffd700;border:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">
+        📲 Install VOXARIA App
+      </button>
     </div>
 
-    <!-- Newsletter widget -->
+    <!-- Newsletter Widget -->
     <div class="newsletter-widget">
-      <h3>📬 Newsletter</h3>
-      <p>Get top stories delivered to your inbox daily.</p>
+      <h3>📬 Daily Newsletter</h3>
+      <p>Top stories delivered to your inbox every day.</p>
       <input type="text" id="subName" placeholder="Your name (optional)">
       <input type="email" id="subEmail" placeholder="Your email address">
-      <button onclick="subscribeWidget()">Subscribe Free</button>
+      <button onclick="subscribeWidget()">Subscribe Free →</button>
       <div id="widgetMsg" class="newsletter-msg"></div>
     </div>
 
+    <!-- Recent Posts -->
     <div class="widget">
-      <h3>Recent Posts</h3>
+      <h3 class="widget-title">Recent Posts</h3>
       <ul>
         <% safeRecentPosts.forEach(rp => { %>
-          <li><a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a></li>
+          <li>
+            <a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a>
+          </li>
         <% }) %>
       </ul>
     </div>
 
+    <!-- AdSense sidebar -->
+    <div style="text-align:center;">
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-3628162691989275"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- Trending -->
     <div class="widget">
-      <h3>Trending</h3>
+      <h3 class="widget-title">🔥 Trending</h3>
       <ul>
         <% safeTrendingPosts.forEach(tp => { %>
-          <li><a href="/news/<%= tp.slug || tp._id %>"><%= tp.title %></a></li>
+          <li>
+            <a href="/news/<%= tp.slug || tp._id %>"><%= tp.title %></a>
+          </li>
         <% }) %>
       </ul>
     </div>
 
+    <!-- Featured -->
     <% if (safeRandomPost) { %>
     <div class="widget">
-      <h3>Featured</h3>
+      <h3 class="widget-title">⭐ Featured</h3>
       <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
         <img
           src="<%= safeRandomPost.mainImage || LOGO %>"
           alt="<%= safeRandomPost.title %>"
           onerror="this.onerror=null;this.src='<%= LOGO %>'"
-          style="width:100%;border-radius:5px;object-fit:cover;height:150px;">
-        <p><%= safeRandomPost.title %></p>
+          style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-bottom:10px;">
+        <p style="font-size:0.9rem;font-weight:600;color:#111;line-height:1.4;"><%= safeRandomPost.title %></p>
       </a>
     </div>
     <% } %>
 
   </aside>
 
-</main>
+</div>
 
+<!-- FOOTER -->
 <footer class="bottom-links">
-  <p>© 2026 VOXARIA Blog. All Rights Reserved.</p>
-  <div class="socials">
-    <h3>Contact</h3>
-    <p>Anambra State, Nigeria</p>
-    <p>Email: info@voxaria.org</p>
-    <p><a href="https://wa.me/2349012567912">WhatsApp</a></p>
-    <p><a href="https://web.facebook.com/voxaria">Facebook</a></p>
+  <div class="footer-inner">
+    <div class="footer-col">
+      <h4>VOXARIA</h4>
+      <p>Nigeria's Voice to the World — Accurate, Fast, Trusted news from Anambra State, Nigeria.</p>
+    </div>
+    <div class="footer-col">
+      <h4>News</h4>
+      <a href="/category/Politics">Politics</a>
+      <a href="/category/Security">Security</a>
+      <a href="/category/International">International</a>
+      <a href="/category/Sports">Sports</a>
+    </div>
+    <div class="footer-col">
+      <h4>More</h4>
+      <a href="/category/Technology">Technology</a>
+      <a href="/category/Health">Health</a>
+      <a href="/category/Finance">Finance</a>
+      <a href="/category/Entertainment">Entertainment</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="/about">About Us</a>
+      <a href="/contact">Contact</a>
+      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="https://wa.me/2349012567912">WhatsApp</a>
+      <a href="https://web.facebook.com/voxaria">Facebook</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 VOXARIA Media. All Rights Reserved.</span>
+    <span>
+      <a href="/privacy-policy">Privacy Policy</a> ·
+      <a href="/about">About</a> ·
+      <a href="/contact">Contact</a>
+    </span>
   </div>
 </footer>
 
 <script>
-/* Auto reload every 60 seconds */
-setInterval(() => location.reload(), 60000);
-
 /* Newsletter subscribe */
 async function subscribe(email, name, msgId) {
   const msgEl = document.getElementById(msgId);
   if (!email || !email.includes("@")) {
-    msgEl.style.color = "#ffcccc";
+    msgEl.style.color = "#fca5a5";
     msgEl.textContent = "Please enter a valid email.";
     return;
   }
@@ -271,16 +315,13 @@ async function subscribe(email, name, msgId) {
       body: JSON.stringify({ email, name })
     });
     const data = await res.json();
-    if (res.ok) {
-      msgEl.style.color = "#ccffcc";
-      msgEl.textContent = "✅ " + (data.message || "Subscribed successfully!");
-    } else {
-      msgEl.style.color = "#ffcccc";
-      msgEl.textContent = "❌ " + (data.error || "Something went wrong.");
-    }
+    msgEl.style.color = res.ok ? "#86efac" : "#fca5a5";
+    msgEl.textContent = res.ok
+      ? "✅ " + (data.message || "Subscribed!")
+      : "❌ " + (data.error || "Something went wrong.");
   } catch {
-    msgEl.style.color = "#ffcccc";
-    msgEl.textContent = "❌ Network error. Please try again.";
+    msgEl.style.color = "#fca5a5";
+    msgEl.textContent = "❌ Network error. Try again.";
   }
 }
 
@@ -296,12 +337,12 @@ function subscribeBanner() {
   subscribe(document.getElementById("bannerEmail").value.trim(), "", "bannerMsg");
 }
 
-/* PWA Service Worker */
+/* PWA */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('Service worker registered:', reg.scope))
-      .catch(err => console.error('SW registration failed:', err));
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.error('SW failed:', e));
   });
 }
 
@@ -309,7 +350,8 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById('installAppBtn').style.display = 'inline-block';
+  const btn = document.getElementById('installAppBtn');
+  if (btn) btn.style.display = 'block';
 });
 
 function installVoxariaApp() {
@@ -317,7 +359,8 @@ function installVoxariaApp() {
   deferredPrompt.prompt();
   deferredPrompt.userChoice.then(() => {
     deferredPrompt = null;
-    document.getElementById('installAppBtn').style.display = 'none';
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'none';
   });
 }
 </script>

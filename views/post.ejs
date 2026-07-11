@@ -4,30 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title><%= post?.title || 'Voxaria' %> | Voxaria</title>
-
   <%
     const baseUrl = process.env.BASE_URL || 'https://www.voxaria.org';
     const safePost = post || {};
     const slug = safePost.slug || safePost._id || '';
     const shareUrl = baseUrl + '/news/' + slug;
+    const LOGO = '/voxaria-logo.png';
+    const LOGO_FULL = baseUrl + '/voxaria-logo.png';
 
-    // Clean description — strip HTML tags, limit to 160 chars
     const rawDesc = (safePost.seoDescription || safePost.aiSummary || safePost.content || '');
-    const cleanDesc = rawDesc.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().substring(0, 160);
+    const cleanDesc = rawDesc.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().substring(0, 150);
 
-    // Ensure image is absolute URL
     const ogImage = safePost.mainImage
       ? (safePost.mainImage.startsWith('http') ? safePost.mainImage : baseUrl + safePost.mainImage)
-      : baseUrl + '/icons/icon-512x512.png';
+      : LOGO_FULL;
   %>
+
+  <title><%= safePost.title || 'VOXARIA' %> | VOXARIA</title>
 
   <!-- SEO -->
   <meta name="description" content="<%= cleanDesc %>">
   <meta name="author" content="<%= safePost.author || 'VOXARIA' %>">
-  <meta name="keywords" content="<%= safePost.category || 'News' %>, Nigeria news, Voxaria">
+  <meta name="keywords" content="<%= safePost.category || 'News' %>, Nigeria news, VOXARIA">
 
-  <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+  <!-- Open Graph -->
   <meta property="og:type"        content="article">
   <meta property="og:site_name"   content="VOXARIA">
   <meta property="og:url"         content="<%= shareUrl %>">
@@ -36,14 +36,13 @@
   <meta property="og:image"       content="<%= ogImage %>">
   <meta property="og:image:width"  content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type"   content="image/jpeg">
   <meta property="og:locale"      content="en_NG">
-
-  <!-- Article specific OG -->
   <meta property="article:published_time" content="<%= safePost.createdAt ? new Date(safePost.createdAt).toISOString() : '' %>">
   <meta property="article:section"        content="<%= safePost.category || 'News' %>">
   <meta property="article:author"         content="<%= safePost.author || 'VOXARIA' %>">
 
-  <!-- Twitter / X Card -->
+  <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:site"        content="@voxaria">
   <meta name="twitter:title"       content="<%= safePost.title || 'VOXARIA' %>">
@@ -52,7 +51,7 @@
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#007bff">
+  <meta name="theme-color" content="#0a0f1e">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -60,85 +59,114 @@
   <meta name="apple-mobile-web-app-title" content="VOXARIA">
   <meta name="mobile-web-app-capable" content="yes">
 
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275" crossorigin="anonymous"></script>
+
   <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
 
 <%- include('partials/header', { currentPage: currentPage || 'post' }) %>
 
-<%
-const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : [];
-%>
+<% const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : []; %>
 
-<main class="article-layout">
+<div class="article-layout">
 
-  <article class="article">
+  <article>
 
-    <h1 class="article-title">
-      <%= safePost.title || 'Untitled Post' %>
-    </h1>
-
-    <div class="article-meta">
-      <span><strong>Date:</strong> <%= safePost.createdAt ? new Date(safePost.createdAt).toDateString() : '' %></span>
-      <span><strong>Category:</strong> <%= safePost.category || 'General' %></span>
-      <span><strong>Views:</strong> <%= safePost.views || 0 %></span>
+    <!-- Article Header -->
+    <div class="article-header">
+      <% if (safePost.category) { %>
+        <span class="article-category"><%= safePost.category %></span>
+      <% } %>
+      <h1 class="article-title"><%= safePost.title || 'Untitled Post' %></h1>
+      <div class="article-meta">
+        <span>👤 <%= safePost.author || 'VOXARIA' %></span>
+        <span>📅 <%= safePost.createdAt ? new Date(safePost.createdAt).toDateString() : '' %></span>
+        <span>👁 <%= safePost.views || 0 %> views</span>
+        <span>📂 <%= safePost.category || 'News' %></span>
+      </div>
     </div>
 
+    <!-- Main Image -->
     <img
       src="<%= ogImage %>"
       alt="<%= safePost.title || 'Post Image' %>"
       class="article-image"
-      onerror="this.onerror=null;this.src='/voxaria-logo.png'">
+      onerror="this.onerror=null;this.src='<%= LOGO %>'">
 
+    <!-- AdSense after image -->
+    <div style="margin:20px 0;text-align:center;">
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-3628162691989275"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- AI Summary -->
     <% if (safePost.aiSummary) { %>
       <div class="ai-summary">
-        <h3>Quick Summary</h3>
+        <h3>⚡ Quick Summary</h3>
         <p><%= safePost.aiSummary %></p>
       </div>
     <% } %>
 
+    <!-- Content -->
     <div class="post-content">
       <%- safePost.content || '<p>No content available.</p>' %>
     </div>
 
-    <!-- SHARE BUTTONS -->
+    <!-- AdSense after content -->
+    <div style="margin:24px 0;text-align:center;">
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-3628162691989275"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- Share Buttons -->
     <div class="share-buttons">
       <h3>Share this article</h3>
-
-      <a class="share-btn whatsapp" target="_blank"
-        href="https://wa.me/?text=<%= encodeURIComponent((safePost.title || '') + '\n\n' + cleanDesc + '\n\n' + shareUrl) %>">
-        WhatsApp
-      </a>
-
-      <a class="share-btn facebook" target="_blank"
-        href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(shareUrl) %>">
-        Facebook
-      </a>
-
-      <a class="share-btn twitter" target="_blank"
-        href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(safePost.title || '') %>&url=<%= encodeURIComponent(shareUrl) %>">
-        X (Twitter)
-      </a>
-
-      <a class="share-btn linkedin" target="_blank"
-        href="https://www.linkedin.com/sharing/share-offsite/?url=<%= encodeURIComponent(shareUrl) %>">
-        LinkedIn
-      </a>
-
-      <button class="share-btn copy" onclick="copyLink()">Copy Link</button>
+      <div class="share-btns-row">
+        <a class="share-btn whatsapp" target="_blank"
+          href="https://wa.me/?text=<%= encodeURIComponent((safePost.title || '') + '\n\n' + cleanDesc + '\n\n' + shareUrl) %>">
+          📱 WhatsApp
+        </a>
+        <a class="share-btn facebook" target="_blank"
+          href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(shareUrl) %>">
+          👍 Facebook
+        </a>
+        <a class="share-btn twitter" target="_blank"
+          href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(safePost.title || '') %>&url=<%= encodeURIComponent(shareUrl) %>">
+          𝕏 Twitter
+        </a>
+        <a class="share-btn linkedin" target="_blank"
+          href="https://www.linkedin.com/sharing/share-offsite/?url=<%= encodeURIComponent(shareUrl) %>">
+          💼 LinkedIn
+        </a>
+        <button class="share-btn copy" onclick="copyLink()">🔗 Copy Link</button>
+      </div>
     </div>
 
   </article>
 
+  <!-- Related Posts -->
   <% if (safeRelatedPosts.length > 0) { %>
     <section class="related-posts">
-      <h2>Related Articles</h2>
+      <div class="section-header">
+        <h2>Related Articles</h2>
+      </div>
       <div class="related-grid">
         <% safeRelatedPosts.forEach(rp => { %>
           <div class="related-card">
             <img
-              src="<%= rp.mainImage || 'https://placehold.co/400x200?text=No+Image' %>"
+              src="<%= rp.mainImage || '/voxaria-logo.png' %>"
               alt="<%= rp.title %>"
               onerror="this.onerror=null;this.src='/voxaria-logo.png'">
             <h3>
@@ -150,22 +178,61 @@ const safeRelatedPosts = Array.isArray(relatedPosts) ? relatedPosts : [];
     </section>
   <% } %>
 
-</main>
+</div>
+
+<!-- FOOTER -->
+<footer class="bottom-links">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <h4>VOXARIA</h4>
+      <p>Nigeria's Voice to the World — Accurate, Fast, Trusted.</p>
+    </div>
+    <div class="footer-col">
+      <h4>News</h4>
+      <a href="/category/Politics">Politics</a>
+      <a href="/category/Security">Security</a>
+      <a href="/category/International">International</a>
+      <a href="/category/Sports">Sports</a>
+    </div>
+    <div class="footer-col">
+      <h4>More</h4>
+      <a href="/category/Technology">Technology</a>
+      <a href="/category/Health">Health</a>
+      <a href="/category/Finance">Finance</a>
+      <a href="/category/Entertainment">Entertainment</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="/about">About Us</a>
+      <a href="/contact">Contact</a>
+      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="https://wa.me/2349012567912">WhatsApp</a>
+      <a href="https://web.facebook.com/voxaria">Facebook</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 VOXARIA Media. All Rights Reserved.</span>
+    <span>
+      <a href="/privacy-policy">Privacy Policy</a> ·
+      <a href="/about">About</a> ·
+      <a href="/contact">Contact</a>
+    </span>
+  </div>
+</footer>
 
 <script>
 function copyLink() {
   const url = "<%= shareUrl %>";
   navigator.clipboard.writeText(url)
-    .then(() => alert("Link copied successfully"))
+    .then(() => alert("Link copied!"))
     .catch(() => alert("Unable to copy link"));
 }
 
-// PWA Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('Service worker registered:', reg.scope))
-      .catch(err => console.error('Service worker registration failed:', err));
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.error('SW failed:', e));
   });
 }
 
@@ -173,18 +240,12 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  const installBtn = document.getElementById('installAppBtn');
-  if (installBtn) installBtn.style.display = 'inline-block';
 });
 
 function installVoxariaApp() {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(() => {
-    deferredPrompt = null;
-    const installBtn = document.getElementById('installAppBtn');
-    if (installBtn) installBtn.style.display = 'none';
-  });
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
 }
 </script>
 
