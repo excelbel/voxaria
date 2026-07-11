@@ -69,17 +69,13 @@ router.get("/contact", (req, res) => res.render("contact", { currentPage: "Conta
 router.post("/contact", async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
-
     if (!name || !email || !message) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-
     await ContactMessage.create({ name, email, subject: subject || "", message });
-
     notifyAdminNewMessage(name, email, subject, message).catch(err =>
       console.error("Contact notification failed:", err.message)
     );
-
     res.status(200).json({ ok: true });
   } catch (err) {
     console.error("CONTACT ERROR:", err.message);
@@ -93,28 +89,21 @@ router.post("/contact", async (req, res) => {
 router.post("/subscribe", async (req, res) => {
   try {
     const { email, name } = req.body;
-
     if (!email || !email.includes("@")) {
       return res.status(400).json({ error: "Invalid email address" });
     }
-
     const existing = await EmailSubscriber.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(200).json({ message: "You are already subscribed!" });
     }
-
     await EmailSubscriber.create({ email: email.toLowerCase(), name: name || "" });
-
     sendWelcomeEmail(email, name).catch(err =>
       console.error("Welcome email failed:", err.message)
     );
-
     notifyAdminNewSubscriber(email, name).catch(err =>
       console.error("Admin notification failed:", err.message)
     );
-
     res.status(200).json({ message: "Successfully subscribed! Check your email." });
-
   } catch (err) {
     console.error("SUBSCRIBE ERROR:", err.message);
     res.status(500).json({ error: "Subscription failed. Please try again." });
@@ -159,6 +148,7 @@ router.get("/admin", requireAdmin, async (req, res) => {
 
 /* =========================
    CREATE POST
+   — uses .path for Cloudinary URL
 ========================= */
 router.post(
   "/admin/create",
@@ -175,21 +165,22 @@ router.post(
       const slug = title.toLowerCase().trim()
         .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-      // CORRECT
-const thumbnail = req.files?.thumbnailFile
-  ? req.files.thumbnailFile[0].path
-  : req.body.thumbnail || "";
+      // Cloudinary returns full URL in .path
+      const thumbnail = req.files?.thumbnailFile
+        ? req.files.thumbnailFile[0].path
+        : req.body.thumbnail || "";
 
-const mainImage = req.files?.mainImageFile
-  ? req.files.mainImageFile[0].path
-  : req.body.mainImage || "";
+      const mainImage = req.files?.mainImageFile
+        ? req.files.mainImageFile[0].path
+        : req.body.mainImage || "";
 
       await Post.create({
         title, slug,
         content:    req.body.content  || "",
         category:   req.body.category || "News",
         author:     req.body.author   || "Admin",
-        thumbnail, mainImage,
+        thumbnail,
+        mainImage,
         isBreaking: req.body.isBreaking === "on",
         published:  false
       });
@@ -219,6 +210,7 @@ router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
 
 /* =========================
    UPDATE POST
+   — uses .path for Cloudinary URL
 ========================= */
 router.post(
   "/admin/edit/:id",
@@ -243,14 +235,15 @@ router.post(
       post.content    = req.body.content;
       post.isBreaking = req.body.isBreaking === "on";
 
-      // CORRECT — Cloudinary returns full URL in .path
-post.thumbnail = req.files?.thumbnailFile
-  ? req.files.thumbnailFile[0].path
-  : req.body.thumbnail || post.thumbnail;
+      // Cloudinary returns full URL in .path
+      post.thumbnail = req.files?.thumbnailFile
+        ? req.files.thumbnailFile[0].path
+        : req.body.thumbnail || post.thumbnail;
 
-post.mainImage = req.files?.mainImageFile
-  ? req.files.mainImageFile[0].path
-  : req.body.mainImage || post.mainImage;
+      post.mainImage = req.files?.mainImageFile
+        ? req.files.mainImageFile[0].path
+        : req.body.mainImage || post.mainImage;
+
       await post.save();
       res.redirect("/admin");
     } catch (err) {
@@ -300,7 +293,7 @@ router.get("/admin/delete/:id", requireAdmin, async (req, res) => {
 });
 
 /* =========================
-   NEWSLETTER
+   SEND NEWSLETTER
 ========================= */
 router.post("/admin/newsletter/:id", requireAdmin, async (req, res) => {
   try {

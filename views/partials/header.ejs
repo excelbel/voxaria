@@ -1,233 +1,410 @@
+cat > /mnt/user-data/outputs/header.ejs << 'EOF'
 <header class="site-header">
-  <div class="top-bar">
 
-    <!-- LOGO -->
+  <!-- TOP BAR -->
+  <div class="top-bar">
     <a href="/" class="logo-text">
-      <img src="/voxaria-logo.png" alt="VOXARIA" style="height:45px;vertical-align:middle;margin-right:8px;"
+      <img src="/voxaria-logo.png" alt="VOXARIA"
         onerror="this.onerror=null;this.style.display='none'">
       VOXARIA
     </a>
 
-    <!-- SEARCH -->
     <form action="/search" method="GET" class="search-form">
-      <input type="text" name="q" placeholder="Search articles..." required>
+      <input type="text" name="q" placeholder="Search news...">
       <button type="submit">🔍</button>
     </form>
 
-    <!-- HAMBURGER -->
     <div class="hamburger-menu" onclick="toggleNav()" aria-label="Toggle menu">☰</div>
-
   </div>
 
-  <!-- NAVIGATION -->
+  <!-- MAIN NAV -->
   <nav class="main-nav" id="mainNav">
-    <ul>
-      <li class="<%= currentPage === 'Home' ? 'active' : '' %>"><a href="/">Home</a></li>
-      <li class="<%= currentPage === 'News' ? 'active' : '' %>"><a href="/category/News">News</a></li>
-      <li class="<%= currentPage === 'Articles' ? 'active' : '' %>"><a href="/category/Article">Articles</a></li>
-      <li class="<%= currentPage === 'Entertainment' ? 'active' : '' %>"><a href="/category/Entertainment">Entertainment</a></li>
-      <li class="<%= currentPage === 'International' ? 'active' : '' %>"><a href="/category/International">International</a></li>
-      <li class="<%= currentPage === 'Politics' ? 'active' : '' %>"><a href="/category/Politics">Politics</a></li>
-      <li class="<%= currentPage === 'Security' ? 'active' : '' %>"><a href="/category/Security">Security</a></li>
-      <li class="<%= currentPage === 'Sports' ? 'active' : '' %>"><a href="/category/Sports">Sports</a></li>
-      <li class="<%= currentPage === 'Journals' ? 'active' : '' %>"><a href="/category/Journals">Journals</a></li>
-      <li class="<%= currentPage === 'About' ? 'active' : '' %>"><a href="/about">About</a></li>
-      <li class="<%= currentPage === 'Contact' ? 'active' : '' %>"><a href="/contact">Contact</a></li>
+    <ul class="nav-list">
+
+      <li class="nav-item <%= currentPage === 'Home' ? 'active' : '' %>">
+        <a href="/">Home</a>
+      </li>
+
+      <!-- NEWS DROPDOWN -->
+      <li class="nav-item has-dropdown <%= ['News','Politics','Security','International','Article'].includes(currentPage) ? 'active' : '' %>">
+        <a href="/category/News" class="dropdown-toggle">
+          News <span class="arrow">▾</span>
+        </a>
+        <ul class="dropdown">
+          <li><a href="/category/News">📰 Latest News</a></li>
+          <li><a href="/category/Politics">🏛️ Politics</a></li>
+          <li><a href="/category/Security">🛡️ Security</a></li>
+          <li><a href="/category/International">🌍 International</a></li>
+          <li><a href="/category/Article">✍️ Articles</a></li>
+        </ul>
+      </li>
+
+      <!-- SPORTS DROPDOWN -->
+      <li class="nav-item has-dropdown <%= currentPage === 'Sports' ? 'active' : '' %>">
+        <a href="/category/Sports" class="dropdown-toggle">
+          Sports <span class="arrow">▾</span>
+        </a>
+        <ul class="dropdown">
+          <li><a href="/category/Sports">⚽ All Sports</a></li>
+          <li><a href="/category/Football">🥅 Football</a></li>
+          <li><a href="/category/Basketball">🏀 Basketball</a></li>
+          <li><a href="/category/Athletics">🏃 Athletics</a></li>
+        </ul>
+      </li>
+
+      <!-- ENTERTAINMENT DROPDOWN -->
+      <li class="nav-item has-dropdown <%= currentPage === 'Entertainment' ? 'active' : '' %>">
+        <a href="/category/Entertainment" class="dropdown-toggle">
+          Entertainment <span class="arrow">▾</span>
+        </a>
+        <ul class="dropdown">
+          <li><a href="/category/Entertainment">🎬 All Entertainment</a></li>
+          <li><a href="/category/Lifestyle">💃 Lifestyle</a></li>
+          <li><a href="/category/Music">🎵 Music</a></li>
+          <li><a href="/category/Movies">🎥 Movies</a></li>
+        </ul>
+      </li>
+
+      <!-- TECHNOLOGY DROPDOWN -->
+      <li class="nav-item has-dropdown <%= currentPage === 'Technology' ? 'active' : '' %>">
+        <a href="/category/Technology" class="dropdown-toggle">
+          Technology <span class="arrow">▾</span>
+        </a>
+        <ul class="dropdown">
+          <li><a href="/category/Technology">💻 All Tech</a></li>
+          <li><a href="/category/Science">🔬 Science</a></li>
+          <li><a href="/category/AI">🤖 AI & Innovation</a></li>
+        </ul>
+      </li>
+
+      <!-- BUSINESS DROPDOWN -->
+      <li class="nav-item has-dropdown <%= currentPage === 'Finance' ? 'active' : '' %>">
+        <a href="/category/Finance" class="dropdown-toggle">
+          Business <span class="arrow">▾</span>
+        </a>
+        <ul class="dropdown">
+          <li><a href="/category/Finance">💰 Finance</a></li>
+          <li><a href="/category/Economy">📈 Economy</a></li>
+          <li><a href="/category/Markets">📊 Markets</a></li>
+        </ul>
+      </li>
+
+      <!-- HEALTH -->
+      <li class="nav-item has-dropdown <%= currentPage === 'Health' ? 'active' : '' %>">
+        <a href="/category/Health" class="dropdown-toggle">
+          Health <span class="arrow">▾</span>
+        </a>
+        <ul class="dropdown">
+          <li><a href="/category/Health">❤️ Health Tips</a></li>
+          <li><a href="/category/Journals">📖 Journals</a></li>
+          <li><a href="/category/Wellness">🧘 Wellness</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item <%= currentPage === 'About' ? 'active' : '' %>">
+        <a href="/about">About</a>
+      </li>
+
+      <li class="nav-item <%= currentPage === 'Contact' ? 'active' : '' %>">
+        <a href="/contact">Contact</a>
+      </li>
+
     </ul>
   </nav>
+
 </header>
 
 <style>
-/* ── Header ── */
+/* ── Site Header ── */
 .site-header {
-  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  background: linear-gradient(90deg, #0a0f1e, #111827, #0a0f1e);
   color: #fff;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 2000;
   width: 100%;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.4);
 }
 
+/* ── Top Bar ── */
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 40px;
   gap: 16px;
-  flex-wrap: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .logo-text {
-  font-size: 1.6rem;
-  color: #ffd700;
-  font-weight: bold;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
-  white-space: nowrap;
   display: flex;
   align-items: center;
+  gap: 10px;
+  font-size: 1.7rem;
+  color: #ffd700;
+  font-weight: 900;
   text-decoration: none;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-shadow: 0 0 20px rgba(255,215,0,0.3);
+}
+
+.logo-text img {
+  height: 42px;
+  width: auto;
 }
 
 /* ── Search ── */
 .search-form {
   display: flex;
-  gap: 6px;
+  gap: 0;
   flex: 1;
-  max-width: 320px;
+  max-width: 340px;
 }
 
 .search-form input {
   flex: 1;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 20px;
+  padding: 9px 16px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-right: none;
+  border-radius: 25px 0 0 25px;
   font-size: 14px;
-  outline: none;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
   color: #fff;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
   width: auto;
-  margin-bottom: 0;
+  margin: 0;
 }
 
-.search-form input::placeholder { color: rgba(255,255,255,0.6); }
-
+.search-form input::placeholder { color: rgba(255,255,255,0.4); }
 .search-form input:focus {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.14);
+  border-color: #ffd700;
 }
 
 .search-form button {
+  padding: 9px 18px;
   background: #ffd700;
   color: #111;
   border: none;
-  padding: 8px 14px;
-  border-radius: 20px;
+  border-radius: 0 25px 25px 0;
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  box-shadow: none;
   transition: background 0.2s;
+  box-shadow: none;
 }
 
-.search-form button:hover { background: #ffb347; }
-
-/* ── Nav ── */
-.main-nav {
-  background: rgba(0,0,0,0.35);
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-.main-nav ul {
-  display: flex;
-  gap: 0;
-  list-style: none;
-  padding: 0 30px;
-  margin: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.main-nav ul::-webkit-scrollbar { display: none; }
-
-.main-nav li {
-  flex-shrink: 0;
-}
-
-.main-nav li a {
-  display: block;
-  padding: 12px 16px;
-  color: rgba(255,255,255,0.85);
-  font-size: 0.88rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s, background 0.2s;
-  white-space: nowrap;
-  border-bottom: 3px solid transparent;
-}
-
-.main-nav li a:hover {
-  color: #ffd700;
-  border-bottom-color: #ffd700;
-}
-
-.main-nav li.active a {
-  color: #ffd700;
-  font-weight: bold;
-  border-bottom-color: #ffd700;
-}
+.search-form button:hover { background: #f0c800; }
 
 /* ── Hamburger ── */
 .hamburger-menu {
   display: none;
-  cursor: pointer;
   font-size: 26px;
   color: #fff;
+  cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
-  transition: background 0.2s;
   user-select: none;
+  transition: background 0.2s;
 }
-
 .hamburger-menu:hover { background: rgba(255,255,255,0.1); }
 
+/* ── Nav Bar ── */
+.main-nav {
+  background: rgba(0,0,0,0.25);
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0 30px;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-list::-webkit-scrollbar { display: none; }
+
+/* ── Nav Items ── */
+.nav-item {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nav-item > a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 13px 16px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.nav-item > a:hover {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+  background: rgba(255,215,0,0.06);
+}
+
+.nav-item.active > a {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+  font-weight: 700;
+}
+
+.arrow {
+  font-size: 10px;
+  opacity: 0.7;
+  transition: transform 0.2s;
+}
+
+/* ── Dropdown ── */
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #111827;
+  min-width: 200px;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid #ffd700;
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  z-index: 3000;
+  animation: fadeDown 0.15s ease;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown li a {
+  display: block;
+  padding: 10px 18px;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.dropdown li a:hover {
+  background: rgba(255,215,0,0.1);
+  color: #ffd700;
+  padding-left: 24px;
+}
+
+.has-dropdown:hover .dropdown {
+  display: block;
+}
+
+.has-dropdown:hover .arrow {
+  transform: rotate(180deg);
+}
+
 /* ── Mobile ── */
-@media (max-width: 768px) {
-  .top-bar {
-    padding: 12px 16px;
-  }
-
-  .hamburger-menu {
-    display: block;
-  }
-
-  .search-form {
-    max-width: 160px;
-  }
+@media (max-width: 900px) {
+  .top-bar { padding: 12px 16px; }
+  .hamburger-menu { display: block; }
+  .search-form { max-width: 180px; }
 
   .main-nav {
     display: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
+  .main-nav.open { display: block; }
 
-  .main-nav.open {
-    display: block;
-  }
-
-  .main-nav ul {
+  .nav-list {
     flex-direction: column;
-    padding: 10px 0;
+    padding: 0;
     overflow-x: unset;
   }
 
-  .main-nav li a {
-    padding: 12px 20px;
+  .nav-item > a {
+    padding: 13px 20px;
     border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-left: 3px solid transparent;
     font-size: 0.95rem;
   }
 
-  .main-nav li a:hover {
-    background: rgba(255,255,255,0.08);
+  .nav-item.active > a {
+    border-left-color: #ffd700;
     border-bottom-color: transparent;
+    background: rgba(255,215,0,0.06);
   }
 
-  .main-nav li.active a {
-    background: rgba(255,215,0,0.1);
+  .nav-item > a:hover {
     border-bottom-color: transparent;
+    border-left-color: #ffd700;
   }
+
+  /* Mobile dropdowns */
+  .dropdown {
+    display: none;
+    position: static;
+    background: rgba(0,0,0,0.25);
+    border: none;
+    border-top: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    animation: none;
+  }
+
+  .has-dropdown.open .dropdown { display: block; }
+
+  .dropdown li a {
+    padding: 10px 20px 10px 36px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.88rem;
+  }
+
+  .dropdown li a:hover {
+    padding-left: 40px;
+  }
+
+  .dropdown-toggle { cursor: pointer; }
 }
 </style>
 
 <script>
+/* Toggle main nav on mobile */
 function toggleNav() {
-  const nav = document.getElementById('mainNav');
-  nav.classList.toggle('open');
+  document.getElementById('mainNav').classList.toggle('open');
 }
 
-// Close nav when a link is clicked on mobile
-document.querySelectorAll('.main-nav a').forEach(link => {
-  link.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      document.getElementById('mainNav').classList.remove('open');
-    }
+/* Mobile dropdown toggle */
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.innerWidth <= 900) {
+    document.querySelectorAll('.has-dropdown .dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        const parent = this.closest('.has-dropdown');
+        parent.classList.toggle('open');
+      });
+    });
+  }
+
+  /* Close nav on link click (mobile) */
+  document.querySelectorAll('.nav-list a:not(.dropdown-toggle)').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 900) {
+        document.getElementById('mainNav').classList.remove('open');
+      }
+    });
   });
 });
 </script>
