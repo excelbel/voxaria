@@ -536,6 +536,23 @@ button {
   color: #1f2937;
 }
 
+/* ── Drop Cap — First letter of article ── */
+.post-content > p:first-of-type::first-letter {
+  float: left;
+  font-size: 4.2rem;
+  font-weight: 900;
+  line-height: 0.75;
+  margin: 6px 10px 0 0;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #0a0f1e, #2563eb);
+  color: #ffd700;
+  border-radius: 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 1px 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+  letter-spacing: -1px;
+}
+
 .post-content p { margin-bottom: 20px; }
 
 .post-content img {
@@ -795,4 +812,3 @@ button {
   .banner-row { flex-direction: column; align-items: stretch; }
   .banner-row input { min-width: unset; max-width: unset; }
 }
-
