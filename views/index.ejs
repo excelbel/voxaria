@@ -6,29 +6,654 @@
   <title>VOXARIA — Nigeria's Voice to the World</title>
   <meta name="description" content="Latest breaking news from Nigeria and around the world — politics, sports, entertainment, technology, health and more.">
 
-  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL7FKPRF2W"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
+    window.dataLayer=window.dataLayer||[];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-LL7FKPRF2W');
+    gtag('js',new Date());
+    gtag('config','G-LL7FKPRF2W');
   </script>
-
-  <!-- AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3628162691989275" crossorigin="anonymous"></script>
 
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0a0f1e">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="VOXARIA">
   <meta name="mobile-web-app-capable" content="yes">
 
   <link rel="stylesheet" href="/style.css">
+
+  <style>
+  /* ── Live Badge ── */
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    background: #fff;
+    border-radius: 50%;
+    animation: livePulse 1s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes livePulse {
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:0.4;transform:scale(1.3);}
+  }
+
+  /* ── Date Bar ── */
+  .date-bar {
+    background: #0a0f1e;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.78rem;
+    padding: 6px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .date-bar a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .date-bar a:hover { text-decoration: underline; }
+
+  /* ── Key Headlines Section ── */
+  .headlines-section {
+    background: #fff;
+    border-bottom: 3px solid #f0f2f5;
+    padding: 0;
+  }
+  .headlines-inner {
+    max-width: 1300px;
+    margin: auto;
+    padding: 0 20px;
+  }
+  .headlines-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0 12px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .headlines-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #111;
+    margin: 0;
+  }
+  .headlines-date {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-left: auto;
+  }
+  .headlines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0;
+    padding: 8px 0;
+  }
+  .headline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px 10px 0;
+    border-right: 1px solid #f3f4f6;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .headline-item:last-child { border-right: none; }
+  .headline-num {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #e5e7eb;
+    line-height: 1;
+    flex-shrink: 0;
+    min-width: 28px;
+  }
+  .headline-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #111;
+  }
+  .headline-text a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .headline-text a:hover { color: #2563eb; }
+  .headline-cat {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #dc2626;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  /* ── Hero Grid ── */
+  .hero-featured {
+    max-width: 1300px;
+    margin: 24px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 14px;
+  }
+  .hero-card {
+    grid-row: 1 / 3;
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #111;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.18);
+    transition: transform 0.3s;
+  }
+  .hero-card:hover { transform: translateY(-3px); }
+  .hero-card img {
+    width: 100%;
+    height: 440px;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform 0.5s;
+  }
+  .hero-card:hover img { transform: scale(1.03); }
+  .featured-card {
+    position: relative;
+    border-radius: 11px;
+    overflow: hidden;
+    background: #111;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transition: transform 0.3s;
+  }
+  .featured-card:hover { transform: translateY(-3px); }
+  .featured-card img {
+    width: 100%;
+    height: 205px;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform 0.4s;
+  }
+  .featured-card:hover img { transform: scale(1.04); }
+  .overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 16px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+    color: #fff;
+  }
+  .hero-card .overlay { padding: 32px 22px 22px; }
+  .overlay-cat {
+    display: inline-block;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .overlay h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.3;
+    margin: 0;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  }
+  .overlay h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0;
+  }
+  .overlay-meta {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 6px;
+  }
+
+  /* ── Main Layout ── */
+  .container-main {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px 50px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 30px;
+    align-items: start;
+  }
+
+  /* ── Section Header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  .section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header-left::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: #dc2626;
+    border-radius: 2px;
+  }
+  .section-header h2 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #111;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .section-header a {
+    font-size: 0.78rem;
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .section-header a:hover { text-decoration: underline; }
+
+  /* ── Post Cards ── */
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.25s, box-shadow 0.25s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.11);
+  }
+  .card-img-wrap { position: relative; overflow: hidden; }
+  .card img {
+    width: 100%;
+    height: 185px;
+    object-fit: cover;
+    object-position: center top;
+    background: #e5e7eb;
+    transition: transform 0.4s;
+  }
+  .card:hover img { transform: scale(1.04); }
+  .card-live-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+  }
+  .card-body {
+    padding: 14px 16px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-category {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #dc2626;
+    margin-bottom: 6px;
+  }
+  .card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.45;
+    color: #111;
+    margin: 0 0 10px;
+    flex: 1;
+  }
+  .card h3 a { color: inherit; transition: color 0.2s; }
+  .card h3 a:hover { color: #2563eb; }
+  .card-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    margin-top: auto;
+    flex-wrap: wrap;
+  }
+
+  /* ── Ad Slot ── */
+  .ad-slot {
+    margin: 20px 0;
+    text-align: center;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px dashed #e5e7eb;
+  }
+  .ad-slot-label {
+    font-size: 0.65rem;
+    color: #d1d5db;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  /* ── Newsletter Banner ── */
+  .newsletter-banner {
+    background: linear-gradient(135deg, #0a0f1e 0%, #1e3a8a 50%, #0a0f1e 100%);
+    border-radius: 14px;
+    padding: 32px 28px;
+    margin: 24px 0;
+    grid-column: 1 / -1;
+    position: relative;
+    overflow: hidden;
+  }
+  .newsletter-banner::before {
+    content: '📰';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 5rem;
+    opacity: 0.06;
+  }
+  .newsletter-banner h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 6px;
+  }
+  .newsletter-banner p { color: rgba(255,255,255,0.75); margin: 0 0 18px; font-size: 0.95rem; }
+  .banner-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .banner-row input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: rgba(255,255,255,0.95);
+  }
+  .banner-row button {
+    padding: 12px 24px;
+    background: #ffd700;
+    color: #111;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .banner-row button:hover { background: #f0c800; }
+  .banner-msg { color: #86efac; font-size: 13px; font-weight: 700; margin-top: 10px; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: sticky;
+    top: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .widget {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .widget-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #111;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .widget-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: #dc2626;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .widget ul { list-style: none; padding: 0; margin: 0; }
+  .widget ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .widget ul li:last-child { border-bottom: none; padding-bottom: 0; }
+  .widget-num {
+    font-size: 1rem;
+    font-weight: 900;
+    color: #e5e7eb;
+    line-height: 1.2;
+    flex-shrink: 0;
+    min-width: 20px;
+  }
+  .widget ul li a {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+  .widget ul li a:hover { color: #2563eb; }
+
+  /* ── Newsletter Widget ── */
+  .newsletter-widget {
+    background: linear-gradient(135deg, #0a0f1e, #1e3a8a);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    color: #fff;
+  }
+  .newsletter-widget h3 { font-size: 1rem; font-weight: 800; margin: 0 0 6px; }
+  .newsletter-widget p { font-size: 0.82rem; opacity: 0.8; margin: 0 0 12px; }
+  .newsletter-widget input {
+    width: 100%;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+    outline: none;
+  }
+  .newsletter-widget button {
+    width: 100%;
+    padding: 10px;
+    background: #ffd700;
+    color: #111;
+    border: none;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .newsletter-widget button:hover { background: #f0c800; }
+  .newsletter-msg { margin-top: 8px; font-size: 12px; font-weight: 700; }
+
+  /* ── Category Pills ── */
+  .category-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .pill {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .pill:hover {
+    background: #0a0f1e;
+    color: #ffd700;
+    border-color: #0a0f1e;
+  }
+
+  /* ── Footer ── */
+  .bottom-links {
+    background: #0a0f1e;
+    color: #fff;
+    padding: 48px 20px 24px;
+    margin-top: auto;
+  }
+  .footer-inner {
+    max-width: 1300px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1.5fr repeat(3, 1fr);
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+  .footer-brand .logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffd700;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .footer-brand p {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+    margin: 0 0 14px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.2s;
+  }
+  .footer-social-btn:hover { background: rgba(255,215,0,0.2); }
+  .footer-col h4 {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffd700;
+    margin: 0 0 14px;
+  }
+  .footer-col a {
+    display: block;
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+  .footer-col a:hover { color: #ffd700; }
+  .footer-bottom {
+    max-width: 1300px;
+    margin: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.35);
+  }
+  .footer-bottom a { color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
+  .footer-bottom a:hover { color: #ffd700; }
+
+  /* ── Responsive ── */
+  @media(max-width:1024px) {
+    .hero-featured { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .hero-card { grid-row: auto; }
+    .hero-card img { height: 300px; }
+    .featured-card img { height: 180px; }
+    .container-main { grid-template-columns: 1fr; }
+    .sidebar { position: static; display: grid; grid-template-columns: repeat(2,1fr); }
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media(max-width:768px) {
+    .date-bar { padding: 6px 16px; }
+    .hero-featured { padding: 0 14px; margin: 14px auto; gap: 10px; }
+    .hero-card img { height: 220px; }
+    .featured-card img { height: 150px; }
+    .container-main { padding: 0 14px 30px; }
+    .posts-grid { grid-template-columns: 1fr; }
+    .sidebar { grid-template-columns: 1fr; }
+    .headlines-grid { grid-template-columns: 1fr 1fr; }
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+  }
+
+  @media(max-width:480px) {
+    .hero-card img { height: 190px; }
+    .overlay h2 { font-size: 1rem; }
+    .headlines-grid { grid-template-columns: 1fr; }
+    .footer-inner { grid-template-columns: 1fr; }
+    .banner-row { flex-direction: column; }
+  }
+  </style>
 </head>
 <body>
 
@@ -52,20 +677,65 @@ function timeAgo(date) {
   if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
   return Math.floor(diff/86400) + 'd ago';
 }
+
+const now = new Date();
+const isRecent = (date) => (Date.now() - new Date(date)) < 2 * 60 * 60 * 1000;
+
+const dateStr = now.toLocaleDateString('en-NG', {
+  weekday:'long', year:'numeric', month:'long', day:'numeric'
+});
+
+const todayPosts = safePosts.filter(p => {
+  const d = new Date(p.createdAt);
+  return d.toDateString() === now.toDateString();
+}).slice(0, 8);
 %>
 
-<!-- BREAKING NEWS -->
+<!-- DATE BAR -->
+<div class="date-bar">
+  <span>📅 <%= dateStr %></span>
+  <div style="display:flex;gap:16px;align-items:center;">
+    <span class="live-badge"><span class="live-dot"></span>Live</span>
+    <a href="/admin">Admin ›</a>
+  </div>
+</div>
+
+<!-- BREAKING NEWS TICKER -->
 <% if (safeBreakingNews.length > 0) { %>
 <div class="breaking-news">
-  <span class="breaking-label">BREAKING</span>
+  <span class="breaking-label">🔴 Breaking</span>
   <div class="ticker-wrapper">
     <div class="ticker-track">
       <% safeBreakingNews.forEach(bn => { %>
-        <a href="/news/<%= bn.slug || bn._id %>">🔴 <%= bn.title %></a>
+        <a href="/news/<%= bn.slug || bn._id %>"><%= bn.title %></a>
       <% }) %>
     </div>
   </div>
 </div>
+<% } %>
+
+<!-- DAILY KEY HEADLINES -->
+<% if (todayPosts.length > 0) { %>
+<section class="headlines-section">
+  <div class="headlines-inner">
+    <div class="headlines-header">
+      <span class="live-badge"><span class="live-dot"></span>Live</span>
+      <h2 class="headlines-title">Today's Key Headlines</h2>
+      <span class="headlines-date"><%= dateStr %></span>
+    </div>
+    <div class="headlines-grid">
+      <% todayPosts.forEach((post, i) => { %>
+      <div class="headline-item">
+        <span class="headline-num">0<%= i+1 %></span>
+        <div class="headline-text">
+          <span class="headline-cat"><%= post.category || 'News' %></span>
+          <a href="/news/<%= post.slug %>"><%= post.title %></a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
 <% } %>
 
 <!-- HERO SECTION -->
@@ -79,10 +749,16 @@ function timeAgo(date) {
         alt="<%= safeFeaturedPost.title %>"
         onerror="this.onerror=null;this.src='<%= LOGO %>'">
       <div class="overlay">
-        <% if (safeFeaturedPost.category) { %>
-          <span style="display:inline-block;background:#dc2626;color:#fff;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border-radius:3px;margin-bottom:8px;"><%= safeFeaturedPost.category %></span>
+        <% if(isRecent(safeFeaturedPost.createdAt)){ %>
+          <span class="live-badge" style="margin-bottom:8px;display:inline-flex;"><span class="live-dot"></span>Live</span>
+        <% } %>
+        <% if(safeFeaturedPost.category){ %>
+          <span class="overlay-cat"><%= safeFeaturedPost.category %></span>
         <% } %>
         <h2><%= safeFeaturedPost.title %></h2>
+        <div class="overlay-meta">
+          <%= safeFeaturedPost.author || 'VOXARIA' %> · <%= timeAgo(safeFeaturedPost.createdAt) %>
+        </div>
       </div>
     </a>
   </div>
@@ -96,6 +772,7 @@ function timeAgo(date) {
         alt="<%= fg.title %>"
         onerror="this.onerror=null;this.src='<%= LOGO %>'">
       <div class="overlay">
+        <% if(fg.category){ %><span class="overlay-cat"><%= fg.category %></span><% } %>
         <h3><%= fg.title %></h3>
       </div>
     </a>
@@ -104,37 +781,67 @@ function timeAgo(date) {
 
 </div>
 
-<!-- ADSENSE TOP -->
-<div style="max-width:1300px;margin:0 auto 20px;padding:0 20px;text-align:center;">
-  <ins class="adsbygoogle"
-    style="display:block"
-    data-ad-client="ca-pub-3628162691989275"
-    data-ad-slot="auto"
-    data-ad-format="auto"
-    data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+<!-- TOP ADSENSE -->
+<div style="max-width:1300px;margin:0 auto 20px;padding:0 20px;">
+  <div class="ad-slot">
+    <div class="ad-slot-label">Advertisement</div>
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-3628162691989275"
+      data-ad-slot="auto"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
+</div>
+
+<!-- CATEGORY PILLS -->
+<div style="max-width:1300px;margin:0 auto;padding:0 20px 16px;">
+  <div class="category-pills">
+    <a class="pill" href="/category/News">📰 News</a>
+    <a class="pill" href="/category/Politics">🏛️ Politics</a>
+    <a class="pill" href="/category/Sports">⚽ Sports</a>
+    <a class="pill" href="/category/Football">🥅 Football</a>
+    <a class="pill" href="/category/Entertainment">🎬 Entertainment</a>
+    <a class="pill" href="/category/Technology">💻 Technology</a>
+    <a class="pill" href="/category/Health">❤️ Health</a>
+    <a class="pill" href="/category/Finance">💰 Finance</a>
+    <a class="pill" href="/category/International">🌍 International</a>
+    <a class="pill" href="/category/Science">🔬 Science</a>
+    <a class="pill" href="/category/Lifestyle">💃 Lifestyle</a>
+  </div>
 </div>
 
 <!-- MAIN CONTENT -->
 <div class="container-main">
 
-  <!-- LATEST POSTS -->
+  <!-- POSTS -->
   <section class="latest-posts">
 
     <div class="section-header">
-      <h2>Latest Stories</h2>
+      <div class="section-header-left">
+        <h2>Latest Stories</h2>
+      </div>
+      <a href="/category/News">View all →</a>
     </div>
 
     <div class="posts-grid">
       <% safePosts.forEach((post, index) => { %>
 
         <div class="card">
-          <a href="/news/<%= post.slug %>">
-            <img
-              src="<%= post.mainImage || LOGO %>"
-              alt="<%= post.title %>"
-              onerror="this.onerror=null;this.src='<%= LOGO %>'">
-          </a>
+          <div class="card-img-wrap">
+            <a href="/news/<%= post.slug %>">
+              <img
+                src="<%= post.mainImage || LOGO %>"
+                alt="<%= post.title %>"
+                onerror="this.onerror=null;this.src='<%= LOGO %>'">
+            </a>
+            <% if(isRecent(post.createdAt)){ %>
+              <div class="card-live-badge">
+                <span class="live-badge"><span class="live-dot"></span>Live</span>
+              </div>
+            <% } %>
+          </div>
           <div class="card-body">
             <span class="card-category"><%= post.category || 'News' %></span>
             <h3><a href="/news/<%= post.slug %>"><%= post.title %></a></h3>
@@ -149,8 +856,8 @@ function timeAgo(date) {
         <!-- Newsletter banner after 6th post -->
         <% if (index === 5) { %>
         <div class="newsletter-banner" style="grid-column:1/-1;">
-          <h2>📬 Stay Informed</h2>
-          <p>Get breaking news from Nigeria and the world delivered to your inbox.</p>
+          <h2>📬 Never Miss a Story</h2>
+          <p>Join thousands of readers getting the latest Nigerian and world news in their inbox daily.</p>
           <div class="banner-row">
             <input type="email" id="bannerEmail" placeholder="Enter your email address">
             <button onclick="subscribeBanner()">Subscribe Free →</button>
@@ -159,24 +866,28 @@ function timeAgo(date) {
         </div>
         <% } %>
 
-        <!-- AdSense after every 10 posts -->
+        <!-- AdSense every 10 posts -->
         <% if ((index + 1) % 10 === 0) { %>
-        <div style="grid-column:1/-1;text-align:center;">
-          <ins class="adsbygoogle"
-            style="display:block"
-            data-ad-client="ca-pub-3628162691989275"
-            data-ad-slot="auto"
-            data-ad-format="auto"
-            data-full-width-responsive="true"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        <div style="grid-column:1/-1;">
+          <div class="ad-slot">
+            <div class="ad-slot-label">Advertisement</div>
+            <ins class="adsbygoogle"
+              style="display:block"
+              data-ad-client="ca-pub-3628162691989275"
+              data-ad-slot="auto"
+              data-ad-format="auto"
+              data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+          </div>
         </div>
         <% } %>
 
       <% }) %>
 
       <% if (safePosts.length === 0) { %>
-        <div style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;">
-          <p>No posts available yet. Check back soon!</p>
+        <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#9ca3af;">
+          <div style="font-size:3rem;margin-bottom:12px;">📰</div>
+          <p style="font-size:1.1rem;font-weight:600;">No stories yet. Check back soon!</p>
         </div>
       <% } %>
     </div>
@@ -187,53 +898,54 @@ function timeAgo(date) {
   <aside class="sidebar">
 
     <!-- Install App -->
-    <div style="text-align:center;">
-      <button id="installAppBtn" onclick="installVoxariaApp()"
-        style="display:none;width:100%;background:#0a0f1e;color:#ffd700;border:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">
-        📲 Install VOXARIA App
-      </button>
-    </div>
+    <button id="installAppBtn" onclick="installVoxariaApp()"
+      style="display:none;width:100%;background:#0a0f1e;color:#ffd700;border:none;padding:13px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;letter-spacing:0.3px;">
+      📲 Install VOXARIA App
+    </button>
 
     <!-- Newsletter Widget -->
     <div class="newsletter-widget">
       <h3>📬 Daily Newsletter</h3>
-      <p>Top stories delivered to your inbox every day.</p>
+      <p>Top stories delivered to your inbox every morning.</p>
       <input type="text" id="subName" placeholder="Your name (optional)">
       <input type="email" id="subEmail" placeholder="Your email address">
       <button onclick="subscribeWidget()">Subscribe Free →</button>
       <div id="widgetMsg" class="newsletter-msg"></div>
     </div>
 
-    <!-- Recent Posts -->
-    <div class="widget">
-      <h3 class="widget-title">Recent Posts</h3>
-      <ul>
-        <% safeRecentPosts.forEach(rp => { %>
-          <li>
-            <a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a>
-          </li>
-        <% }) %>
-      </ul>
-    </div>
-
-    <!-- AdSense sidebar -->
-    <div style="text-align:center;">
+    <!-- AdSense -->
+    <div class="ad-slot">
+      <div class="ad-slot-label">Advertisement</div>
       <ins class="adsbygoogle"
         style="display:block"
         data-ad-client="ca-pub-3628162691989275"
         data-ad-slot="auto"
         data-ad-format="auto"
         data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
     </div>
 
     <!-- Trending -->
     <div class="widget">
-      <h3 class="widget-title">🔥 Trending</h3>
+      <h3 class="widget-title">🔥 Trending Now</h3>
       <ul>
-        <% safeTrendingPosts.forEach(tp => { %>
+        <% safeTrendingPosts.forEach((tp, i) => { %>
           <li>
+            <span class="widget-num">0<%= i+1 %></span>
             <a href="/news/<%= tp.slug || tp._id %>"><%= tp.title %></a>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <!-- Recent -->
+    <div class="widget">
+      <h3 class="widget-title">🕐 Most Recent</h3>
+      <ul>
+        <% safeRecentPosts.forEach((rp, i) => { %>
+          <li>
+            <span class="widget-num">0<%= i+1 %></span>
+            <a href="/news/<%= rp.slug || rp._id %>"><%= rp.title %></a>
           </li>
         <% }) %>
       </ul>
@@ -242,17 +954,29 @@ function timeAgo(date) {
     <!-- Featured -->
     <% if (safeRandomPost) { %>
     <div class="widget">
-      <h3 class="widget-title">⭐ Featured</h3>
+      <h3 class="widget-title">⭐ Editor's Pick</h3>
       <a href="/news/<%= safeRandomPost.slug || safeRandomPost._id %>">
         <img
           src="<%= safeRandomPost.mainImage || LOGO %>"
           alt="<%= safeRandomPost.title %>"
           onerror="this.onerror=null;this.src='<%= LOGO %>'"
-          style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-bottom:10px;">
-        <p style="font-size:0.9rem;font-weight:600;color:#111;line-height:1.4;"><%= safeRandomPost.title %></p>
+          style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-bottom:10px;background:#e5e7eb;">
+        <p style="font-size:0.88rem;font-weight:700;color:#111;line-height:1.45;margin:0;"><%= safeRandomPost.title %></p>
       </a>
     </div>
     <% } %>
+
+    <!-- AdSense 2 -->
+    <div class="ad-slot">
+      <div class="ad-slot-label">Advertisement</div>
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-3628162691989275"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    </div>
 
   </aside>
 
@@ -261,45 +985,52 @@ function timeAgo(date) {
 <!-- FOOTER -->
 <footer class="bottom-links">
   <div class="footer-inner">
-    <div class="footer-col">
-      <h4>VOXARIA</h4>
-      <p>Nigeria's Voice to the World — Accurate, Fast, Trusted news from Anambra State, Nigeria.</p>
+    <div class="footer-brand footer-col">
+      <div class="logo">VOXARIA</div>
+      <p>Nigeria's Voice to the World — Delivering accurate, fast and trusted news from Anambra State, Nigeria since 2024.</p>
+      <div class="footer-socials">
+        <a class="footer-social-btn" href="https://web.facebook.com/voxaria" target="_blank">f</a>
+        <a class="footer-social-btn" href="https://wa.me/2349012567912" target="_blank">💬</a>
+        <a class="footer-social-btn" href="mailto:info@voxaria.org">✉️</a>
+      </div>
     </div>
     <div class="footer-col">
       <h4>News</h4>
+      <a href="/category/News">Latest News</a>
       <a href="/category/Politics">Politics</a>
       <a href="/category/Security">Security</a>
       <a href="/category/International">International</a>
-      <a href="/category/Sports">Sports</a>
+      <a href="/category/Article">Articles</a>
     </div>
     <div class="footer-col">
-      <h4>More</h4>
-      <a href="/category/Technology">Technology</a>
-      <a href="/category/Health">Health</a>
-      <a href="/category/Finance">Finance</a>
+      <h4>Sports & Life</h4>
+      <a href="/category/Sports">Sports</a>
+      <a href="/category/Football">Football</a>
       <a href="/category/Entertainment">Entertainment</a>
+      <a href="/category/Lifestyle">Lifestyle</a>
+      <a href="/category/Health">Health Tips</a>
     </div>
     <div class="footer-col">
       <h4>Company</h4>
       <a href="/about">About Us</a>
       <a href="/contact">Contact</a>
       <a href="/privacy-policy">Privacy Policy</a>
-      <a href="https://wa.me/2349012567912">WhatsApp</a>
-      <a href="https://web.facebook.com/voxaria">Facebook</a>
+      <a href="/category/Technology">Technology</a>
+      <a href="/category/Finance">Finance</a>
     </div>
   </div>
   <div class="footer-bottom">
-    <span>© 2026 VOXARIA Media. All Rights Reserved.</span>
+    <span>© 2026 VOXARIA Media. All Rights Reserved. Anambra State, Nigeria.</span>
     <span>
-      <a href="/privacy-policy">Privacy Policy</a> ·
+      <a href="/privacy-policy">Privacy</a> ·
       <a href="/about">About</a> ·
-      <a href="/contact">Contact</a>
+      <a href="/contact">Contact</a> ·
+      <a href="/admin">Admin</a>
     </span>
   </div>
 </footer>
 
 <script>
-/* Newsletter subscribe */
 async function subscribe(email, name, msgId) {
   const msgEl = document.getElementById(msgId);
   if (!email || !email.includes("@")) {
@@ -317,14 +1048,13 @@ async function subscribe(email, name, msgId) {
     const data = await res.json();
     msgEl.style.color = res.ok ? "#86efac" : "#fca5a5";
     msgEl.textContent = res.ok
-      ? "✅ " + (data.message || "Subscribed!")
+      ? "✅ " + (data.message || "Subscribed successfully!")
       : "❌ " + (data.error || "Something went wrong.");
   } catch {
     msgEl.style.color = "#fca5a5";
     msgEl.textContent = "❌ Network error. Try again.";
   }
 }
-
 function subscribeWidget() {
   subscribe(
     document.getElementById("subEmail").value.trim(),
@@ -332,28 +1062,24 @@ function subscribeWidget() {
     "widgetMsg"
   );
 }
-
 function subscribeBanner() {
   subscribe(document.getElementById("bannerEmail").value.trim(), "", "bannerMsg");
 }
 
-/* PWA */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
-      .then(r => console.log('SW registered:', r.scope))
-      .catch(e => console.error('SW failed:', e));
+      .then(r => console.log('SW:', r.scope))
+      .catch(e => console.error('SW:', e));
   });
 }
-
 let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
+window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
   const btn = document.getElementById('installAppBtn');
   if (btn) btn.style.display = 'block';
 });
-
 function installVoxariaApp() {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
@@ -364,6 +1090,5 @@ function installVoxariaApp() {
   });
 }
 </script>
-
 </body>
 </html>
