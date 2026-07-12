@@ -207,7 +207,7 @@ router.get("/admin/edit/:id", requireAdmin, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
-post.aiSummary = ""; // clear AI summary on edit so only editor's content shows
+
 /* =========================
    UPDATE POST
    — uses .path for Cloudinary URL
