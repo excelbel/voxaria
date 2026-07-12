@@ -234,6 +234,8 @@ router.post(
       post.category   = req.body.category;
       post.content    = req.body.content;
       post.isBreaking = req.body.isBreaking === "on";
+      // Use editor's own summary — clear AI generated one
+      post.aiSummary  = req.body.aiSummary || "";
 
       // Cloudinary returns full URL in .path
       post.thumbnail = req.files?.thumbnailFile
