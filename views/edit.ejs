@@ -70,9 +70,40 @@
     </div>
     <div>
       <select name="category">
-        <% ['News','Article','Entertainment','International','Journals','Politics','Security','Sports'].forEach(cat => { %>
-          <option value="<%= cat %>" <%= post?.category === cat ? 'selected' : '' %>><%= cat %></option>
-        <% }) %>
+        <optgroup label="── News ──">
+          <option value="News"          <%= post?.category === 'News'          ? 'selected' : '' %>>📰 Latest News</option>
+          <option value="Politics"      <%= post?.category === 'Politics'      ? 'selected' : '' %>>🏛️ Politics</option>
+          <option value="Security"      <%= post?.category === 'Security'      ? 'selected' : '' %>>🛡️ Security</option>
+          <option value="International" <%= post?.category === 'International' ? 'selected' : '' %>>🌍 International</option>
+          <option value="Article"       <%= post?.category === 'Article'       ? 'selected' : '' %>>✍️ Article</option>
+        </optgroup>
+        <optgroup label="── Sports ──">
+          <option value="Sports"        <%= post?.category === 'Sports'        ? 'selected' : '' %>>⚽ Sports</option>
+          <option value="Football"      <%= post?.category === 'Football'      ? 'selected' : '' %>>🥅 Football</option>
+          <option value="Basketball"    <%= post?.category === 'Basketball'    ? 'selected' : '' %>>🏀 Basketball</option>
+          <option value="Athletics"     <%= post?.category === 'Athletics'     ? 'selected' : '' %>>🏃 Athletics</option>
+        </optgroup>
+        <optgroup label="── Entertainment ──">
+          <option value="Entertainment" <%= post?.category === 'Entertainment' ? 'selected' : '' %>>🎬 Entertainment</option>
+          <option value="Lifestyle"     <%= post?.category === 'Lifestyle'     ? 'selected' : '' %>>💃 Lifestyle</option>
+          <option value="Music"         <%= post?.category === 'Music'         ? 'selected' : '' %>>🎵 Music</option>
+          <option value="Movies"        <%= post?.category === 'Movies'        ? 'selected' : '' %>>🎥 Movies</option>
+        </optgroup>
+        <optgroup label="── Technology ──">
+          <option value="Technology"    <%= post?.category === 'Technology'    ? 'selected' : '' %>>💻 Technology</option>
+          <option value="Science"       <%= post?.category === 'Science'       ? 'selected' : '' %>>🔬 Science</option>
+          <option value="AI"            <%= post?.category === 'AI'            ? 'selected' : '' %>>🤖 AI & Innovation</option>
+        </optgroup>
+        <optgroup label="── Business ──">
+          <option value="Finance"       <%= post?.category === 'Finance'       ? 'selected' : '' %>>💰 Finance</option>
+          <option value="Economy"       <%= post?.category === 'Economy'       ? 'selected' : '' %>>📈 Economy</option>
+          <option value="Markets"       <%= post?.category === 'Markets'       ? 'selected' : '' %>>📊 Markets</option>
+        </optgroup>
+        <optgroup label="── Health ──">
+          <option value="Health"        <%= post?.category === 'Health'        ? 'selected' : '' %>>❤️ Health Tips</option>
+          <option value="Wellness"      <%= post?.category === 'Wellness'      ? 'selected' : '' %>>🧘 Wellness</option>
+          <option value="Journals"      <%= post?.category === 'Journals'      ? 'selected' : '' %>>📖 Journals</option>
+        </optgroup>
       </select>
     </div>
   </div>
