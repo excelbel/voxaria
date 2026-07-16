@@ -181,6 +181,7 @@ router.post(
         author:     req.body.author   || "Admin",
         thumbnail,
         mainImage,
+        aiSummary:  req.body.aiSummary || "",
         isBreaking: req.body.isBreaking === "on",
         published:  false
       });
