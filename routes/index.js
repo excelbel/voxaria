@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
+router.use(require("./sitemap.route"));
 
 const homeController = require("../src/controllers/homeController");
 const Post = require("../src/models/post");
@@ -389,5 +390,6 @@ router.get("/debug/categories", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
